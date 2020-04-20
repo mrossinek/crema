@@ -35,6 +35,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.botbar.bkgd(' ', curses.color_pair(1))
         self.statusbar(self.botbar, "q:Quit")
 
+        # Initialize command prompt
+        self.prompt = curses.newwin(1, self.width, self.height-1, 0)
+
         # populate buffer with list of reference entries
         self.buffer = TUI.TextBuffer()
         ListCommand().execute(['--long'], out=self.buffer)
@@ -100,6 +103,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self._scroll_x(-1)
             elif key in (curses.KEY_RIGHT, ord('l')):
                 self._scroll_x(1)
+            elif key == ord(':'):
+                self._prompt()
+            elif key == ord('a'):
+                self._prompt('add')
 
             # highlight current line
             self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
@@ -131,6 +138,38 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # limit column such that no empty columns can appear on left or right
         if 0 <= next_col <= self.buffer.width - self.width:
             self.left_edge = next_col
+
+    def _prompt(self, command=None):
+        # enter echo mode and make cursor visible
+        curses.echo()
+        curses.curs_set(1)
+
+        # populate prompt line and place cursor
+        prompt = ":" if command is None else f":{command} "
+        self.prompt.addstr(0, 0, prompt)
+        self.prompt.move(0, len(prompt))
+        self.prompt.refresh()
+
+        key = 0
+        # handle special keys
+        while key != 27:  # exit on ESC
+            if key == 127:  # BACKSPACE
+                cur_y, cur_x = self.prompt.getyx()
+                # replace last three characters with spaces (2 characters from BACKSPACE key)
+                self.prompt.addstr(cur_y, cur_x - 3, '   ')
+                self.prompt.move(cur_y, cur_x - 3)
+            elif key in (10, 13):  # ENTER
+                # TODO handle command
+                break
+            key = self.prompt.getch()
+
+        # leave echo mode and make cursor invisible
+        curses.noecho()
+        curses.curs_set(0)
+
+        # clear prompt line
+        self.prompt.clear()
+        self.prompt.refresh()
 
 
 def tui():
