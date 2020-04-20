@@ -58,10 +58,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
 
-    def statusbar(self, bar, text, attr=0):
+    def statusbar(self, statusline, text, attr=0):  # pylint: disable=no-self-use
         """Update the text in the provided statusbar and refresh it."""
-        bar.addstr(0, 0, text, attr)
-        bar.refresh()
+        statusline.addstr(0, 0, text, attr)
+        statusline.refresh()
 
     class TextBuffer:  # pylint: disable=too-few-public-methods
         """TextBuffer class used as an auxiliary variable to redirect output into.
