@@ -25,19 +25,15 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.colors()
 
         # Initialize top status bar
-        self.top_status = "CoBib v{}".format(__version__)
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(1))
-        self.topbar.addstr(0, 0, self.top_status, curses.color_pair(1))
-        self.topbar.refresh()
+        self.statusbar(self.topbar, "CoBib v{}".format(__version__))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
-        self.bot_status = "q:Quit"
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(1))
-        self.botbar.addstr(0, 0, self.bot_status)
-        self.botbar.refresh()
+        self.statusbar(self.botbar, "q:Quit")
 
         # populate buffer with list of reference entries
         self.buffer = TUI.TextBuffer()
@@ -49,6 +45,18 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             self.viewport.addstr(row, 0, line)
 
         self.loop()
+
+    def colors(self):  # pylint: disable=no-self-use
+        """Initialize the color pairs for the curses TUI."""
+        # Start colors in curses
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
+
+    def statusbar(self, bar, text, attr=0):
+        """Update the text in the provided statusbar and refresh it."""
+        bar.addstr(0, 0, text, attr)
+        bar.refresh()
 
     class TextBuffer:  # pylint: disable=too-few-public-methods
         """TextBuffer class used as an auxiliary variable to redirect output into.
@@ -69,14 +77,6 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.lines.append(string)
                 self.height = len(self.lines)
                 self.width = max(self.width, len(string))
-
-    def colors(self):  # pylint: disable=no-self-use
-        """Initialize the color pairs for the curses TUI."""
-        # Start colors in curses
-        curses.start_color()
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     def loop(self):
         """The key-handling event loop."""
@@ -118,7 +118,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             if 0 <= next_col <= self.buffer.width - self.width:
                 left_edge = next_col
 
-            self.viewport.chgat(current_line, 0, curses.A_REVERSE)
+            self.viewport.chgat(current_line, 0, curses.color_pair(2))
 
             # Refresh the screen
             self.viewport.refresh(top_line, left_edge, 1, 0, view_lines, self.width-1)
