@@ -7,7 +7,11 @@ from cobib.commands import ListCommand
 
 
 class TUI:  # pylint: disable=too-many-instance-attributes
-    """ TODO """
+    """CoBib's curses-based TUI.
+
+    The TUI is implemented as a class to simplify management of different windows/pads and keep a
+    synchronized state most consistently.
+    """
 
     def __init__(self, stdscr):
         self.stdscr = stdscr
@@ -47,14 +51,19 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.loop()
 
     class TextBuffer:  # pylint: disable=too-few-public-methods
-        """ TODO """
+        """TextBuffer class used as an auxiliary variable to redirect output into.
+
+        This buffer class implements a `write` method which allows it to be used as a drop-in source
+        for the `file` argument of the `print()` method. Thereby, its output can be gathered in this
+        buffer for further usage (such as printing it into a curses pad).
+        """
         def __init__(self):
             self.lines = []
             self.height = 0
             self.width = 0
 
         def write(self, string):
-            """ TODO """
+            """Writes a non-empty string into the buffer."""
             if string.strip():
                 # only handle non-empty strings
                 self.lines.append(string)
@@ -62,7 +71,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.width = max(self.width, len(string))
 
     def colors(self):  # pylint: disable=no-self-use
-        """ TODO """
+        """Initialize the color pairs for the curses TUI."""
         # Start colors in curses
         curses.start_color()
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
@@ -70,7 +79,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     def loop(self):
-        """ TODO """
+        """The key-handling event loop."""
         k = 0
         view_lines = self.height-3
         current_line = 0
@@ -119,7 +128,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
 
 def tui():
-    """ Main executable for TUI """
+    """Main executable for the curses-TUI."""
     curses.wrapper(TUI)
 
 
