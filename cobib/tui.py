@@ -62,7 +62,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
 
     def statusbar(self, statusline, text, attr=0):  # pylint: disable=no-self-use
-        """Update the text in the provided statusbar and refresh it."""
+        """Update the text in the provided status bar and refresh it."""
         statusline.addstr(0, 0, text, attr)
         statusline.refresh()
 
