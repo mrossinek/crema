@@ -44,6 +44,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         for row, line in enumerate(self.buffer.lines):
             self.viewport.addstr(row, 0, line)
 
+        # prepare and start key event loop
+        self.current_line = 0
+        self.visible = self.height-3
+        self.top_line = 0
+        self.left_edge = 0
         self.loop()
 
     def colors(self):  # pylint: disable=no-self-use
@@ -80,51 +85,52 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     def loop(self):
         """The key-handling event loop."""
-        k = 0
-        view_lines = self.height-3
-        current_line = 0
-        top_line = 0
-        left_edge = 0
+        key = 0
+        # key is the last character pressed
+        while key != ord('q'):
+            # reset highlight of current line
+            self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
 
-        # Loop where k is the last character pressed
-        while k != ord('q'):
-            self.viewport.chgat(current_line, 0, curses.A_NORMAL)
-            update = 0
-            scroll = 0
-            if k in (curses.KEY_DOWN, ord('j')):
-                update = 1
-            elif k in (curses.KEY_UP, ord('k')):
-                update = -1
-            elif k in (curses.KEY_LEFT, ord('h')):
-                scroll = -1
-            elif k in (curses.KEY_RIGHT, ord('l')):
-                scroll = 1
+            # handle possible keys
+            if key in (curses.KEY_DOWN, ord('j')):
+                self._scroll_y(1)
+            elif key in (curses.KEY_UP, ord('k')):
+                self._scroll_y(-1)
+            elif key in (curses.KEY_LEFT, ord('h')):
+                self._scroll_x(-1)
+            elif key in (curses.KEY_RIGHT, ord('l')):
+                self._scroll_x(1)
 
-            next_line = current_line + update
-
-            if update == -1:
-                if top_line > 0 and next_line < top_line:
-                    top_line += update
-                if next_line >= 0:
-                    current_line = next_line
-            elif update == 1:
-                if next_line - top_line == view_lines and \
-                        top_line + view_lines < self.buffer.height:
-                    top_line += update
-                if next_line < self.buffer.height:
-                    current_line = next_line
-
-            next_col = left_edge + scroll
-            if 0 <= next_col <= self.buffer.width - self.width:
-                left_edge = next_col
-
-            self.viewport.chgat(current_line, 0, curses.color_pair(2))
+            # highlight current line
+            self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
 
             # Refresh the screen
-            self.viewport.refresh(top_line, left_edge, 1, 0, view_lines, self.width-1)
+            self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
 
             # Wait for next input
-            k = self.stdscr.getch()
+            key = self.stdscr.getch()
+
+    def _scroll_y(self, update):
+        next_line = self.current_line + update
+        # scroll up
+        if update == -1:
+            if self.top_line > 0 and next_line < self.top_line:
+                self.top_line += update
+            if next_line >= 0:
+                self.current_line = next_line
+        # scroll down
+        elif update == 1:
+            if next_line - self.top_line == self.visible and \
+                    self.top_line + self.visible < self.buffer.height:
+                self.top_line += update
+            if next_line < self.buffer.height:
+                self.current_line = next_line
+
+    def _scroll_x(self, update):
+        next_col = self.left_edge + update
+        # limit column such that no empty columns can appear on left or right
+        if 0 <= next_col <= self.buffer.width - self.width:
+            self.left_edge = next_col
 
 
 def tui():
