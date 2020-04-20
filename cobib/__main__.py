@@ -7,6 +7,7 @@ import inspect
 import sys
 
 from cobib import commands, zsh_helper
+from cobib import __version__
 from cobib.config import set_config
 from cobib.tui import tui
 
@@ -19,10 +20,12 @@ def main():
         sys.exit()
 
     subcommands = [cmd.split(':')[0] for cmd in zsh_helper.list_commands()]
-    parser = argparse.ArgumentParser(prog='cobib', description="""
+    parser = argparse.ArgumentParser(prog='CoBib', description="""
                                      Cobib input arguments.
                                      If no arguments are given, the TUI will start as a default.
                                      """)
+    parser.add_argument("-v", "--version", action="version",
+                        version="%(prog)s v{}".format(__version__))
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")
     parser.add_argument('command', help="subcommand to be called", choices=subcommands)

@@ -2,6 +2,7 @@
 
 import curses
 
+from cobib import __version__
 from cobib.commands import ListCommand
 
 
@@ -20,7 +21,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.colors()
 
         # Initialize top status bar
-        self.top_status = "CoBib"
+        self.top_status = "CoBib v{}".format(__version__)
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(1))
         self.topbar.addstr(0, 0, self.top_status, curses.color_pair(1))
