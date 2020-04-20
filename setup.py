@@ -29,7 +29,6 @@ setup(
         'pylatexenc',
         'requests',
         'ruamel.yaml',
-        'tabulate'
     ],
     entry_points={
         'console_scripts': [

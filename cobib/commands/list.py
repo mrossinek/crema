@@ -6,9 +6,6 @@ import textwrap
 from collections import defaultdict
 from operator import itemgetter
 
-# third-party
-import tabulate
-
 from .base_command import Command
 
 
@@ -61,6 +58,7 @@ class ListCommand(Command):  # pylint: disable=too-few-public-methods
         if largs.sort and largs.sort not in columns:
             columns.append(largs.sort)
         columns.extend([arg[0] for arg in _filter.keys() if arg[0] not in columns])
+        widths = [0]*len(columns)
         labels = []
         table = []
         for key, entry in bib_data.items():
@@ -68,10 +66,12 @@ class ListCommand(Command):  # pylint: disable=too-few-public-methods
                 labels.append(key)
                 table.append([entry.data.get(c, None) for c in columns])
                 if largs.long:
-                    table[-1][1] = textwrap.fill(table[-1][1], width=80)
+                    table[-1][1] = table[-1][1]
                 else:
                     table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
+                widths = [max(widths[col], len(table[-1][col])) for col in range(len(widths))]
         if largs.sort:
             table = sorted(table, key=itemgetter(columns.index(largs.sort)), reverse=largs.reverse)
-        print(tabulate.tabulate(table, headers=columns), file=out)
+        for row in table:
+            print('  '.join([f'{col: <{wid}}' for col, wid in zip(row, widths)]), file=out)
         return labels
