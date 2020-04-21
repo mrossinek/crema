@@ -74,8 +74,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.visible = self.height-3
         # and colors
         TUI.colors()
-        # possible key mappings
-        self.keymap = {}
+        # and inactive commands
+        self.inactive_commands = []
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width+1, 0, 0)
@@ -118,41 +118,27 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def statusbar(statusline, text, attr=0):
         """Update the text in the provided status bar and refresh it."""
         statusline.erase()
-        statusline.addstr(0, 0, text, attr)
+        _, max_x = statusline.getmaxyx()
+        statusline.addnstr(0, 0, text, max_x-1, attr)
         statusline.refresh()
 
     @property
     def infoline(self):
-        """Information on the keymappings."""
-        cmds = ["Quit", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
-                "Search", "Filter", "Sort", "Select", "", "Export", "", "Prompt", "Help"]
+        """Lists available key bindings."""
+        cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
+                "Search", "Filter", "Sort", "Select", "", "Export"]
         infoline = ''
         for cmd in cmds:
             if cmd:
-                # get key associated with this command
+                # get associated key for this command
                 for key, command in TUI.KEYDICT.items():
                     if cmd == command:
                         key = 'ENTER' if key in (10, 13) else chr(key)
-                        infoline += " {}~{}".format(key, cmd)
+                        infoline += " {}:{}".format(key, cmd)
                         break
             else:
-                infoline += "   "
+                infoline += "  "
         return infoline.strip()
-
-    def map_key(self, key, alt=None, disable=False):
-        """Maps a key to an alternative one or enables/disables it."""
-        if alt is not None:
-            # alternative key provided: map key to it
-            self.keymap[key] = alt
-            # ensure alternative key performs no action itself
-            self.keymap[alt] = None
-        else:
-            if disable:
-                # disable the key
-                self.keymap[key] = None
-            elif key in self.keymap.keys():
-                # enable the key if was previously disabled
-                del self.keymap[key]
 
     def loop(self):
         """The key-handling event loop."""
@@ -164,14 +150,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
             # handle possible keys
             try:
-                if key in self.keymap.keys():
-                    # the key is either mapped to an alternative or disabled
-                    alt_key = self.keymap.get(key)
-                    if alt_key is not None and alt_key in TUI.KEYDICT.keys():
-                        # only run the alternative key if it is actually implemented
-                        TUI.COMMANDS[TUI.KEYDICT[alt_key]](self)
-                elif key in TUI.KEYDICT.keys():
-                    TUI.COMMANDS[TUI.KEYDICT[key]](self)
+                if key in TUI.KEYDICT.keys():
+                    cmd = TUI.KEYDICT[key]
+                    if cmd not in self.inactive_commands:
+                        TUI.COMMANDS[cmd](self)
             except StopIteration:
                 # raised by quit command
                 break
