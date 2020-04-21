@@ -40,8 +40,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
 
         # populate buffer with list of reference entries
-        self.buffer = TUI.TextBuffer()
-        ListCommand().execute(['--long'], out=self.buffer)
+        self.initial_list = TUI.TextBuffer()
+        ListCommand().execute(['--long'], out=self.initial_list)
+
+        self.buffer = self.initial_list.copy()
 
         # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
         self.viewport = curses.newpad(self.buffer.height+1, self.buffer.width)
@@ -67,7 +69,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         statusline.addstr(0, 0, text, attr)
         statusline.refresh()
 
-    class TextBuffer:  # pylint: disable=too-few-public-methods
+    class TextBuffer:
         """TextBuffer class used as an auxiliary variable to redirect output into.
 
         This buffer class implements a `write` method which allows it to be used as a drop-in source
@@ -78,6 +80,14 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             self.lines = []
             self.height = 0
             self.width = 0
+
+        def copy(self):
+            """Copy."""
+            clone = TUI.TextBuffer()
+            clone.lines = self.lines.copy()
+            clone.height = self.height
+            clone.width = self.width
+            return clone
 
         def write(self, string):
             """Writes a non-empty string into the buffer."""
