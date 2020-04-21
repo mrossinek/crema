@@ -28,16 +28,15 @@ def main():
                         version="%(prog)s v{}".format(__version__))
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")
-    parser.add_argument('command', help="subcommand to be called", choices=subcommands)
+    parser.add_argument('command', help="subcommand to be called", choices=subcommands, nargs='?')
     parser.add_argument('args', nargs=argparse.REMAINDER)
 
-    if len(sys.argv) == 1:
-        set_config()
+    args = parser.parse_args()
+
+    set_config(args.config)
+    if not args.command:
         tui()
     else:
-        args = parser.parse_args()
-
-        set_config(args.config)
         subcmd = getattr(commands, args.command.title()+'Command')()
         subcmd.execute(args.args)
 
