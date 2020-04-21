@@ -3,7 +3,7 @@
 import curses
 
 from cobib import __version__
-from cobib.commands import ListCommand
+from cobib.commands import ListCommand, ShowCommand
 
 
 class TUI:  # pylint: disable=too-many-instance-attributes
@@ -97,7 +97,36 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.height = len(self.lines)
                 self.width = max(self.width, len(string))
 
-    def loop(self):
+        def clear(self):
+            """Cleares the buffer."""
+            self.lines = []
+            self.height = 0
+            self.width = 0
+
+        def split(self):
+            """Split lines at linebreaks."""
+            copy = self.lines.copy()
+            self.lines = []
+            self.width = 0
+            for line in copy:
+                for string in line.split('\n'):
+                    self.lines.append(string)
+                    self.width = max(self.width, len(string))
+            self.height = len(self.lines)
+
+        def view(self, pad, visible_height, visible_width):
+            """View buffer in provided curses pad."""
+            # first clear pad
+            pad.erase()
+            pad.refresh(0, 0, 1, 0, visible_height, visible_width)
+            # then resize
+            pad.resize(self.height+1, self.width)
+            # and populate
+            for row, line in enumerate(self.lines):
+                pad.addstr(row, 0, line)
+            pad.refresh(0, 0, 1, 0, visible_height, visible_width)
+
+    def loop(self, disabled=None):
         """The key-handling event loop."""
         key = 0
         # key is the last character pressed
@@ -106,7 +135,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
 
             # handle possible keys
-            if key in (curses.KEY_DOWN, ord('j')):
+            if disabled and key in disabled:
+                pass
+            elif key in (curses.KEY_DOWN, ord('j')):
                 self._scroll_y(1)
             elif key in (curses.KEY_UP, ord('k')):
                 self._scroll_y(-1)
@@ -114,6 +145,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self._scroll_x(-1)
             elif key in (curses.KEY_RIGHT, ord('l')):
                 self._scroll_x(1)
+            elif key in (10, 13):
+                # ENTER key
+                self._run_command(ShowCommand)
             elif key == ord(':'):
                 self._prompt()
             elif key == ord('a'):
@@ -182,6 +216,32 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt.clear()
         self.prompt.refresh()
 
+    def _run_command(self, cmd):
+        # get current label
+        cur_y, _ = self.viewport.getyx()
+        label = ''
+        char = ''
+        cur_x = 0
+        while char != ' ':
+            label += char
+            char = chr(self.viewport.inch(cur_y, cur_x))
+            cur_x += 1
+
+        # populate buffer
+        self.buffer.clear()
+        cmd().execute([label], out=self.buffer)
+        self.buffer.split()
+        self.buffer.view(self.viewport, self.visible, self.width-1)
+
+        # fall into nested key event loop
+        prev_current = self.current_line
+        self.current_line = 0
+        self.loop(disabled=[ord('a'), 10, 13])
+        self.current_line = prev_current
+
+        # populate buffer with list of reference entries
+        self.buffer = self.initial_list.copy()
+        self.buffer.view(self.viewport, self.visible, self.width-1)
 
 def tui():
     """Main executable for the curses-TUI."""
