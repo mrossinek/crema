@@ -22,7 +22,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Export': lambda _: None,  # TODO export command
         'Filter': lambda _: None,  # TODO filter command
         'Help': lambda _: None,  # TODO help command
-        'Open': lambda _: None,  # TODO open command
+        'Open': commands.OpenCommand.tui,
         'Prompt': lambda _: None,  # TODO command prompt
         'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command

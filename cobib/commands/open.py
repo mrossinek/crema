@@ -40,3 +40,13 @@ class OpenCommand(Command):
                     pass
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
+
+    @staticmethod
+    def tui(tui):
+        """TUI command interface"""
+        # get current label
+        label = tui.get_current_label()
+        # overwrite jumping out of list mode
+        tui.list_mode = -1
+        # populate buffer with entry data
+        OpenCommand().execute([label])
