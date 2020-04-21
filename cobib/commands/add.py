@@ -1,6 +1,7 @@
 """CoBib add command"""
 
 import argparse
+import os
 import sys
 from collections import OrderedDict
 
@@ -62,3 +63,17 @@ class AddCommand(Command):
                 value.set_tags(largs.tags)
 
         self._write_database(new_entries)
+
+    @staticmethod
+    def tui(tui):
+        """TUI command interface"""
+        # temporarily disable prints to stdout
+        original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+        # handle input via prompt
+        tui.prompt_handler('add')
+        # restore stdout
+        sys.stdout.close()
+        sys.stdout = original_stdout
+        # update database list
+        tui.update_list()

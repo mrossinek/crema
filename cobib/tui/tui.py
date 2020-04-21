@@ -17,7 +17,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     # available command dictionary
     COMMANDS = {
-        'Add': lambda _: None,  # TODO add command
+        'Add': commands.AddCommand.tui,
         'Delete': commands.DeleteCommand.tui,
         'Edit': commands.EditCommand.tui,
         'Export': lambda _: None,  # TODO export command
@@ -233,18 +233,20 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.buffer.wrap(self.width)
         self.buffer.view(self.viewport, self.visible, self.width-1)
 
-    def _prompt(self, command=None):
+    def prompt_handler(self, command=None):
+        """Handle prompt input."""
         # enter echo mode and make cursor visible
         curses.echo()
         curses.curs_set(1)
 
         # populate prompt line and place cursor
-        prompt = ":" if command is None else f":{command} "
-        self.prompt.addstr(0, 0, prompt)
-        self.prompt.move(0, len(prompt))
+        prompt_line = ":" if command is None else f":{command} "
+        self.prompt.addstr(0, 0, prompt_line)
+        self.prompt.move(0, len(prompt_line))
         self.prompt.refresh()
 
         key = 0
+        command = ''
         # handle special keys
         while key != 27:  # exit on ESC
             if key == 127:  # BACKSPACE
@@ -253,7 +255,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.prompt.addstr(cur_y, cur_x - 3, '   ')
                 self.prompt.move(cur_y, cur_x - 3)
             elif key in (10, 13):  # ENTER
-                # TODO handle command
+                command = self.prompt.instr(0, 1).decode('utf-8').strip()
                 break
             key = self.prompt.getch()
 
@@ -265,7 +267,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt.clear()
         self.prompt.refresh()
 
-        # TODO return prompt string
+        # process command if it non empty and actually has arguments
+        if command and command.split(' ')[1:]:
+            subcmd = getattr(commands, command.split(' ')[0].title()+'Command')()
+            subcmd.execute(command.split(' ')[1:])
 
     def get_current_label(self):
         """Obtain label of currently selected entry."""
