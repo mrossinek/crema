@@ -3,7 +3,7 @@
 import curses
 
 from cobib import __version__
-from cobib.commands import ListCommand, ShowCommand
+from cobib.commands import ListCommand, ShowCommand, DeleteCommand
 
 
 class TUI:  # pylint: disable=too-many-instance-attributes
@@ -152,6 +152,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self._prompt()
             elif key == ord('a'):
                 self._prompt('add')
+            elif key == ord('d'):
+                self._run_command(DeleteCommand)
 
             # highlight current line
             self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
@@ -230,14 +232,19 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # populate buffer
         self.buffer.clear()
         cmd().execute([label], out=self.buffer)
-        self.buffer.split()
-        self.buffer.view(self.viewport, self.visible, self.width-1)
+        if self.buffer.lines:
+            self.buffer.split()
+            self.buffer.view(self.viewport, self.visible, self.width-1)
 
-        # fall into nested key event loop
-        prev_current = self.current_line
-        self.current_line = 0
-        self.loop(disabled=[ord('a'), 10, 13])
-        self.current_line = prev_current
+            # fall into nested key event loop
+            prev_current = self.current_line
+            self.current_line = 0
+            self.loop(disabled=[ord('a'), 10, 13])
+            self.current_line = prev_current
+        else:
+            # something changed in the database
+            self.initial_list.clear()
+            ListCommand().execute(['--long'], out=self.initial_list)
 
         # populate buffer with list of reference entries
         self.buffer = self.initial_list.copy()
