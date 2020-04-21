@@ -7,7 +7,7 @@ from cobib.config import CONFIG
 from .base_command import Command
 
 
-class InitCommand(Command):  # pylint: disable=too-few-public-methods
+class InitCommand(Command):
     """Init Command"""
 
     name = 'init'

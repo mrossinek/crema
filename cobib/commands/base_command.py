@@ -10,7 +10,7 @@ from cobib.config import CONFIG
 from cobib.parser import Entry
 
 
-class Command(ABC):  # pylint: disable=too-few-public-methods
+class Command(ABC):
     """
     The Command interface declares a method for command execution and some helper methods.
     """
@@ -18,6 +18,9 @@ class Command(ABC):  # pylint: disable=too-few-public-methods
     @abstractmethod
     def execute(self, args, out=sys.stdout):
         """Command execution"""
+
+    def tui(self, tui):
+        """TUI command interface"""
 
     # HELPER FUNCTIONS
     @staticmethod

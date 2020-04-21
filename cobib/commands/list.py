@@ -9,7 +9,7 @@ from operator import itemgetter
 from .base_command import Command
 
 
-class ListCommand(Command):  # pylint: disable=too-few-public-methods
+class ListCommand(Command):
     """List Command"""
 
     name = 'list'

@@ -7,7 +7,7 @@ from subprocess import Popen
 from .base_command import Command
 
 
-class OpenCommand(Command):  # pylint: disable=too-few-public-methods
+class OpenCommand(Command):
     """Open Command"""
 
     name = 'open'

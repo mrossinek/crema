@@ -6,7 +6,7 @@ import sys
 from .base_command import Command
 
 
-class ShowCommand(Command):  # pylint: disable=too-few-public-methods
+class ShowCommand(Command):
     """Show Command"""
 
     name = 'show'
@@ -29,3 +29,23 @@ class ShowCommand(Command):  # pylint: disable=too-few-public-methods
             print(entry_str, file=out)
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
+
+    def tui(self, tui):
+        """TUI command interface"""
+        # get current label
+        label = tui.get_current_label()
+        # populate buffer with entry data
+        tui.buffer.clear()
+        self.execute([label], out=tui.buffer)
+        tui.buffer.split()
+        tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
+
+        # store previously selected line
+        prev_current = tui.current_line
+        tui.current_line = 0
+        # enter show menu (event loop with some commands disabled)
+        tui.loop(disabled=[ord('a'), 10, 13])
+
+        # after exiting show menu: restore selected line and list view
+        tui.current_line = prev_current
+        tui.update_database_list()

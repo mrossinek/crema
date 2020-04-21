@@ -9,7 +9,7 @@ from .base_command import Command
 from .list import ListCommand
 
 
-class ExportCommand(Command):  # pylint: disable=too-few-public-methods
+class ExportCommand(Command):
     """Export Command"""
 
     name = 'export'

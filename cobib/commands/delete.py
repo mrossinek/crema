@@ -8,7 +8,7 @@ from cobib.config import CONFIG
 from .base_command import Command
 
 
-class DeleteCommand(Command):  # pylint: disable=too-few-public-methods
+class DeleteCommand(Command):
     """Delete Command"""
 
     name = 'delete'
@@ -43,3 +43,12 @@ class DeleteCommand(Command):  # pylint: disable=too-few-public-methods
         with open(file, 'w') as bib:
             for line in buffer:
                 bib.write(line)
+
+    def tui(self, tui):
+        """TUI command interface"""
+        # get current label
+        label = tui.get_current_label()
+        # delete selected entry
+        self.execute([label])
+        # update database list
+        tui.update_database_list()

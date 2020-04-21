@@ -8,7 +8,7 @@ from cobib.parser import Entry
 from .base_command import Command
 
 
-class AddCommand(Command):  # pylint: disable=too-few-public-methods
+class AddCommand(Command):
     """Add Command"""
 
     name = 'add'

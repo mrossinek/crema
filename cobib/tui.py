@@ -41,10 +41,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
 
         # populate buffer with list of reference entries
-        self.initial_list = TUI.TextBuffer()
-        ListCommand().execute(['--long'], out=self.initial_list)
+        self.database_list = TUI.TextBuffer()
+        ListCommand().execute(['--long'], out=self.database_list)
 
-        self.buffer = self.initial_list.copy()
+        self.buffer = self.database_list.copy()
 
         # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
         self.viewport = curses.newpad(self.buffer.height+1, self.buffer.width)
@@ -158,7 +158,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self._scroll_x(1)
             elif key in (10, 13):
                 # ENTER key
-                self._run_command(ShowCommand)
+                ShowCommand().tui(self)
             elif key == ord(':'):
                 self._prompt()
             elif key == ord('/'):
@@ -170,7 +170,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             elif key == ord('a'):
                 self._prompt('add')
             elif key == ord('d'):
-                self._run_command(DeleteCommand)
+                DeleteCommand().tui(self)
             elif key == ord('e'):
                 # TODO edit command
                 pass
@@ -253,36 +253,26 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt.clear()
         self.prompt.refresh()
 
-    def _run_command(self, cmd):
-        # get current label
+        # TODO return prompt string
+
+    def get_current_label(self):
+        """Obtain label of currently selected entry."""
         cur_y, _ = self.viewport.getyx()
-        label = ''
-        char = ''
         cur_x = 0
-        while char != ' ':
-            label += char
-            char = chr(self.viewport.inch(cur_y, cur_x))
+        label = ''
+        while True:
+            label += chr(self.viewport.inch(cur_y, cur_x))
             cur_x += 1
+            if label[-1] == ' ':
+                break
+        return label[:-1]
 
-        # populate buffer
-        self.buffer.clear()
-        cmd().execute([label], out=self.buffer)
-        if self.buffer.lines:
-            self.buffer.split()
-            self.buffer.view(self.viewport, self.visible, self.width-1)
-
-            # fall into nested key event loop
-            prev_current = self.current_line
-            self.current_line = 0
-            self.loop(disabled=[ord('a'), 10, 13])
-            self.current_line = prev_current
-        else:
-            # something changed in the database
-            self.initial_list.clear()
-            ListCommand().execute(['--long'], out=self.initial_list)
-
-        # populate buffer with list of reference entries
-        self.buffer = self.initial_list.copy()
+    def update_database_list(self):
+        """Updates the default list view."""
+        self.database_list.clear()
+        ListCommand().execute(['--long'], out=self.database_list)
+        # populate buffer with the list
+        self.buffer = self.database_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
 
 
