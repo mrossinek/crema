@@ -23,6 +23,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # Initialize layout
         curses.curs_set(0)
         self.height, self.width = self.stdscr.getmaxyx()
+        self.visible = self.height-3
         # and colors
         self.colors()
 
@@ -37,23 +38,16 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.botbar.bkgd(' ', curses.color_pair(1))
         self.statusbar(self.botbar, "q:Quit")
 
-        # Initialize command prompt
+        # Initialize command prompt and viewport
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
+        self.viewport = curses.newpad(1, 1)
 
         # populate buffer with list of reference entries
         self.database_list = TextBuffer()
-        ListCommand().execute(['--long'], out=self.database_list)
-
-        self.buffer = self.database_list.copy()
-
-        # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
-        self.viewport = curses.newpad(self.buffer.height+1, self.buffer.width)
-        for row, line in enumerate(self.buffer.lines):
-            self.viewport.addstr(row, 0, line)
+        self.update_database_list()
 
         # prepare and start key event loop
         self.current_line = 0
-        self.visible = self.height-3
         self.top_line = 0
         self.left_edge = 0
         self.loop()
@@ -191,6 +185,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def get_current_label(self):
         """Obtain label of currently selected entry."""
         cur_y, _ = self.viewport.getyx()
+        while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
+            cur_y -= 1
         cur_x = 0
         label = ''
         while True:
@@ -198,7 +194,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             cur_x += 1
             if label[-1] == ' ':
                 break
-        return label[:-1]
+        return label[:-1], cur_y
 
     def update_database_list(self):
         """Updates the default list view."""

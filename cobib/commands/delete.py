@@ -47,7 +47,7 @@ class DeleteCommand(Command):
     def tui(self, tui):
         """TUI command interface"""
         # get current label
-        label = tui.get_current_label()
+        label, _ = tui.get_current_label()
         # delete selected entry
         self.execute([label])
         # update database list

@@ -10,6 +10,9 @@ class TextBuffer:
     for the `file` argument of the `print()` method. Thereby, its output can be gathered in this
     buffer for further usage (such as printing it into a curses pad).
     """
+
+    INDENT = "↪ "
+
     def __init__(self):
         self.lines = []
         self.height = 0
@@ -53,7 +56,7 @@ class TextBuffer:
         copy = self.lines.copy()
         self.lines = []
         for line in copy:
-            for string in textwrap.wrap(line, width=width-1, subsequent_indent="↪ "):
+            for string in textwrap.wrap(line, width=width-1, subsequent_indent=TextBuffer.INDENT):
                 self.lines.append(string)
         self.width = width
         self.height = len(self.lines)
@@ -64,6 +67,7 @@ class TextBuffer:
         pad.erase()
         pad.refresh(0, 0, 1, 0, visible_height, visible_width)
         # then resize
+        # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
         pad.resize(self.height+1, max(self.width, visible_width+1))
         # and populate
         for row, line in enumerate(self.lines):
