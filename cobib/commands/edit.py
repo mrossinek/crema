@@ -58,3 +58,15 @@ class EditCommand(Command):
                     continue
                 if not entry_to_be_replaced:
                     bib.write(line)
+
+    @staticmethod
+    def tui(tui):
+        """TUI command interface"""
+        # get current label
+        label = tui.get_current_label()
+        # populate buffer with entry data
+        EditCommand().execute([label])
+        # redraw total screen after closing external editor
+        tui.resize_handler(None, None)
+        # update database list
+        tui.update_list()
