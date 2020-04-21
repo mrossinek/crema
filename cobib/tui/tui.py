@@ -92,8 +92,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.viewport = curses.newpad(1, 1)
 
         # populate buffer with list of reference entries
-        self.database_list = TextBuffer()
-        self.update_database_list()
+        self.buffer = TextBuffer()
+        self.update_list()
 
         # prepare and start key event loop
         self.current_line = 0
@@ -107,7 +107,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         if self.list_mode == -1:
             raise StopIteration
         self.current_line = self.list_mode
-        self.update_database_list()
+        self.update_list()
 
     @staticmethod
     def colors():
@@ -195,7 +195,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             self.left_edge = next_col
 
     def wrap(self):
-        """Wraps the text currently displayed in the viewport."""
+        """Toggles wrapping of the text currently displayed in the viewport."""
         # first, ensure left_edge is set to 0
         self.left_edge = 0
         # then, wrap the buffer
@@ -252,14 +252,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
         return label
 
-    def update_database_list(self):
+    def update_list(self):
         """Updates the default list view."""
-        self.database_list.clear()
-        labels = commands.ListCommand().execute(['--long'], out=self.database_list)
+        self.buffer.clear()
+        labels = commands.ListCommand().execute(['--long'], out=self.buffer)
         # populate buffer with the list
         self.list_mode = -1
         self.inactive_commands = []
-        self.buffer = self.database_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))

@@ -17,14 +17,7 @@ class TextBuffer:
         self.lines = []
         self.height = 0
         self.width = 0
-
-    def copy(self):
-        """Copy."""
-        clone = TextBuffer()
-        clone.lines = self.lines.copy()
-        clone.height = self.height
-        clone.width = self.width
-        return clone
+        self.wrapped = False
 
     def write(self, string):
         """Writes a non-empty string into the buffer."""
@@ -39,6 +32,7 @@ class TextBuffer:
         self.lines = []
         self.height = 0
         self.width = 0
+        self.wrapped = False
 
     def split(self):
         """Split lines at line breaks."""
@@ -55,11 +49,22 @@ class TextBuffer:
         """Wrap text in buffer to given width."""
         copy = self.lines.copy()
         self.lines = []
+        self.width = 0
         for line in copy:
-            for string in textwrap.wrap(line, width=width-1, subsequent_indent=TextBuffer.INDENT):
-                self.lines.append(string)
-        self.width = width
+            if self.wrapped:
+                # unwrap instead
+                if line.startswith(TextBuffer.INDENT):
+                    self.lines[-1] += line[1:]
+                else:
+                    self.lines.append(line)
+                self.width = max(self.width, len(self.lines[-1]))
+            else:
+                for string in textwrap.wrap(line, width=width-1,
+                                            subsequent_indent=TextBuffer.INDENT):
+                    self.lines.append(string)
+                self.width = width
         self.height = len(self.lines)
+        self.wrapped = not self.wrapped
 
     def view(self, pad, visible_height, visible_width):
         """View buffer in provided curses pad."""
