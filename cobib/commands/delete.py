@@ -52,4 +52,4 @@ class DeleteCommand(Command):
         # delete selected entry
         DeleteCommand().execute([label])
         # update database list
-        tui.update_database_list()
+        tui.update_list()

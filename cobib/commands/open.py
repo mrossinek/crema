@@ -44,9 +44,10 @@ class OpenCommand(Command):
     @staticmethod
     def tui(tui):
         """TUI command interface"""
+        prev_list_mode = tui.list_mode
         # get current label
         label = tui.get_current_label()
-        # overwrite jumping out of list mode
-        tui.list_mode = -1
+        # restore previous list_mode
+        tui.list_mode = prev_list_mode
         # populate buffer with entry data
         OpenCommand().execute([label])
