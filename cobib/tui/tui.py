@@ -248,7 +248,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
             self.list_mode = cur_y
         else:
-            # In any other mode, the label can be found in the top statusline
+            # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
         return label
 
