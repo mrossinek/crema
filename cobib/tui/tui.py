@@ -24,7 +24,6 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Filter': lambda _: None,  # TODO filter command
         'Help': lambda _: None,  # TODO help command
         'Open': commands.OpenCommand.tui,
-        'Prompt': lambda _: None,  # TODO command prompt
         'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command
         'Select': lambda _: None,  # TODO select command
@@ -51,7 +50,6 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         ord('$'): 'end',
         ord('/'): 'Search',
         ord('0'): 'home',
-        ord(':'): 'Prompt',
         ord('?'): 'Help',
         ord('G'): 'bottom',
         ord('a'): 'Add',
@@ -257,7 +255,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.buffer.wrap(self.width)
         self.buffer.view(self.viewport, self.visible, self.width-1)
 
-    def prompt_handler(self, command=None):
+    def prompt_handler(self, command):
         """Handle prompt input."""
         # enter echo mode and make cursor visible
         curses.echo()
