@@ -46,8 +46,8 @@ class ShowCommand(Command):
         # update top statusbar
         tui.topstatus = "CoBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.topstatus)
-        # enter show menu (event loop with some commands disabled)
-        tui.loop(disabled=[ord('a'), 10, 13])
+        # enter show menu
+        tui.loop()
 
         # after exiting show menu: restore selected line and list view
         tui.update_database_list()

@@ -3,7 +3,7 @@
 import curses
 
 from cobib import __version__
-from cobib.commands import ListCommand, ShowCommand, DeleteCommand
+from cobib import commands
 from .buffer import TextBuffer
 
 
@@ -27,6 +27,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # and colors
         self.colors()
 
+        # Initialize standard keys
+        self.keydict = {}
+        self.set_key()
+
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(1))
@@ -35,7 +39,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # NOTE: -2 leaves an additional empty line for the command prompt
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(1))
-        self.statusbar(self.botbar, "q:Quit")
+        self.statusbar(self.botbar, ' '.join([
+            "q:Quit", "   ", "ENTER:Show", "o:Open", "w:Wrap", "   ", "a:Add", "e:Edit", "d:Delete",
+            "   ", "/:Search", "f:Filter", "s:Sort", "v:Select", "   ", "x:Export", "   ", "?:Help",
+            ]))
 
         # Initialize command prompt and viewport
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
@@ -58,13 +65,43 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
 
+    def set_key(self, key=None, cmd=None):
+        """Associates a key with a given command."""
+        if key is not None:
+            # if cmd is None, the key is simply disabled
+            self.keydict[key] = cmd if cmd is not None else lambda _: None
+        else:
+            # if no key is specified, define all standard keys
+            self.keydict[10] = commands.ShowCommand().tui  # line feed = ENTER
+            self.keydict[13] = commands.ShowCommand().tui  # carriage return = ENTER
+            self.keydict[curses.KEY_DOWN] = lambda self: self.scroll_y(1)
+            self.keydict[curses.KEY_LEFT] = lambda self: self.scroll_x(-1)
+            self.keydict[curses.KEY_RIGHT] = lambda self: self.scroll_x(1)
+            self.keydict[curses.KEY_UP] = lambda self: self.scroll_y(-1)
+            self.keydict[ord('/')] = lambda _: None  # TODO search command
+            self.keydict[ord(':')] = lambda _: None  # TODO prompt command
+            self.keydict[ord('?')] = lambda _: None  # TODO help command
+            self.keydict[ord('a')] = lambda _: None  # TODO add command
+            self.keydict[ord('d')] = commands.DeleteCommand().tui
+            self.keydict[ord('e')] = lambda _: None  # TODO edit command
+            self.keydict[ord('f')] = lambda _: None  # TODO filter command
+            self.keydict[ord('h')] = lambda self: self.scroll_x(-1)
+            self.keydict[ord('j')] = lambda self: self.scroll_y(1)
+            self.keydict[ord('k')] = lambda self: self.scroll_y(-1)
+            self.keydict[ord('l')] = lambda self: self.scroll_x(1)
+            self.keydict[ord('o')] = lambda _: None  # TODO open command
+            self.keydict[ord('s')] = lambda _: None  # TODO sort command
+            self.keydict[ord('v')] = lambda _: None  # TODO select command
+            self.keydict[ord('w')] = lambda self: self.wrap()
+            self.keydict[ord('x')] = lambda _: None  # TODO export command
+
     def statusbar(self, statusline, text, attr=0):  # pylint: disable=no-self-use
         """Update the text in the provided status bar and refresh it."""
         statusline.erase()
         statusline.addstr(0, 0, text, attr)
         statusline.refresh()
 
-    def loop(self, disabled=None):  # pylint: disable=too-many-branches
+    def loop(self):
         """The key-handling event loop."""
         key = 0
         # key is the last character pressed
@@ -73,49 +110,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
 
             # handle possible keys
-            if disabled and key in disabled:
-                pass
-            elif key in (curses.KEY_DOWN, ord('j')):
-                self._scroll_y(1)
-            elif key in (curses.KEY_UP, ord('k')):
-                self._scroll_y(-1)
-            elif key in (curses.KEY_LEFT, ord('h')):
-                self._scroll_x(-1)
-            elif key in (curses.KEY_RIGHT, ord('l')):
-                self._scroll_x(1)
-            elif key in (10, 13):
-                # ENTER key
-                ShowCommand().tui(self)
-            elif key == ord(':'):
-                self._prompt()
-            elif key == ord('/'):
-                # TODO searching
-                pass
-            elif key == ord('?'):
-                # TODO help
-                pass
-            elif key == ord('a'):
-                self._prompt('add')
-            elif key == ord('d'):
-                DeleteCommand().tui(self)
-            elif key == ord('e'):
-                # TODO edit command
-                pass
-            elif key == ord('o'):
-                # TODO open command
-                pass
-            elif key == ord('s'):
-                # TODO sorting
-                pass
-            elif key == ord('w'):
-                # first, ensure left_edge is set to 0
-                self.left_edge = 0
-                # then, wrap the buffer
-                self.buffer.wrap(self.width)
-                self.buffer.view(self.viewport, self.visible, self.width-1)
-            elif key == ord('x'):
-                # TODO export command
-                pass
+            if key in self.keydict.keys():
+                self.keydict[key](self)
 
             # highlight current line
             self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
@@ -126,7 +122,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             # Wait for next input
             key = self.stdscr.getch()
 
-    def _scroll_y(self, update):
+    def scroll_y(self, update):
+        """Scroll viewport vertically."""
         next_line = self.current_line + update
         # scroll up
         if update == -1:
@@ -142,11 +139,20 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             if next_line < self.buffer.height:
                 self.current_line = next_line
 
-    def _scroll_x(self, update):
+    def scroll_x(self, update):
+        """Scroll viewport horizontally."""
         next_col = self.left_edge + update
         # limit column such that no empty columns can appear on left or right
         if 0 <= next_col <= self.buffer.width - self.width:
             self.left_edge = next_col
+
+    def wrap(self):
+        """Wraps the text currently displayed in the viewport."""
+        # first, ensure left_edge is set to 0
+        self.left_edge = 0
+        # then, wrap the buffer
+        self.buffer.wrap(self.width)
+        self.buffer.view(self.viewport, self.visible, self.width-1)
 
     def _prompt(self, command=None):
         # enter echo mode and make cursor visible
@@ -199,7 +205,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def update_database_list(self):
         """Updates the default list view."""
         self.database_list.clear()
-        labels = ListCommand().execute(['--long'], out=self.database_list)
+        labels = commands.ListCommand().execute(['--long'], out=self.database_list)
         # populate buffer with the list
         self.buffer = self.database_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
