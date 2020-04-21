@@ -30,7 +30,6 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(1))
-        self.statusbar(self.topbar, "CoBib v{}".format(__version__))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
@@ -61,6 +60,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     def statusbar(self, statusline, text, attr=0):  # pylint: disable=no-self-use
         """Update the text in the provided status bar and refresh it."""
+        statusline.erase()
         statusline.addstr(0, 0, text, attr)
         statusline.refresh()
 
@@ -199,7 +199,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def update_database_list(self):
         """Updates the default list view."""
         self.database_list.clear()
-        ListCommand().execute(['--long'], out=self.database_list)
+        labels = ListCommand().execute(['--long'], out=self.database_list)
         # populate buffer with the list
         self.buffer = self.database_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
+        # update top statusbar
+        self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
+        self.statusbar(self.topbar, self.topstatus)

@@ -3,6 +3,7 @@
 import argparse
 import sys
 
+from cobib import __version__
 from .base_command import Command
 
 
@@ -42,6 +43,9 @@ class ShowCommand(Command):
 
         # store previously selected line
         tui.current_line = 0
+        # update top statusbar
+        tui.topstatus = "CoBib v{} - {}".format(__version__, label)
+        tui.statusbar(tui.topbar, tui.topstatus)
         # enter show menu (event loop with some commands disabled)
         tui.loop(disabled=[ord('a'), 10, 13])
 
