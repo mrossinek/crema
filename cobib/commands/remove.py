@@ -13,7 +13,7 @@ class RemoveCommand(Command):  # pylint: disable=too-few-public-methods
 
     name = 'remove'
 
-    def execute(self, args):
+    def execute(self, args, out=sys.stdout):
         """remove entry
 
         Removes the entry from the database.

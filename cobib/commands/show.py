@@ -11,7 +11,7 @@ class ShowCommand(Command):  # pylint: disable=too-few-public-methods
 
     name = 'show'
 
-    def execute(self, args, out=sys.stdout):  # pylint: disable=arguments-differ
+    def execute(self, args, out=sys.stdout):
         """show entry
 
         Prints the details of a selected entry in bibtex format to stdout.

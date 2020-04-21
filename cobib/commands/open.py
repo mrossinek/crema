@@ -12,7 +12,7 @@ class OpenCommand(Command):  # pylint: disable=too-few-public-methods
 
     name = 'open'
 
-    def execute(self, args):
+    def execute(self, args, out=sys.stdout):
         """open file from entry
 
         Opens the associated file of an entry with xdg-open.

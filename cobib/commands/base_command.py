@@ -1,6 +1,7 @@
 """CoBib Command interface"""
 
 import os
+import sys
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
@@ -15,7 +16,7 @@ class Command(ABC):  # pylint: disable=too-few-public-methods
     """
 
     @abstractmethod
-    def execute(self, args):
+    def execute(self, args, out=sys.stdout):
         """Command execution"""
 
     # HELPER FUNCTIONS

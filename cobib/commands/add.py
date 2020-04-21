@@ -13,7 +13,7 @@ class AddCommand(Command):  # pylint: disable=too-few-public-methods
 
     name = 'add'
 
-    def execute(self, args):
+    def execute(self, args, out=sys.stdout):
         """add new entry
 
         Adds new entries to the database.

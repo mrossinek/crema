@@ -14,7 +14,7 @@ class ExportCommand(Command):  # pylint: disable=too-few-public-methods
 
     name = 'export'
 
-    def execute(self, args):
+    def execute(self, args, out=sys.stdout):
         """export database
 
         Exports all entries matched by the filter queries (see the list docs).

@@ -14,7 +14,7 @@ class EditCommand(Command):  # pylint: disable=too-few-public-methods
 
     name = 'edit'
 
-    def execute(self, args):  # pylint: disable=too-many-locals
+    def execute(self, args, out=sys.stdout):  # pylint: disable=too-many-locals
         """edit entry
 
         Opens an existing entry for manual editing.
