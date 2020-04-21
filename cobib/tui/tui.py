@@ -78,17 +78,14 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.keymap = {}
 
         # Initialize top status bar
-        self.topbar = curses.newwin(1, self.width, 0, 0)
+        self.topbar = curses.newwin(1, self.width+1, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(1))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
-        self.botbar = curses.newwin(1, self.width, self.height-2, 0)
+        self.botbar = curses.newwin(1, self.width+1, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(1))
-        self.statusbar(self.botbar, ' '.join([
-            "q:Quit", "   ", "ENTER:Show", "o:Open", "w:Wrap", "   ", "a:Add", "e:Edit", "d:Delete",
-            "   ", "/:Search", "f:Filter", "s:Sort", "v:Select", "   ", "x:Export", "   ", "?:Help",
-            ]))
+        self.statusbar(self.botbar, self.infoline)
 
         # Initialize command prompt and viewport
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
@@ -123,6 +120,24 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         statusline.erase()
         statusline.addstr(0, 0, text, attr)
         statusline.refresh()
+
+    @property
+    def infoline(self):
+        """Information on the keymappings."""
+        cmds = ["Quit", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
+                "Search", "Filter", "Sort", "Select", "", "Export", "", "Prompt", "Help"]
+        infoline = ''
+        for cmd in cmds:
+            if cmd:
+                # get key associated with this command
+                for key, command in TUI.KEYDICT.items():
+                    if cmd == command:
+                        key = 'ENTER' if key in (10, 13) else chr(key)
+                        infoline += " {}~{}".format(key, cmd)
+                        break
+            else:
+                infoline += "   "
+        return infoline.strip()
 
     def map_key(self, key, alt=None, disable=False):
         """Maps a key to an alternative one or enables/disables it."""
