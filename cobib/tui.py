@@ -98,13 +98,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self.width = max(self.width, len(string))
 
         def clear(self):
-            """Cleares the buffer."""
+            """Clears the buffer."""
             self.lines = []
             self.height = 0
             self.width = 0
 
         def split(self):
-            """Split lines at linebreaks."""
+            """Split lines at line breaks."""
             copy = self.lines.copy()
             self.lines = []
             self.width = 0
