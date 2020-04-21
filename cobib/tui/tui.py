@@ -24,7 +24,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Help': lambda _: None,  # TODO help command
         'Open': lambda _: None,  # TODO open command
         'Prompt': lambda _: None,  # TODO command prompt
-        'Quit': lambda _: TUI.quit(),
+        'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command
         'Select': lambda _: None,  # TODO select command
         'Show': commands.ShowCommand().tui,
@@ -97,14 +97,17 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         # prepare and start key event loop
         self.current_line = 0
+        self.list_mode = -1  # -1: list mode active, >=0: previously selected line
         self.top_line = 0
         self.left_edge = 0
         self.loop()
 
-    @staticmethod
-    def quit():
+    def quit(self):
         """Break the key event loop."""
-        raise StopIteration
+        if self.list_mode == -1:
+            raise StopIteration
+        self.current_line = self.list_mode
+        self.update_database_list()
 
     @staticmethod
     def colors():
@@ -235,23 +238,27 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     def get_current_label(self):
         """Obtain label of currently selected entry."""
-        cur_y, _ = self.viewport.getyx()
-        while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
-            cur_y -= 1
-        cur_x = 0
-        label = ''
-        while True:
-            label += chr(self.viewport.inch(cur_y, cur_x))
-            cur_x += 1
-            if label[-1] == ' ':
-                break
-        return label[:-1], cur_y
+        # Two cases are possible: the list and the show mode
+        if self.list_mode == -1:
+            # In the list mode, the label can be found in the current line
+            # or in one of the previous lines if we are on a wrapped line
+            cur_y, _ = self.viewport.getyx()
+            while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
+                cur_y -= 1
+            label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
+            self.list_mode = cur_y
+        else:
+            # In any other mode, the label can be found in the top statusline
+            label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
+        return label
 
     def update_database_list(self):
         """Updates the default list view."""
         self.database_list.clear()
         labels = commands.ListCommand().execute(['--long'], out=self.database_list)
         # populate buffer with the list
+        self.list_mode = -1
+        self.inactive_commands = []
         self.buffer = self.database_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
         # update top statusbar

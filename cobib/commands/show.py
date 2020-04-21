@@ -34,7 +34,7 @@ class ShowCommand(Command):
     def tui(self, tui):
         """TUI command interface"""
         # get current label
-        label, prev_current = tui.get_current_label()
+        label = tui.get_current_label()
         # populate buffer with entry data
         tui.buffer.clear()
         self.execute([label], out=tui.buffer)
@@ -48,9 +48,3 @@ class ShowCommand(Command):
         tui.statusbar(tui.topbar, tui.topstatus)
         # enter show menu
         tui.inactive_commands = ['Add', 'Filter', 'Search', 'Show', 'Sort']
-        tui.loop()
-
-        # restore selected line and list view
-        tui.inactive_commands = []
-        tui.update_database_list()
-        tui.current_line = min(prev_current, tui.buffer.height-1)
