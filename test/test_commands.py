@@ -1,4 +1,4 @@
-"""Tests for CoBib's actual commands"""
+"""Tests for CoBib's commands"""
 # pylint: disable=unused-argument, redefined-outer-name
 
 import os
