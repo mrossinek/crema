@@ -126,7 +126,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 pad.addstr(row, 0, line)
             pad.refresh(0, 0, 1, 0, visible_height, visible_width)
 
-    def loop(self, disabled=None):
+    def loop(self, disabled=None):  # pylint: disable=too-many-branches
         """The key-handling event loop."""
         key = 0
         # key is the last character pressed
@@ -150,10 +150,31 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 self._run_command(ShowCommand)
             elif key == ord(':'):
                 self._prompt()
+            elif key == ord('/'):
+                # TODO searching
+                pass
+            elif key == ord('?'):
+                # TODO help
+                pass
             elif key == ord('a'):
                 self._prompt('add')
             elif key == ord('d'):
                 self._run_command(DeleteCommand)
+            elif key == ord('e'):
+                # TODO edit command
+                pass
+            elif key == ord('o'):
+                # TODO open command
+                pass
+            elif key == ord('s'):
+                # TODO sorting
+                pass
+            elif key == ord('w'):
+                # TODO text wrapping (e.g. in show menu)
+                pass
+            elif key == ord('x'):
+                # TODO export command
+                pass
 
             # highlight current line
             self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
@@ -249,6 +270,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # populate buffer with list of reference entries
         self.buffer = self.initial_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
+
 
 def tui():
     """Main executable for the curses-TUI."""
