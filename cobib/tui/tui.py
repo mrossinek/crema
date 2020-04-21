@@ -14,6 +14,54 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     synchronized state most consistently.
     """
 
+    # available command dictionary
+    COMMANDS = {
+        'Add': lambda _: None,  # TODO add command
+        'Delete': commands.DeleteCommand().tui,
+        'Edit': lambda _: None,  # TODO edit command
+        'Export': lambda _: None,  # TODO export command
+        'Filter': lambda _: None,  # TODO filter command
+        'Help': lambda _: None,  # TODO help command
+        'Open': lambda _: None,  # TODO open command
+        'Prompt': lambda _: None,  # TODO command prompt
+        'Quit': lambda _: TUI.quit(),
+        'Search': lambda _: None,  # TODO search command
+        'Select': lambda _: None,  # TODO select command
+        'Show': commands.ShowCommand().tui,
+        'Sort': lambda _: None,  # TODO sort command
+        'Wrap': lambda self: self.wrap(),
+        'down': lambda self: self.scroll_y(1),
+        'left': lambda self: self.scroll_x(-1),
+        'right': lambda self: self.scroll_x(1),
+        'up': lambda self: self.scroll_y(-1),
+    }
+    # standard key bindings
+    KEYDICT = {
+        10: 'Show',  # line feed = ENTER
+        13: 'Show',  # carriage return = ENTER
+        curses.KEY_DOWN: 'down',
+        curses.KEY_LEFT: 'left',
+        curses.KEY_RIGHT: 'right',
+        curses.KEY_UP: 'up',
+        ord('/'): 'Search',
+        ord(':'): 'Prompt',
+        ord('?'): 'Help',
+        ord('a'): 'Add',
+        ord('d'): 'Delete',
+        ord('e'): 'Edit',
+        ord('f'): 'Filter',
+        ord('h'): 'left',
+        ord('j'): 'down',
+        ord('k'): 'up',
+        ord('l'): 'right',
+        ord('o'): 'Open',
+        ord('q'): 'Quit',
+        ord('s'): 'Sort',
+        ord('v'): 'Select',
+        ord('w'): 'Wrap',
+        ord('x'): 'Export',
+    }
+
     def __init__(self, stdscr):
         self.stdscr = stdscr
 
@@ -25,12 +73,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.height, self.width = self.stdscr.getmaxyx()
         self.visible = self.height-3
         # and colors
-        self.colors()
-
-        # Initialize standard keys
-        self.keydict = {}  # standard key dictionary
-        self.keymap = {}  # possible key mappings
-        self.init_keys()
+        TUI.colors()
+        # possible key mappings
+        self.keymap = {}
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
@@ -59,37 +104,25 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.left_edge = 0
         self.loop()
 
-    def colors(self):  # pylint: disable=no-self-use
+    @staticmethod
+    def quit():
+        """Break the key event loop."""
+        raise StopIteration
+
+    @staticmethod
+    def colors():
         """Initialize the color pairs for the curses TUI."""
         # Start colors in curses
         curses.start_color()
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
 
-    def init_keys(self):
-        """Initializes the standard key bindings."""
-        self.keydict[10] = commands.ShowCommand().tui  # line feed = ENTER
-        self.keydict[13] = commands.ShowCommand().tui  # carriage return = ENTER
-        self.keydict[curses.KEY_DOWN] = lambda self: self.scroll_y(1)
-        self.keydict[curses.KEY_LEFT] = lambda self: self.scroll_x(-1)
-        self.keydict[curses.KEY_RIGHT] = lambda self: self.scroll_x(1)
-        self.keydict[curses.KEY_UP] = lambda self: self.scroll_y(-1)
-        self.keydict[ord('/')] = lambda _: None  # TODO search command
-        self.keydict[ord(':')] = lambda _: None  # TODO prompt command
-        self.keydict[ord('?')] = lambda _: None  # TODO help command
-        self.keydict[ord('a')] = lambda _: None  # TODO add command
-        self.keydict[ord('d')] = commands.DeleteCommand().tui
-        self.keydict[ord('e')] = lambda _: None  # TODO edit command
-        self.keydict[ord('f')] = lambda _: None  # TODO filter command
-        self.keydict[ord('h')] = lambda self: self.scroll_x(-1)
-        self.keydict[ord('j')] = lambda self: self.scroll_y(1)
-        self.keydict[ord('k')] = lambda self: self.scroll_y(-1)
-        self.keydict[ord('l')] = lambda self: self.scroll_x(1)
-        self.keydict[ord('o')] = lambda _: None  # TODO open command
-        self.keydict[ord('s')] = lambda _: None  # TODO sort command
-        self.keydict[ord('v')] = lambda _: None  # TODO select command
-        self.keydict[ord('w')] = lambda self: self.wrap()
-        self.keydict[ord('x')] = lambda _: None  # TODO export command
+    @staticmethod
+    def statusbar(statusline, text, attr=0):
+        """Update the text in the provided status bar and refresh it."""
+        statusline.erase()
+        statusline.addstr(0, 0, text, attr)
+        statusline.refresh()
 
     def map_key(self, key, alt=None, disable=False):
         """Maps a key to an alternative one or enables/disables it."""
@@ -106,29 +139,27 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 # enable the key if was previously disabled
                 del self.keymap[key]
 
-    def statusbar(self, statusline, text, attr=0):  # pylint: disable=no-self-use
-        """Update the text in the provided status bar and refresh it."""
-        statusline.erase()
-        statusline.addstr(0, 0, text, attr)
-        statusline.refresh()
-
     def loop(self):
         """The key-handling event loop."""
         key = 0
         # key is the last character pressed
-        while key != ord('q'):
+        while True:
             # reset highlight of current line
             self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
 
             # handle possible keys
-            if key in self.keymap.keys():
-                # the key is either mapped to an alternative or disabled
-                alt_key = self.keymap.get(key)
-                if alt_key is not None and alt_key in self.keydict.keys():
-                    # only run the alternative key if it is actually implemented
-                    self.keydict[alt_key](self)
-            elif key in self.keydict.keys():
-                self.keydict[key](self)
+            try:
+                if key in self.keymap.keys():
+                    # the key is either mapped to an alternative or disabled
+                    alt_key = self.keymap.get(key)
+                    if alt_key is not None and alt_key in TUI.KEYDICT.keys():
+                        # only run the alternative key if it is actually implemented
+                        TUI.COMMANDS[TUI.KEYDICT[alt_key]](self)
+                elif key in TUI.KEYDICT.keys():
+                    TUI.COMMANDS[TUI.KEYDICT[key]](self)
+            except StopIteration:
+                # raised by quit command
+                break
 
             # highlight current line
             self.viewport.chgat(self.current_line, 0, curses.color_pair(2))
