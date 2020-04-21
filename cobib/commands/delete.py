@@ -1,4 +1,4 @@
-"""CoBib remove command"""
+"""CoBib delete command"""
 
 import argparse
 import os
@@ -8,17 +8,17 @@ from cobib.config import CONFIG
 from .base_command import Command
 
 
-class RemoveCommand(Command):  # pylint: disable=too-few-public-methods
-    """Remove Command"""
+class DeleteCommand(Command):  # pylint: disable=too-few-public-methods
+    """Delete Command"""
 
-    name = 'remove'
+    name = 'delete'
 
     def execute(self, args, out=sys.stdout):
-        """remove entry
+        """delete entry
 
-        Removes the entry from the database.
+        Deletes the entry from the database.
         """
-        parser = argparse.ArgumentParser(prog="remove", description="Remove subcommand parser.")
+        parser = argparse.ArgumentParser(prog="delete", description="Delete subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
         if not args:
             parser.print_usage(sys.stderr)
@@ -28,17 +28,17 @@ class RemoveCommand(Command):  # pylint: disable=too-few-public-methods
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'r') as bib:
             lines = bib.readlines()
-        entry_to_be_removed = False
+        entry_to_be_deleted = False
         buffer = []
         for line in lines:
             if line.startswith(largs.label):
-                entry_to_be_removed = True
+                entry_to_be_deleted = True
                 buffer.pop()
                 continue
-            if entry_to_be_removed and line.startswith('...'):
-                entry_to_be_removed = False
+            if entry_to_be_deleted and line.startswith('...'):
+                entry_to_be_deleted = False
                 continue
-            if not entry_to_be_removed:
+            if not entry_to_be_deleted:
                 buffer.append(line)
         with open(file, 'w') as bib:
             for line in buffer:
