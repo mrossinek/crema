@@ -44,11 +44,12 @@ class DeleteCommand(Command):
             for line in buffer:
                 bib.write(line)
 
-    def tui(self, tui):
+    @staticmethod
+    def tui(tui):
         """TUI command interface"""
         # get current label
         label = tui.get_current_label()
         # delete selected entry
-        self.execute([label])
+        DeleteCommand().execute([label])
         # update database list
         tui.update_database_list()

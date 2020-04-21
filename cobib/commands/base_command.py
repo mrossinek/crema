@@ -19,7 +19,8 @@ class Command(ABC):
     def execute(self, args, out=sys.stdout):
         """Command execution"""
 
-    def tui(self, tui):
+    @staticmethod
+    def tui(tui):
         """TUI command interface"""
 
     # HELPER FUNCTIONS

@@ -17,7 +17,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     # available command dictionary
     COMMANDS = {
         'Add': lambda _: None,  # TODO add command
-        'Delete': commands.DeleteCommand().tui,
+        'Delete': commands.DeleteCommand.tui,
         'Edit': lambda _: None,  # TODO edit command
         'Export': lambda _: None,  # TODO export command
         'Filter': lambda _: None,  # TODO filter command
@@ -27,7 +27,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command
         'Select': lambda _: None,  # TODO select command
-        'Show': commands.ShowCommand().tui,
+        'Show': commands.ShowCommand.tui,
         'Sort': lambda _: None,  # TODO sort command
         'Wrap': lambda self: self.wrap(),
         'down': lambda self: self.scroll_y(1),

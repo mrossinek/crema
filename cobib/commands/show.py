@@ -31,13 +31,14 @@ class ShowCommand(Command):
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
 
-    def tui(self, tui):
+    @staticmethod
+    def tui(tui):
         """TUI command interface"""
         # get current label
         label = tui.get_current_label()
         # populate buffer with entry data
         tui.buffer.clear()
-        self.execute([label], out=tui.buffer)
+        ShowCommand().execute([label], out=tui.buffer)
         tui.buffer.split()
         tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
 
