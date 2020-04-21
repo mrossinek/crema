@@ -20,6 +20,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.stdscr.clear()
         self.stdscr.refresh()
         # Initialize layout
+        curses.curs_set(0)
         self.height, self.width = self.stdscr.getmaxyx()
         # and colors
         self.colors()
