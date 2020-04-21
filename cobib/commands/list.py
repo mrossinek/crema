@@ -75,3 +75,14 @@ class ListCommand(Command):
         for row in table:
             print('  '.join([f'{col: <{wid}}' for col, wid in zip(row, widths)]), file=out)
         return labels
+
+    @staticmethod
+    def tui(tui, args=''):
+        """TUI command interface"""
+        tui.buffer.clear()
+        # handle input via prompt
+        tui.prompt_handler('list -l' + ' '*bool(args) + args, out=tui.buffer)
+        # populate buffer with the list
+        tui.list_mode = -1
+        tui.inactive_commands = []
+        tui.buffer.view(tui.viewport, tui.visible, tui.width-1)

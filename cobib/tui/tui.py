@@ -1,6 +1,7 @@
 """CoBib curses interface"""
 
 import curses
+from functools import partial
 from signal import signal, SIGWINCH
 
 from cobib import __version__
@@ -21,14 +22,14 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Delete': commands.DeleteCommand.tui,
         'Edit': commands.EditCommand.tui,
         'Export': lambda _: None,  # TODO export command
-        'Filter': lambda _: None,  # TODO filter command
+        'Filter': commands.ListCommand.tui,
         'Help': lambda _: None,  # TODO help command
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command
         'Select': lambda _: None,  # TODO select command
         'Show': commands.ShowCommand.tui,
-        'Sort': lambda _: None,  # TODO sort command
+        'Sort': partial(commands.ListCommand.tui, args='-s'),
         'Wrap': lambda self: self.wrap(),
         'bottom': lambda self: self.scroll_y('G'),
         'down': lambda self: self.scroll_y(1),
@@ -255,7 +256,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.buffer.wrap(self.width)
         self.buffer.view(self.viewport, self.visible, self.width-1)
 
-    def prompt_handler(self, command):
+    def prompt_handler(self, command, out=None):
         """Handle prompt input."""
         # enter echo mode and make cursor visible
         curses.echo()
@@ -292,7 +293,10 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # process command if it non empty and actually has arguments
         if command and command.split(' ')[1:]:
             subcmd = getattr(commands, command.split(' ')[0].title()+'Command')()
-            subcmd.execute(command.split(' ')[1:])
+            subcmd.execute(command.split(' ')[1:], out=out)
+        else:
+            # command was aborted
+            self.update_list()
 
     def get_current_label(self):
         """Obtain label of currently selected entry."""
