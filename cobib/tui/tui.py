@@ -21,7 +21,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Add': commands.AddCommand.tui,
         'Delete': commands.DeleteCommand.tui,
         'Edit': commands.EditCommand.tui,
-        'Export': lambda _: None,  # TODO export command
+        'Export': commands.ExportCommand.tui,
         'Filter': commands.ListCommand.tui,
         'Help': lambda _: None,  # TODO help command
         'Open': commands.OpenCommand.tui,

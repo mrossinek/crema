@@ -52,3 +52,9 @@ class ExportCommand(Command):
                         largs.zip.write(entry.data['file'], label+'.pdf')
         except KeyError:
             print("Error: No entry with the label '{}' could be found.".format(largs.label))
+
+    @staticmethod
+    def tui(tui):
+        """TUI command interface"""
+        # handle input via prompt
+        tui.prompt_handler('export')
