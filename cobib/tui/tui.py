@@ -1,10 +1,10 @@
 """CoBib curses interface"""
 
 import curses
-import textwrap
 
 from cobib import __version__
 from cobib.commands import ListCommand, ShowCommand, DeleteCommand
+from .buffer import TextBuffer
 
 
 class TUI:  # pylint: disable=too-many-instance-attributes
@@ -41,7 +41,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.prompt = curses.newwin(1, self.width, self.height-1, 0)
 
         # populate buffer with list of reference entries
-        self.database_list = TUI.TextBuffer()
+        self.database_list = TextBuffer()
         ListCommand().execute(['--long'], out=self.database_list)
 
         self.buffer = self.database_list.copy()
@@ -69,73 +69,6 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         """Update the text in the provided status bar and refresh it."""
         statusline.addstr(0, 0, text, attr)
         statusline.refresh()
-
-    class TextBuffer:
-        """TextBuffer class used as an auxiliary variable to redirect output into.
-
-        This buffer class implements a `write` method which allows it to be used as a drop-in source
-        for the `file` argument of the `print()` method. Thereby, its output can be gathered in this
-        buffer for further usage (such as printing it into a curses pad).
-        """
-        def __init__(self):
-            self.lines = []
-            self.height = 0
-            self.width = 0
-
-        def copy(self):
-            """Copy."""
-            clone = TUI.TextBuffer()
-            clone.lines = self.lines.copy()
-            clone.height = self.height
-            clone.width = self.width
-            return clone
-
-        def write(self, string):
-            """Writes a non-empty string into the buffer."""
-            if string.strip():
-                # only handle non-empty strings
-                self.lines.append(string)
-                self.height = len(self.lines)
-                self.width = max(self.width, len(string))
-
-        def clear(self):
-            """Clears the buffer."""
-            self.lines = []
-            self.height = 0
-            self.width = 0
-
-        def split(self):
-            """Split lines at line breaks."""
-            copy = self.lines.copy()
-            self.lines = []
-            self.width = 0
-            for line in copy:
-                for string in line.split('\n'):
-                    self.lines.append(string)
-                    self.width = max(self.width, len(string))
-            self.height = len(self.lines)
-
-        def wrap(self, width):
-            """Wrap text in buffer to given width."""
-            copy = self.lines.copy()
-            self.lines = []
-            for line in copy:
-                for string in textwrap.wrap(line, width=width-1, subsequent_indent="↪ "):
-                    self.lines.append(string)
-            self.width = width
-            self.height = len(self.lines)
-
-        def view(self, pad, visible_height, visible_width):
-            """View buffer in provided curses pad."""
-            # first clear pad
-            pad.erase()
-            pad.refresh(0, 0, 1, 0, visible_height, visible_width)
-            # then resize
-            pad.resize(self.height+1, max(self.width, visible_width+1))
-            # and populate
-            for row, line in enumerate(self.lines):
-                pad.addstr(row, 0, line)
-            pad.refresh(0, 0, 1, 0, visible_height, visible_width)
 
     def loop(self, disabled=None):  # pylint: disable=too-many-branches
         """The key-handling event loop."""
@@ -274,12 +207,3 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         # populate buffer with the list
         self.buffer = self.database_list.copy()
         self.buffer.view(self.viewport, self.visible, self.width-1)
-
-
-def tui():
-    """Main executable for the curses-TUI."""
-    curses.wrapper(TUI)
-
-
-if __name__ == '__main__':
-    tui()
