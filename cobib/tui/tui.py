@@ -31,9 +31,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Show': commands.ShowCommand.tui,
         'Sort': lambda _: None,  # TODO sort command
         'Wrap': lambda self: self.wrap(),
+        'bottom': lambda self: self.scroll_y('G'),
         'down': lambda self: self.scroll_y(1),
+        'end': lambda self: self.scroll_x('$'),
+        'home': lambda self: self.scroll_x(0),
         'left': lambda self: self.scroll_x(-1),
         'right': lambda self: self.scroll_x(1),
+        'top': lambda self: self.scroll_y(0),
         'up': lambda self: self.scroll_y(-1),
     }
     # standard key bindings
@@ -44,13 +48,17 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         curses.KEY_LEFT: 'left',
         curses.KEY_RIGHT: 'right',
         curses.KEY_UP: 'up',
+        ord('$'): 'end',
         ord('/'): 'Search',
+        ord('0'): 'home',
         ord(':'): 'Prompt',
         ord('?'): 'Help',
+        ord('G'): 'bottom',
         ord('a'): 'Add',
         ord('d'): 'Delete',
         ord('e'): 'Edit',
         ord('f'): 'Filter',
+        ord('g'): 'top',
         ord('h'): 'left',
         ord('j'): 'down',
         ord('k'): 'up',
@@ -203,15 +211,24 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     def scroll_y(self, update):
         """Scroll viewport vertically."""
-        next_line = self.current_line + update
+        # jump to top
+        if update == 0:
+            self.top_line = 0
+            self.current_line = 0
+        # jump to bottom
+        elif update == 'G':
+            self.top_line = max(self.buffer.height - self.visible, 0)
+            self.current_line = self.buffer.height-1
         # scroll up
-        if update == -1:
+        elif update == -1:
+            next_line = self.current_line + update
             if self.top_line > 0 and next_line < self.top_line:
                 self.top_line += update
             if next_line >= 0:
                 self.current_line = next_line
         # scroll down
         elif update == 1:
+            next_line = self.current_line + update
             if next_line - self.top_line == self.visible and \
                     self.top_line + self.visible < self.buffer.height:
                 self.top_line += update
@@ -220,10 +237,17 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
     def scroll_x(self, update):
         """Scroll viewport horizontally."""
-        next_col = self.left_edge + update
-        # limit column such that no empty columns can appear on left or right
-        if 0 <= next_col <= self.buffer.width - self.width:
-            self.left_edge = next_col
+        # jump to beginning
+        if update == 0:
+            self.left_edge = 0
+        # jump to end
+        elif update == '$':
+            self.left_edge = self.buffer.width - self.width
+        else:
+            next_col = self.left_edge + update
+            # limit column such that no empty columns can appear on left or right
+            if 0 <= next_col <= self.buffer.width - self.width:
+                self.left_edge = next_col
 
     def wrap(self):
         """Toggles wrapping of the text currently displayed in the viewport."""
