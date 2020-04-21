@@ -47,8 +47,14 @@ class ShowCommand(Command):
         tui.topstatus = "CoBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.topstatus)
         # enter show menu
+        keys_to_disable = [ord('a'), 10, 13]
+        for key in keys_to_disable:
+            tui.map_key(key, disable=True)
         tui.loop()
 
-        # after exiting show menu: restore selected line and list view
+        # exit show menu: re-enable keys
+        for key in keys_to_disable:
+            tui.map_key(key, disable=False)
+        # restore selected line and list view
         tui.update_database_list()
         tui.current_line = min(prev_current, tui.buffer.height-1)

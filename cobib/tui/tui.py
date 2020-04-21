@@ -28,8 +28,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.colors()
 
         # Initialize standard keys
-        self.keydict = {}
-        self.set_key()
+        self.keydict = {}  # standard key dictionary
+        self.keymap = {}  # possible key mappings
+        self.init_keys()
 
         # Initialize top status bar
         self.topbar = curses.newwin(1, self.width, 0, 0)
@@ -65,35 +66,45 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
 
-    def set_key(self, key=None, cmd=None):
-        """Associates a key with a given command."""
-        if key is not None:
-            # if cmd is None, the key is simply disabled
-            self.keydict[key] = cmd if cmd is not None else lambda _: None
+    def init_keys(self):
+        """Initializes the standard key bindings."""
+        self.keydict[10] = commands.ShowCommand().tui  # line feed = ENTER
+        self.keydict[13] = commands.ShowCommand().tui  # carriage return = ENTER
+        self.keydict[curses.KEY_DOWN] = lambda self: self.scroll_y(1)
+        self.keydict[curses.KEY_LEFT] = lambda self: self.scroll_x(-1)
+        self.keydict[curses.KEY_RIGHT] = lambda self: self.scroll_x(1)
+        self.keydict[curses.KEY_UP] = lambda self: self.scroll_y(-1)
+        self.keydict[ord('/')] = lambda _: None  # TODO search command
+        self.keydict[ord(':')] = lambda _: None  # TODO prompt command
+        self.keydict[ord('?')] = lambda _: None  # TODO help command
+        self.keydict[ord('a')] = lambda _: None  # TODO add command
+        self.keydict[ord('d')] = commands.DeleteCommand().tui
+        self.keydict[ord('e')] = lambda _: None  # TODO edit command
+        self.keydict[ord('f')] = lambda _: None  # TODO filter command
+        self.keydict[ord('h')] = lambda self: self.scroll_x(-1)
+        self.keydict[ord('j')] = lambda self: self.scroll_y(1)
+        self.keydict[ord('k')] = lambda self: self.scroll_y(-1)
+        self.keydict[ord('l')] = lambda self: self.scroll_x(1)
+        self.keydict[ord('o')] = lambda _: None  # TODO open command
+        self.keydict[ord('s')] = lambda _: None  # TODO sort command
+        self.keydict[ord('v')] = lambda _: None  # TODO select command
+        self.keydict[ord('w')] = lambda self: self.wrap()
+        self.keydict[ord('x')] = lambda _: None  # TODO export command
+
+    def map_key(self, key, alt=None, disable=False):
+        """Maps a key to an alternative one or enables/disables it."""
+        if alt is not None:
+            # alternative key provided: map key to it
+            self.keymap[key] = alt
+            # ensure alternative key performs no action itself
+            self.keymap[alt] = None
         else:
-            # if no key is specified, define all standard keys
-            self.keydict[10] = commands.ShowCommand().tui  # line feed = ENTER
-            self.keydict[13] = commands.ShowCommand().tui  # carriage return = ENTER
-            self.keydict[curses.KEY_DOWN] = lambda self: self.scroll_y(1)
-            self.keydict[curses.KEY_LEFT] = lambda self: self.scroll_x(-1)
-            self.keydict[curses.KEY_RIGHT] = lambda self: self.scroll_x(1)
-            self.keydict[curses.KEY_UP] = lambda self: self.scroll_y(-1)
-            self.keydict[ord('/')] = lambda _: None  # TODO search command
-            self.keydict[ord(':')] = lambda _: None  # TODO prompt command
-            self.keydict[ord('?')] = lambda _: None  # TODO help command
-            self.keydict[ord('a')] = lambda _: None  # TODO add command
-            self.keydict[ord('d')] = commands.DeleteCommand().tui
-            self.keydict[ord('e')] = lambda _: None  # TODO edit command
-            self.keydict[ord('f')] = lambda _: None  # TODO filter command
-            self.keydict[ord('h')] = lambda self: self.scroll_x(-1)
-            self.keydict[ord('j')] = lambda self: self.scroll_y(1)
-            self.keydict[ord('k')] = lambda self: self.scroll_y(-1)
-            self.keydict[ord('l')] = lambda self: self.scroll_x(1)
-            self.keydict[ord('o')] = lambda _: None  # TODO open command
-            self.keydict[ord('s')] = lambda _: None  # TODO sort command
-            self.keydict[ord('v')] = lambda _: None  # TODO select command
-            self.keydict[ord('w')] = lambda self: self.wrap()
-            self.keydict[ord('x')] = lambda _: None  # TODO export command
+            if disable:
+                # disable the key
+                self.keymap[key] = None
+            elif key in self.keymap.keys():
+                # enable the key if was previously disabled
+                del self.keymap[key]
 
     def statusbar(self, statusline, text, attr=0):  # pylint: disable=no-self-use
         """Update the text in the provided status bar and refresh it."""
@@ -110,7 +121,13 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
 
             # handle possible keys
-            if key in self.keydict.keys():
+            if key in self.keymap.keys():
+                # the key is either mapped to an alternative or disabled
+                alt_key = self.keymap.get(key)
+                if alt_key is not None and alt_key in self.keydict.keys():
+                    # only run the alternative key if it is actually implemented
+                    self.keydict[alt_key](self)
+            elif key in self.keydict.keys():
                 self.keydict[key](self)
 
             # highlight current line
