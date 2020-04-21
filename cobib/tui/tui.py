@@ -1,6 +1,7 @@
 """CoBib curses interface"""
 
 import curses
+from signal import signal, SIGWINCH
 
 from cobib import __version__
 from cobib import commands
@@ -65,6 +66,9 @@ class TUI:  # pylint: disable=too-many-instance-attributes
     def __init__(self, stdscr):
         self.stdscr = stdscr
 
+        # register resize handler
+        signal(SIGWINCH, self.resize_handler)
+
         # Clear and refresh the screen for a blank canvas
         self.stdscr.clear()
         self.stdscr.refresh()
@@ -78,12 +82,12 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.inactive_commands = []
 
         # Initialize top status bar
-        self.topbar = curses.newwin(1, self.width+1, 0, 0)
+        self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(1))
 
         # Initialize bottom status bar
         # NOTE: -2 leaves an additional empty line for the command prompt
-        self.botbar = curses.newwin(1, self.width+1, self.height-2, 0)
+        self.botbar = curses.newwin(1, self.width, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(1))
         self.statusbar(self.botbar, self.infoline)
 
@@ -101,6 +105,31 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         self.top_line = 0
         self.left_edge = 0
         self.loop()
+
+    def resize_handler(self, signum, frame):  # pylint: disable=unused-argument
+        """Handles terminal window resize events."""
+        # stop curses window
+        curses.endwin()
+        # clear and refresh for a blank canvas
+        self.stdscr.clear()
+        self.stdscr.refresh()
+        # update total dimension data
+        self.height, self.width = self.stdscr.getmaxyx()
+        self.visible = self.height-3
+        # update top statusbar
+        self.topbar.resize(1, self.width)
+        self.statusbar(self.topbar, self.topstatus)
+        self.topbar.refresh()
+        # update bottom statusbar
+        self.botbar.resize(1, self.width)
+        self.botbar.mvwin(self.height-2, 0)
+        self.statusbar(self.botbar, self.infoline)
+        self.botbar.refresh()
+        # update prompt
+        self.prompt.resize(1, self.width)
+        self.prompt.mvwin(self.height-1, 0)
+        # update viewport
+        self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
 
     def quit(self):
         """Break the key event loop."""
@@ -157,6 +186,8 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                     cmd = TUI.KEYDICT[key]
                     if cmd not in self.inactive_commands:
                         TUI.COMMANDS[cmd](self)
+                elif key == curses.KEY_RESIZE:
+                    self.resize_handler(None, None)
             except StopIteration:
                 # raised by quit command
                 break
