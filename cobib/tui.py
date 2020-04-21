@@ -1,6 +1,7 @@
 """CoBib curses interface"""
 
 import curses
+import textwrap
 
 from cobib import __version__
 from cobib.commands import ListCommand, ShowCommand, DeleteCommand
@@ -114,13 +115,23 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                     self.width = max(self.width, len(string))
             self.height = len(self.lines)
 
+        def wrap(self, width):
+            """Wrap text in buffer to given width."""
+            copy = self.lines.copy()
+            self.lines = []
+            for line in copy:
+                for string in textwrap.wrap(line, width=width-1, subsequent_indent="↪ "):
+                    self.lines.append(string)
+            self.width = width
+            self.height = len(self.lines)
+
         def view(self, pad, visible_height, visible_width):
             """View buffer in provided curses pad."""
             # first clear pad
             pad.erase()
             pad.refresh(0, 0, 1, 0, visible_height, visible_width)
             # then resize
-            pad.resize(self.height+1, self.width)
+            pad.resize(self.height+1, max(self.width, visible_width+1))
             # and populate
             for row, line in enumerate(self.lines):
                 pad.addstr(row, 0, line)
@@ -170,8 +181,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
                 # TODO sorting
                 pass
             elif key == ord('w'):
-                # TODO text wrapping (e.g. in show menu)
-                pass
+                # first, ensure left_edge is set to 0
+                self.left_edge = 0
+                # then, wrap the buffer
+                self.buffer.wrap(self.width)
+                self.buffer.view(self.viewport, self.visible, self.width-1)
             elif key == ord('x'):
                 # TODO export command
                 pass
