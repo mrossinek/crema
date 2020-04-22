@@ -6,7 +6,7 @@ import textwrap
 from collections import defaultdict
 from operator import itemgetter
 
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
 class ListCommand(Command):
@@ -24,8 +24,8 @@ class ListCommand(Command):
         """
         if '--' in args:
             args.remove('--')
-        parser = argparse.ArgumentParser(prog="list", description="List subcommand parser.",
-                                         prefix_chars='+-')
+        parser = ArgumentParser(prog="list", description="List subcommand parser.",
+                                prefix_chars='+-')
         parser.add_argument('-x', '--or', dest='OR', action='store_true',
                             help="concatenate filters with OR instead of AND")
         parser.add_argument('-l', '--long', action='store_true',
@@ -42,7 +42,13 @@ class ListCommand(Command):
                                 help="include elements with matching "+key)
             parser.add_argument('--'+key, type=str, action='append',
                                 help="exclude elements with matching "+key)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return None
+
         _filter = defaultdict(list)
         for key, val in largs.__dict__.items():
             if key in ['OR', 'long', 'sort', 'reverse'] or val is None:

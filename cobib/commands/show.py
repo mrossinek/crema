@@ -4,7 +4,7 @@ import argparse
 import sys
 
 from cobib import __version__
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
 class ShowCommand(Command):
@@ -17,12 +17,19 @@ class ShowCommand(Command):
 
         Prints the details of a selected entry in bibtex format to stdout.
         """
-        parser = argparse.ArgumentParser(prog="show", description="Show subcommand parser.")
+        parser = ArgumentParser(prog="show", description="Show subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
+
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
+
         bib_data = self._read_database()
         try:
             entry = bib_data[largs.label]

@@ -1,6 +1,7 @@
 """CoBib curses interface"""
 
 import curses
+import sys
 from functools import partial
 from signal import signal, SIGWINCH
 
@@ -264,6 +265,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         # populate prompt line and place cursor
         prompt_line = ":" if command is None else f":{command} "
+        self.prompt.clear()
         self.prompt.addstr(0, 0, prompt_line)
         self.prompt.move(0, len(prompt_line))
         self.prompt.refresh()
@@ -292,8 +294,20 @@ class TUI:  # pylint: disable=too-many-instance-attributes
 
         # process command if it non empty and actually has arguments
         if command and command.split(' ')[1:]:
+            # temporarily disable prints to stdout
+            original_stdout = sys.stderr
+            sys.stderr = TextBuffer()
+            # run command
             subcmd = getattr(commands, command.split(' ')[0].title()+'Command')()
             subcmd.execute(command.split(' ')[1:], out=out)
+            # if error occured print info to prompt
+            if sys.stderr.lines:
+                self.prompt.addstr(0, 0, sys.stderr.lines[0])
+                self.prompt.refresh()
+                # command errored out
+                self.update_list()
+            # restore stdout
+            sys.stderr = original_stdout
         else:
             # command was aborted
             self.update_list()

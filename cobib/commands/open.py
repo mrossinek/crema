@@ -4,7 +4,7 @@ import argparse
 import sys
 from subprocess import Popen
 
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
 class OpenCommand(Command):
@@ -17,12 +17,19 @@ class OpenCommand(Command):
 
         Opens the associated file of an entry with xdg-open.
         """
-        parser = argparse.ArgumentParser(prog="open", description="Open subcommand parser.")
+        parser = ArgumentParser(prog="open", description="Open subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
+
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
+
         bib_data = self._read_database()
         try:
             entry = bib_data[largs.label]

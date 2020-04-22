@@ -6,7 +6,7 @@ import sys
 from collections import OrderedDict
 
 from cobib.parser import Entry
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
 class AddCommand(Command):
@@ -19,7 +19,7 @@ class AddCommand(Command):
 
         Adds new entries to the database.
         """
-        parser = argparse.ArgumentParser(prog="add", description="Add subcommand parser.")
+        parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str,
                             help="the label for the new database entry")
         parser.add_argument("-f", "--file", type=str,
@@ -35,7 +35,12 @@ class AddCommand(Command):
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
 
         new_entries = OrderedDict()
 

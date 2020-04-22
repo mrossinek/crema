@@ -5,7 +5,7 @@ import os
 import sys
 from zipfile import ZipFile
 
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
 
@@ -22,16 +22,23 @@ class ExportCommand(Command):
         * bibtex databases
         * zip archives
         """
-        parser = argparse.ArgumentParser(prog="export", description="Export subcommand parser.")
+        parser = ArgumentParser(prog="export", description="Export subcommand parser.")
         parser.add_argument("-b", "--bibtex", type=argparse.FileType('a'),
                             help="BibTeX output file")
         parser.add_argument("-z", "--zip", type=argparse.FileType('a'),
                             help="zip output file")
         parser.add_argument('list_args', nargs=argparse.REMAINDER)
+
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
+
         bib_data = self._read_database()
 
         if largs.bibtex is None and largs.zip is None:

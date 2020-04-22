@@ -5,7 +5,7 @@ import os
 import sys
 
 from cobib.config import CONFIG
-from .base_command import Command
+from .base_command import ArgumentParser, Command
 
 
 class DeleteCommand(Command):
@@ -18,12 +18,19 @@ class DeleteCommand(Command):
 
         Deletes the entry from the database.
         """
-        parser = argparse.ArgumentParser(prog="delete", description="Delete subcommand parser.")
+        parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
         parser.add_argument("label", type=str, help="label of the entry")
+
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
-        largs = parser.parse_args(args)
+
+        try:
+            largs = parser.parse_args(args)
+        except argparse.ArgumentError as exc:
+            print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
+            return
+
         conf_database = dict(CONFIG['DATABASE'])
         file = os.path.expanduser(conf_database['file'])
         with open(file, 'r') as bib:
