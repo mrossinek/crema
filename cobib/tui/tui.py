@@ -24,7 +24,7 @@ class TUI:  # pylint: disable=too-many-instance-attributes
         'Edit': commands.EditCommand.tui,
         'Export': commands.ExportCommand.tui,
         'Filter': commands.ListCommand.tui,
-        'Help': lambda _: None,  # TODO help command
+        'Help': lambda self: self.help(),
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
         'Search': lambda _: None,  # TODO search command
@@ -179,6 +179,69 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             else:
                 infoline += "  "
         return infoline.strip()
+
+    def help(self):
+        """Help command."""
+        cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
+                "Search", "Filter", "Sort", "Select", "", "Export"]
+        # setup help strings
+        help_dict = {
+            "Quit": "Closes current menu and quit's CoBib.",
+            "Help": "Displays this help.",
+            "Show": "Shows the details of an entry.",
+            "Open": "Opens the associated file of an entry.",
+            "Wrap": "Wraps the text displayed in the window for improved readability.",
+            "Add": "Prompts for a new entry to be added to the database.",
+            "Edit": "Edits the current entry in an external EDITOR.",
+            "Delete": "Removes the current entry from the database.",
+            "Search": "**not** implemented yet.",
+            "Filter": "Allows filtering the list using CoBib's `list ++/--` filter options.",
+            "Sort": "Prompts for the field to sort against (use -r to reverse the order).",
+            "Select": "**not** implemented yet.",
+            "Export": "Allows exporting the database to .bib or .zip files.",
+        }
+        # populate text buffer with help text
+        help_text = TextBuffer()
+        for cmd in cmds:
+            if cmd:
+                key = ' '
+                for key, command in TUI.KEYDICT.items():
+                    if cmd == command:
+                        # find mapped key
+                        key = 'ENTER' if key in (10, 13) else chr(key)
+                        break
+                # write: [key] Command: Description
+                help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', help_dict[cmd]))
+            else:
+                # add empty line
+                help_text.lines.append('')
+                help_text.height += 1
+        # add header section
+        help_text.lines.insert(0, "{0:^{1}}".format("CoBib TUI Help", help_text.width))
+        help_text.lines.insert(1, '')
+        help_text.lines.insert(2, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
+        help_text.height += 3
+
+        # populate help window
+        help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
+        for row, line in enumerate(help_text.lines):
+            attr = 0
+            if row < 3:
+                attr = curses.A_BOLD
+            help_win.addstr(row+1, 2, line, attr)
+        # display help window
+        help_win.box()
+        help_h, help_w = help_win.getmaxyx()
+        offset = 4
+        help_win.refresh(0, 0, offset, offset, offset+help_h, offset+help_w)
+
+        key = 0
+        # loop until quit by user
+        while key not in (27, ord('q')):  # exit on ESC
+            key = self.prompt.getch()
+
+        # close help window
+        help_win.clear()
 
     def loop(self):
         """The key-handling event loop."""
