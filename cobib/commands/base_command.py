@@ -56,14 +56,14 @@ class Command(ABC):
 
 class ArgumentParser(argparse.ArgumentParser):
     """
-    Overwrite argparse.ArgumentParser to allow catching any error messages thrown by parse_args.
+    Overwrite ArgumentParser to allow catching any error messages thrown by parse_args.
 
     Source: https://stackoverflow.com/a/5943381
     """
     def _get_action_from_name(self, name):
         """Given a name, get the Action instance registered with this parser.
         If only it were made available in the ArgumentError object. It is
-        passed as it's first arg...
+        passed as it's first argument...
         """
         container = self._actions
         if name is None:

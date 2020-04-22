@@ -363,11 +363,11 @@ class TUI:  # pylint: disable=too-many-instance-attributes
             # run command
             subcmd = getattr(commands, command.split(' ')[0].title()+'Command')()
             subcmd.execute(command.split(' ')[1:], out=out)
-            # if error occured print info to prompt
+            # if error occurred print info to prompt
             if sys.stderr.lines:
                 self.prompt.addstr(0, 0, sys.stderr.lines[0])
                 self.prompt.refresh()
-                # command errored out
+                # command exited with an error
                 self.update_list()
             # restore stdout
             sys.stderr = original_stdout
