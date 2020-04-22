@@ -70,7 +70,7 @@ class ListCommand(Command):
         for key, entry in bib_data.items():
             if entry.matches(_filter, largs.OR):
                 labels.append(key)
-                table.append([entry.data.get(c, None) for c in columns])
+                table.append([entry.data.get(c, '') for c in columns])
                 if largs.long:
                     table[-1][1] = table[-1][1]
                 else:
