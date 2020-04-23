@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.0.0-alpha] - 2020-04-23
+
 ### Added
 - Added a basic curses-based TUI (#5,!7)
 
