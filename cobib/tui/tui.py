@@ -62,6 +62,23 @@ class TUI:
         'up': lambda self: self.scroll_y(-1),
     }
 
+    # command help strings
+    HELP_DICT = {
+        "Add": "Prompts for a new entry to be added to the database.",
+        "Delete": "Removes the current entry from the database.",
+        "Edit": "Edits the current entry in an external EDITOR.",
+        "Export": "Allows exporting the database to .bib or .zip files.",
+        "Filter": "Allows filtering the list via `++/--` keywords.",
+        "Help": "Displays this help.",
+        "Open": "Opens the associated file of an entry.",
+        "Quit": "Closes current menu and quit's CoBib.",
+        "Search": "**not** implemented yet.",
+        "Select": "**not** implemented yet.",
+        "Show": "Shows the details of an entry.",
+        "Sort": "Prompts for the field to sort against (-r to reverse).",
+        "Wrap": "Wraps the text displayed in the window.",
+    }
+
     # standard key bindings
     KEYDICT = {
         10: 'Show',  # line feed = ENTER
@@ -272,24 +289,9 @@ class TUI:
         Opens a new curses window with more detailed information on the configured key bindings and
         short descriptions of the commands.
         """
+        # sorted commands to place in help window
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]
-        # setup help strings
-        help_dict = {
-            "Quit": "Closes current menu and quit's CoBib.",
-            "Help": "Displays this help.",
-            "Show": "Shows the details of an entry.",
-            "Open": "Opens the associated file of an entry.",
-            "Wrap": "Wraps the text displayed in the window for improved readability.",
-            "Add": "Prompts for a new entry to be added to the database.",
-            "Edit": "Edits the current entry in an external EDITOR.",
-            "Delete": "Removes the current entry from the database.",
-            "Search": "**not** implemented yet.",
-            "Filter": "Allows filtering the list using CoBib's `list ++/--` filter options.",
-            "Sort": "Prompts for the field to sort against (use -r to reverse the order).",
-            "Select": "**not** implemented yet.",
-            "Export": "Allows exporting the database to .bib or .zip files.",
-        }
         # populate text buffer with help text
         help_text = TextBuffer()
         for cmd in cmds:
@@ -301,7 +303,7 @@ class TUI:
                         key = 'ENTER' if key in (10, 13) else chr(key)
                         break
                 # write: [key] Command: Description
-                help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', help_dict[cmd]))
+                help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', TUI.HELP_DICT[cmd]))
             else:
                 # add empty line
                 help_text.lines.append('')
