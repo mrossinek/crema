@@ -310,9 +310,8 @@ class TUI:
                 help_text.height += 1
         # add header section
         help_text.lines.insert(0, "{0:^{1}}".format("CoBib TUI Help", help_text.width))
-        help_text.lines.insert(1, '')
-        help_text.lines.insert(2, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
-        help_text.height += 3
+        help_text.lines.insert(1, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
+        help_text.height += 2
 
         # populate help window
         help_win = curses.newpad(help_text.height+2, help_text.width+5)  # offsets account for box
@@ -325,8 +324,7 @@ class TUI:
         # display help window
         help_win.box()
         help_h, help_w = help_win.getmaxyx()
-        offset = 4
-        help_win.refresh(0, 0, offset, offset, offset+help_h, offset+help_w)
+        help_win.refresh(0, 0, 1, 2, 1+help_h, 2+help_w)
 
         key = 0
         # loop until quit by user
