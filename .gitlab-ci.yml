@@ -21,7 +21,7 @@ before_script:
     - virtualenv venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install pylint pydocstyle
+    - pip install pylint pydocstyle pyte pytest
 
 lint:
     script:
@@ -40,5 +40,4 @@ spell:
 
 test:
     script:
-        - pip install pytest
         - python -m pytest test
