@@ -82,4 +82,5 @@ def test_tui(setup, key, assertion):
                 except OSError:
                     # reading empty
                     break
+        print(*screen.display, "\n")
         assertion(screen)
