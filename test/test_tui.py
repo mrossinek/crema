@@ -62,8 +62,6 @@ def test_tui(setup, key, assertion):
         # parent process sets up virtual screen of identical size
         screen = pyte.Screen(80, 24)
         stream = pyte.ByteStream(screen)
-        # set correct encoding with Unicode chars
-        stream.select_other_charset('@')
         # send single key to be tested to TUI
         os.write(f_d, str.encode(key))
         # scrape pseudo-terminal's screen
