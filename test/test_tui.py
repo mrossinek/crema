@@ -58,6 +58,16 @@ def assert_scroll(screen, update, direction):
         assert screen.display[1][-4 - update:-update] == "@@@@"
 
 
+def assert_delete(screen):
+    """Asserts entry is deleted.
+
+    This also ensures it is added again after successful deletion.
+    """
+    assert f"CoBib v{version} - 3 Entries" in screen.display[0]
+    assert not any("dummy_entry_for_scroll_testing" in line for line in screen.display[4:21])
+    AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
+
+
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
         ['', assert_normal_view, {}],
         ['?', assert_help_screen, {}],
@@ -70,6 +80,7 @@ def assert_scroll(screen, update, direction):
         ['llh', assert_scroll, {'update': 1, 'direction': 'x'}],
         ['$', assert_scroll, {'update': 23, 'direction': 'x'}],
         ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
+        ['Gd', assert_delete, {}],
     ])
 def test_tui(setup, keys, assertion, assertion_kwargs):
     """Test TUI.
