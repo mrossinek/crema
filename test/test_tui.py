@@ -26,8 +26,8 @@ def setup():
     DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
 
 
-def assert_normal_startup(screen):
-    """Asserts the normal startup of the TUI."""
+def assert_normal_view(screen):
+    """Asserts the normal view of the TUI."""
     # the top statusline contains the version info and number of entries
     assert f"CoBib v{version} - 4 Entries" in screen.display[0]
     # current line should be first line below top statusbar
@@ -59,8 +59,9 @@ def assert_scroll(screen, update, direction):
 
 
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
-        ['q', assert_normal_startup, {}],
+        ['', assert_normal_view, {}],
         ['?', assert_help_screen, {}],
+        ['?q', assert_normal_view, {}],  # also checks the quit command
         ['j', assert_scroll, {'update': 1, 'direction': 'y'}],
         ['jjk', assert_scroll, {'update': 1, 'direction': 'y'}],
         ['G', assert_scroll, {'update': 3, 'direction': 'y'}],
