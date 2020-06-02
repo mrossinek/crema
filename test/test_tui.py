@@ -12,7 +12,7 @@ from cobib import __version__ as version
 from cobib.commands import AddCommand, DeleteCommand
 from cobib.config import CONFIG
 from cobib.database import read_database
-from cobib.tui import TUI
+from cobib.tui import TextBuffer, TUI
 
 
 @pytest.fixture
@@ -58,6 +58,14 @@ def assert_scroll(screen, update, direction):
         assert screen.display[1][-4 - update:-update] == "@@@@"
 
 
+def assert_wrap(screen, state):
+    """Asserts the viewport buffer is wrapped."""
+    if state:
+        assert screen.display[5][:2] == TextBuffer.INDENT
+    else:
+        assert screen.display[5][:2].strip() == ''
+
+
 def assert_delete(screen):
     """Asserts entry is deleted.
 
@@ -91,7 +99,8 @@ def assert_editor(screen):
         ['llh', assert_scroll, {'update': 1, 'direction': 'x'}],
         ['$', assert_scroll, {'update': 23, 'direction': 'x'}],
         ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
-        ['w', lambda _: None, {}],
+        ['w', assert_wrap, {'state': True}],
+        ['ww', assert_wrap, {'state': False}],
         ['a', lambda _: None, {}],
         ['Gd', assert_delete, {}],
         ['e', assert_editor, {}],

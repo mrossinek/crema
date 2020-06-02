@@ -427,6 +427,9 @@ class TUI:
         # then, wrap the buffer
         self.buffer.wrap(self.width)
         self.buffer.view(self.viewport, self.visible, self.width-1)
+        # if cursor line is below buffer height, move it one line back up
+        if self.current_line >= self.buffer.height:
+            self.current_line -= 1
 
     def prompt_handler(self, command, out=None):
         """Handle prompt input.
