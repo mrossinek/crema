@@ -4,6 +4,7 @@ image: python:latest
 # only cache local items.
 variables:
   TERM: "linux"
+  EDITOR: "vi"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 # Pip's cache doesn't store the python packages
