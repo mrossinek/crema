@@ -75,7 +75,7 @@ def assert_editor(screen):
             if screen_line.strip() == '~':
                 # vim populates lines after the end of the file with single '~' characters
                 break
-            # assert the source lin is fully part of the line visible in the editor window
+            # assert the source line is fully part of the line visible in the editor window
             assert source_line.strip() in screen_line.strip()
 
 
