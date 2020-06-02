@@ -9,6 +9,7 @@ from pathlib import Path
 import pyte
 import pytest
 from cobib import __version__ as version
+from cobib.commands import AddCommand, DeleteCommand
 from cobib.config import CONFIG
 from cobib.database import read_database
 from cobib.tui import TUI
@@ -20,12 +21,17 @@ def setup():
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     read_database()
+    AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
+    yield setup
+    DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
 
 
 def assert_normal_startup(screen):
     """Asserts the normal startup of the TUI."""
     # the top statusline contains the version info and number of entries
-    assert f"CoBib v{version} - 3 Entries" in screen.display[0]
+    assert f"CoBib v{version} - 4 Entries" in screen.display[0]
+    # current line should be first line below top statusbar
+    assert screen.display[1][-4:] == "@@@@"  # testing mode indicator for current line
     # the entries per line
     assert "einstein" in screen.display[1]
     assert "latexcompanion" in screen.display[2]
@@ -41,17 +47,37 @@ def assert_help_screen(screen):
         assert any("{:<8} {}".format(cmd+':', desc) in line for line in screen.display[4:21])
 
 
-@pytest.mark.parametrize(['key', 'assertion'], [
-        ['q', assert_normal_startup],
-        ['?', assert_help_screen],
+def assert_scroll(screen, update, direction):
+    """Asserts cursor-line position after scrolling.
+
+    Attention: The values of update *strongly* depend on the contents of the dummy scrolling entry.
+    """
+    if direction == 'y' or update == 0:
+        assert screen.display[1 + update][-4:] == "@@@@"
+    elif direction == 'x':
+        assert screen.display[1][-4 - update:-update] == "@@@@"
+
+
+@pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
+        ['q', assert_normal_startup, {}],
+        ['?', assert_help_screen, {}],
+        ['j', assert_scroll, {'update': 1, 'direction': 'y'}],
+        ['jjk', assert_scroll, {'update': 1, 'direction': 'y'}],
+        ['G', assert_scroll, {'update': 3, 'direction': 'y'}],
+        ['Gg', assert_scroll, {'update': 0, 'direction': 'y'}],
+        ['l', assert_scroll, {'update': 1, 'direction': 'x'}],
+        ['llh', assert_scroll, {'update': 1, 'direction': 'x'}],
+        ['$', assert_scroll, {'update': 23, 'direction': 'x'}],
+        ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
     ])
-def test_tui(setup, key, assertion):
+def test_tui(setup, keys, assertion, assertion_kwargs):
     """Test TUI.
 
     Args:
         setup: runs pytest fixture.
-        key (str): key to be send to the CoBib TUI.
+        keys (str): keys to be send to the CoBib TUI.
         assertion (Callable): function to run the assertions for the key to be tested.
+        assertion_kwargs (dict): additional keyword arguments for assertion function.
     """
     # create pseudo-terminal
     pid, f_d = os.forkpty()
@@ -62,8 +88,9 @@ def test_tui(setup, key, assertion):
         # parent process sets up virtual screen of identical size
         screen = pyte.Screen(80, 24)
         stream = pyte.ByteStream(screen)
-        # send single key to be tested to TUI
-        os.write(f_d, str.encode(key))
+        # send keys char-wise to TUI
+        for key in keys:
+            os.write(f_d, str.encode(key))
         # scrape pseudo-terminal's screen
         while True:
             try:
@@ -80,5 +107,6 @@ def test_tui(setup, key, assertion):
                 except OSError:
                     # reading empty
                     break
-        print(*screen.display, "\n")
-        assertion(screen)
+        for line in screen.display:
+            print(line)
+        assertion(screen, **assertion_kwargs)
