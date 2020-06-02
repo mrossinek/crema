@@ -326,7 +326,7 @@ class TUI:
         # display help window
         help_win.box()
         help_h, help_w = help_win.getmaxyx()
-        help_win.refresh(0, 0, 1, 2, 1+help_h, 2+help_w)
+        help_win.refresh(0, 0, 1, 1, 1+help_h, 1+help_w)
 
         key = 0
         # loop until quit by user
