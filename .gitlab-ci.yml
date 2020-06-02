@@ -4,7 +4,7 @@ image: python:latest
 # only cache local items.
 variables:
   TERM: "linux"
-  EDITOR: "vi"
+  EDITOR: "vim"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 # Pip's cache doesn't store the python packages
@@ -18,6 +18,8 @@ cache:
         - venv/
 before_script:
     - uname -a
+    - apt-get update
+    - apt-get install -y python3-enchant vim
     - python -V  # Print out python version for debugging
     - pip install virtualenv
     - virtualenv venv
@@ -35,8 +37,6 @@ doc:
 
 spell:
     script:
-        - apt-get update
-        - apt-get install -y python3-enchant
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
 
