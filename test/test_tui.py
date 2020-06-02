@@ -70,7 +70,13 @@ def assert_delete(screen):
 
 def assert_editor(screen):
     """Asserts the editor opens."""
-    assert False
+    with open('./test/example_literature.yaml', 'r') as source:
+        for screen_line, source_line in zip(screen.display, source.readlines()):
+            if screen_line.strip() == '~':
+                # vim populates lines after the end of the file with single '~' characters
+                break
+            # assert the source lin is fully part of the line visible in the editor window
+            assert source_line.strip() in screen_line.strip()
 
 
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
