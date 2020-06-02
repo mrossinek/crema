@@ -68,6 +68,11 @@ def assert_delete(screen):
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
 
 
+def assert_editor(screen):
+    """Asserts the editor opens."""
+    assert False
+
+
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
         ['', assert_normal_view, {}],
         ['?', assert_help_screen, {}],
@@ -83,7 +88,7 @@ def assert_delete(screen):
         ['w', lambda _: None, {}],
         ['a', lambda _: None, {}],
         ['Gd', assert_delete, {}],
-        ['e', lambda _: None, {}],
+        ['e', assert_editor, {}],
         ['f', lambda _: None, {}],
         ['s', lambda _: None, {}],
         ['o', lambda _: None, {}],
