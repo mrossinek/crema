@@ -57,7 +57,7 @@ def test_tui(setup, key, assertion):
     pid, f_d = os.forkpty()
     if pid == 0:
         # child process spawns TUI
-        curses.wrapper(TUI)
+        curses.wrapper(TUI, test=True)
     else:
         # parent process sets up virtual screen of identical size
         screen = pyte.Screen(80, 24)
