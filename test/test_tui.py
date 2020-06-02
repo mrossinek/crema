@@ -80,7 +80,16 @@ def assert_delete(screen):
         ['llh', assert_scroll, {'update': 1, 'direction': 'x'}],
         ['$', assert_scroll, {'update': 23, 'direction': 'x'}],
         ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
+        ['w', lambda _: None, {}],
+        ['a', lambda _: None, {}],
         ['Gd', assert_delete, {}],
+        ['e', lambda _: None, {}],
+        ['f', lambda _: None, {}],
+        ['s', lambda _: None, {}],
+        ['o', lambda _: None, {}],
+        ['x', lambda _: None, {}],
+        ['/', lambda _: None, {}],  # TODO unittest Search command
+        ['v', lambda _: None, {}],  # TODO unittest Select command
     ])
 def test_tui(setup, keys, assertion, assertion_kwargs):
     """Test TUI.
