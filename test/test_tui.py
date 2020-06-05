@@ -104,6 +104,12 @@ def assert_add(screen):
     DeleteCommand().execute(['Cao_2019'])
 
 
+def assert_export(screen):
+    """Asserts the export prompt."""
+    assert screen.display[-1].strip() == ":export"
+    # actual command execution is tested by the test_commands.test_export unittest
+
+
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
         ['', assert_normal_view, {}],
         ['?', assert_help_screen, {}],
@@ -124,7 +130,7 @@ def assert_add(screen):
         ['f', lambda _: None, {}],
         ['s', lambda _: None, {}],
         ['o', lambda _: None, {}],
-        ['x', lambda _: None, {}],
+        ['x', assert_export, {}],
         ['/', lambda _: None, {}],  # TODO unittest Search command
         ['v', lambda _: None, {}],  # TODO unittest Select command
     ])
