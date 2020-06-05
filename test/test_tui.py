@@ -129,7 +129,10 @@ def assert_export(screen):
         ['e', assert_editor, {}],
         ['f', lambda _: None, {}],
         ['s', lambda _: None, {}],
-        ['o', lambda _: None, {}],
+        pytest.param(
+            'o', lambda _: None, {},
+            marks=[pytest.mark.skip("There is currently no meaningful way of testing this.")]
+        ),
         ['x', assert_export, {}],
         ['/', lambda _: None, {}],  # TODO unittest Search command
         ['v', lambda _: None, {}],  # TODO unittest Select command
