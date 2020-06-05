@@ -93,6 +93,17 @@ def assert_editor(screen):
             assert source_line.strip() in screen_line.strip()
 
 
+def assert_add(screen):
+    """Asserts the add prompt."""
+    assert f"CoBib v{version} - 5 Entries" in screen.display[0]
+    assert "einstein" in screen.display[1]
+    assert "latexcompanion" in screen.display[2]
+    assert "knuthwebsite" in screen.display[3]
+    assert "dummy_entry_for_scroll_testing" in screen.display[4]
+    assert "Cao_2019" in screen.display[5]
+    DeleteCommand().execute(['Cao_2019'])
+
+
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
         ['', assert_normal_view, {}],
         ['?', assert_help_screen, {}],
@@ -107,7 +118,7 @@ def assert_editor(screen):
         ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
         ['w', assert_wrap, {'state': True}],
         ['ww', assert_wrap, {'state': False}],
-        ['a', lambda _: None, {}],
+        ['a-b ./test/example_entry.bib\n', assert_add, {}],
         ['Gd', assert_delete, {}],
         ['e', assert_editor, {}],
         ['f', lambda _: None, {}],
