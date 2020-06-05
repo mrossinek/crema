@@ -78,8 +78,14 @@ def assert_delete(screen):
 
 def assert_editor(screen):
     """Asserts the editor opens."""
+    start = 0
+    while '---' not in screen.display[start]:
+        start += 1
+    end = start+1
+    while '...' not in screen.display[end]:
+        end += 1
     with open('./test/example_literature.yaml', 'r') as source:
-        for screen_line, source_line in zip(screen.display, source.readlines()):
+        for screen_line, source_line in zip(screen.display[start:end], source.readlines()):
             if screen_line.strip() == '~':
                 # vim populates lines after the end of the file with single '~' characters
                 break
