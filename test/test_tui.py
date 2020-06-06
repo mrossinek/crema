@@ -244,3 +244,24 @@ def test_tui_config_color():
     CONFIG.config['COLORS']['cursor_line_fg'] = 'black'
     read_database()
     test_tui(None, '', assert_config_color, {'colors': CONFIG.config['COLORS']})
+
+
+@pytest.mark.parametrize(['command', 'key'], [
+        ['Show', 'p'],  # previously unused key
+        ['Show', 'o'],  # should overwrite previously used key with other command
+    ])
+def test_tui_config_keys(command, key):
+    """Test TUI key binding configuration."""
+    # ensure configuration is empty
+    CONFIG.config = {}
+    root = os.path.abspath(os.path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    # overwrite key binding configuration
+    CONFIG.config['KEY_BINDINGS'] = {}
+    CONFIG.config['KEY_BINDINGS'][command] = key
+    read_database()
+    AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
+    try:
+        test_tui(None, key, assert_show, {})
+    finally:
+        DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
