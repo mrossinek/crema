@@ -18,6 +18,8 @@ from cobib.tui import TextBuffer, TUI
 @pytest.fixture
 def setup():
     """Setup."""
+    # ensure configuration is empty
+    CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
     read_database()
@@ -28,10 +30,14 @@ def setup():
 
 def assert_list_view(screen, current, expected):
     """Asserts the list view of the TUI."""
+    # assert default colors
+    assert [c.bg for c in screen.buffer[0].values()] == ['brown'] * 80
+    assert [c.bg for c in screen.buffer[22].values()] == ['brown'] * 80
     # the top statusline contains the version info and number of entries
     assert f"CoBib v{version} - {len(expected)} Entries" in screen.display[0]
     # check current line
     if current >= 0:
+        assert [c.fg for c in screen.buffer[current].values()] == ['white'] * 80
         assert [c.bg for c in screen.buffer[current].values()] == ['cyan'] * 80
     # the entries per line
     for idx, label in enumerate(expected):
@@ -54,8 +60,10 @@ def assert_scroll(screen, update, direction):
     Attention: The values of update *strongly* depend on the contents of the dummy scrolling entry.
     """
     if direction == 'y' or update == 0:
+        assert [c.fg for c in screen.buffer[1 + update].values()] == ['white'] * 80
         assert [c.bg for c in screen.buffer[1 + update].values()] == ['cyan'] * 80
     elif direction == 'x':
+        assert [c.fg for c in screen.buffer[1].values()] == ['white'] * 80
         assert [c.bg for c in screen.buffer[1].values()] == ['cyan'] * 80
 
 
@@ -200,3 +208,31 @@ def test_tui(setup, keys, assertion, assertion_kwargs):
         for line in screen.display:
             print(line)
         assertion(screen, **assertion_kwargs)
+
+
+def assert_config_color(screen, colors):
+    """Assert configured colors."""
+    assert [c.bg for c in screen.buffer[0].values()] == [colors['top_statusbar_bg']] * 80
+    assert [c.fg for c in screen.buffer[0].values()] == [colors['top_statusbar_fg']] * 80
+    assert [c.bg for c in screen.buffer[22].values()] == [colors['bottom_statusbar_bg']] * 80
+    assert [c.fg for c in screen.buffer[22].values()] == [colors['bottom_statusbar_fg']] * 80
+    assert [c.bg for c in screen.buffer[1].values()] == [colors['cursor_line_bg']] * 80
+    assert [c.fg for c in screen.buffer[1].values()] == [colors['cursor_line_fg']] * 80
+
+
+def test_tui_config_color():
+    """Test TUI color configuration."""
+    # ensure configuration is empty
+    CONFIG.config = {}
+    root = os.path.abspath(os.path.dirname(__file__))
+    CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    # overwrite color configuration
+    CONFIG.config['COLORS'] = {}
+    CONFIG.config['COLORS']['top_statusbar_bg'] = 'red'
+    CONFIG.config['COLORS']['top_statusbar_fg'] = 'blue'
+    CONFIG.config['COLORS']['bottom_statusbar_bg'] = 'green'
+    CONFIG.config['COLORS']['bottom_statusbar_fg'] = 'magenta'
+    CONFIG.config['COLORS']['cursor_line_bg'] = 'white'
+    CONFIG.config['COLORS']['cursor_line_fg'] = 'black'
+    read_database()
+    test_tui(None, '', assert_config_color, {'colors': CONFIG.config['COLORS']})
