@@ -75,6 +75,26 @@ def assert_wrap(screen, state):
         assert screen.display[2][:2] == 'kn'
 
 
+def assert_show(screen):
+    """Asserts the show menu."""
+    with open('./test/dummy_scrolling_entry.bib', 'r') as source:
+        for screen_line, source_line in zip(screen.display[1:5], source.readlines()):
+            assert screen_line.strip() in source_line.strip()
+
+
+def assert_add(screen):
+    """Asserts the add prompt."""
+    try:
+        assert f"CoBib v{version} - 5 Entries" in screen.display[0]
+        assert "Cao_2019" in screen.display[1]
+        assert "dummy_entry_for_scroll_testing" in screen.display[2]
+        assert "knuthwebsite" in screen.display[3]
+        assert "latexcompanion" in screen.display[4]
+        assert "einstein" in screen.display[5]
+    finally:
+        DeleteCommand().execute(['Cao_2019'])
+
+
 def assert_delete(screen):
     """Asserts entry is deleted.
 
@@ -104,30 +124,10 @@ def assert_editor(screen):
             assert source_line.strip() in screen_line.strip()
 
 
-def assert_add(screen):
-    """Asserts the add prompt."""
-    try:
-        assert f"CoBib v{version} - 5 Entries" in screen.display[0]
-        assert "Cao_2019" in screen.display[1]
-        assert "dummy_entry_for_scroll_testing" in screen.display[2]
-        assert "knuthwebsite" in screen.display[3]
-        assert "latexcompanion" in screen.display[4]
-        assert "einstein" in screen.display[5]
-    finally:
-        DeleteCommand().execute(['Cao_2019'])
-
-
 def assert_export(screen):
     """Asserts the export prompt."""
     assert screen.display[-1].strip() == ":export"
     # actual command execution is tested by the test_commands.test_export unittest
-
-
-def assert_show(screen):
-    """Asserts the show menu."""
-    with open('./test/dummy_scrolling_entry.bib', 'r') as source:
-        for screen_line, source_line in zip(screen.display[1:5], source.readlines()):
-            assert screen_line.strip() in source_line.strip()
 
 
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
@@ -150,9 +150,11 @@ def assert_show(screen):
         ['$0', assert_scroll, {'update': 0, 'direction': 'x'}],
         ['w', assert_wrap, {'state': True}],
         ['ww', assert_wrap, {'state': False}],
+        ['\n', assert_show, {}],
         ['a-b ./test/example_entry.bib\n', assert_add, {}],
         ['d', assert_delete, {}],
         ['Ge', assert_editor, {}],
+        ['x', assert_export, {}],
         ['f++ID einstein\n', assert_list_view, {
             'current': 1, 'expected': ['einstein']}],
         ['f--ID einstein\n', assert_list_view, {
@@ -171,8 +173,6 @@ def assert_show(screen):
             'o', lambda _: None, {},
             marks=[pytest.mark.skip("There is currently no meaningful way of testing this.")]
         ),
-        ['x', assert_export, {}],
-        ['\n', assert_show, {}],
         ['/', lambda _: None, {}],  # TODO unittest Search command
         ['v', lambda _: None, {}],  # TODO unittest Select command
     ])
