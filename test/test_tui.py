@@ -30,9 +30,9 @@ def assert_list_view(screen, current, expected):
     """Asserts the list view of the TUI."""
     # the top statusline contains the version info and number of entries
     assert f"CoBib v{version} - {len(expected)} Entries" in screen.display[0]
-    # testing mode indicator for current line
-    if current > 0:
-        assert screen.display[current][-4:] == "@@@@"
+    # check current line
+    if current >= 0:
+        assert [c.bg for c in screen.buffer[current].values()] == ['cyan'] * 80
     # the entries per line
     for idx, label in enumerate(expected):
         # offset of 1 due to top statusline
@@ -54,9 +54,9 @@ def assert_scroll(screen, update, direction):
     Attention: The values of update *strongly* depend on the contents of the dummy scrolling entry.
     """
     if direction == 'y' or update == 0:
-        assert screen.display[1 + update][-4:] == "@@@@"
+        assert [c.bg for c in screen.buffer[1 + update].values()] == ['cyan'] * 80
     elif direction == 'x':
-        assert screen.display[1][-4 - update:-update] == "@@@@"
+        assert [c.bg for c in screen.buffer[1].values()] == ['cyan'] * 80
 
 
 def assert_wrap(screen, state):
@@ -169,7 +169,7 @@ def test_tui(setup, keys, assertion, assertion_kwargs):
     pid, f_d = os.forkpty()
     if pid == 0:
         # child process spawns TUI
-        curses.wrapper(TUI, test=True)
+        curses.wrapper(TUI)
     else:
         # parent process sets up virtual screen of identical size
         screen = pyte.Screen(80, 24)

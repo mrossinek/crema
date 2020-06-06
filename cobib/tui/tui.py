@@ -109,15 +109,13 @@ class TUI:
         ord('x'): 'Export',
     }
 
-    def __init__(self, stdscr, test=False):
+    def __init__(self, stdscr):
         """Initializes the curses-TUI and starts the event loop.
 
         Args:
             stdscr (curses.window): the curses standard screen as returned by curses.initscr().
-            test (bool): indicates testing mode.
         """
         self.stdscr = stdscr
-        self.testing_mode = test
 
         # register resize handler
         signal(SIGWINCH, self.resize_handler)
@@ -344,13 +342,10 @@ class TUI:
     def loop(self):
         """The key-handling event loop."""
         key = 0
-        current_line_prev_text = '    '
         # key is the last character pressed
         while True:
             # reset highlight of current line
             self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
-            if self.testing_mode:
-                self.viewport.addstr(self.current_line, self.width-4, current_line_prev_text)
 
             # handle possible keys
             try:
@@ -367,9 +362,6 @@ class TUI:
             # highlight current line
             self.viewport.chgat(self.current_line, 0,
                                 curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
-            if self.testing_mode and self.current_line < self.buffer.height:
-                current_line_prev_text = self.viewport.instr(self.current_line, self.width-4, 4)
-                self.viewport.addstr(self.current_line, self.width-4, '@@@@')
 
             # Refresh the screen
             self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
