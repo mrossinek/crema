@@ -367,7 +367,7 @@ class TUI:
             # highlight current line
             self.viewport.chgat(self.current_line, 0,
                                 curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
-            if self.testing_mode:
+            if self.testing_mode and self.current_line < self.buffer.height:
                 current_line_prev_text = self.viewport.instr(self.current_line, self.width-4, 4)
                 self.viewport.addstr(self.current_line, self.width-4, '@@@@')
 
