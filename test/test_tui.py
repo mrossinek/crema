@@ -72,9 +72,11 @@ def assert_delete(screen):
 
     This also ensures it is added again after successful deletion.
     """
-    assert f"CoBib v{version} - 3 Entries" in screen.display[0]
-    assert not any("dummy_entry_for_scroll_testing" in line for line in screen.display[4:21])
-    AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
+    try:
+        assert f"CoBib v{version} - 3 Entries" in screen.display[0]
+        assert not any("dummy_entry_for_scroll_testing" in line for line in screen.display[4:21])
+    finally:
+        AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
 
 
 def assert_editor(screen):
@@ -96,13 +98,15 @@ def assert_editor(screen):
 
 def assert_add(screen):
     """Asserts the add prompt."""
-    assert f"CoBib v{version} - 5 Entries" in screen.display[0]
-    assert "Cao_2019" in screen.display[1]
-    assert "dummy_entry_for_scroll_testing" in screen.display[2]
-    assert "knuthwebsite" in screen.display[3]
-    assert "latexcompanion" in screen.display[4]
-    assert "einstein" in screen.display[5]
-    DeleteCommand().execute(['Cao_2019'])
+    try:
+        assert f"CoBib v{version} - 5 Entries" in screen.display[0]
+        assert "Cao_2019" in screen.display[1]
+        assert "dummy_entry_for_scroll_testing" in screen.display[2]
+        assert "knuthwebsite" in screen.display[3]
+        assert "latexcompanion" in screen.display[4]
+        assert "einstein" in screen.display[5]
+    finally:
+        DeleteCommand().execute(['Cao_2019'])
 
 
 def assert_export(screen):
