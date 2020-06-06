@@ -21,8 +21,9 @@ class ListCommand(Command):
         By default, all entries of the database are listed.
 
         Args: See base class.
-        This output will be filterable in the future by providing values for any
-        set of table keys.
+
+        Returns:
+            A list with the filtered and sorted labels.
         """
         if '--' in args:
             args.remove('--')
@@ -34,7 +35,7 @@ class ListCommand(Command):
                             help="print table in long format (i.e. wrap and don't shorten lines)")
         parser.add_argument('-s', '--sort', help="specify column along which to sort the list")
         parser.add_argument('-r', '--reverse', action='store_true',
-                            help="reverses the sorting order")
+                            help="reverses the listing order")
         unique_keys = set()
         for entry in CONFIG.config['BIB_DATA'].values():
             unique_keys.update(entry.data.keys())
@@ -80,10 +81,14 @@ class ListCommand(Command):
                     table[-1][1] = textwrap.shorten(table[-1][1], 80, placeholder='...')
                 widths = [max(widths[col], len(table[-1][col])) for col in range(len(widths))]
         if largs.sort:
-            table = sorted(table, key=itemgetter(columns.index(largs.sort)), reverse=largs.reverse)
+            labels, table = zip(*sorted(zip(labels, table), reverse=largs.reverse,
+                                        key=itemgetter(columns.index(largs.sort))))
+        elif largs.reverse:
+            # do not sort, but reverse
+            labels, table = labels[::-1], table[::-1]
         for row in table:
             print('  '.join([f'{col: <{wid}}' for col, wid in zip(row, widths)]), file=out)
-        return labels
+        return list(labels)
 
     @staticmethod
     def tui(tui, sort_mode):
@@ -103,6 +108,16 @@ class ListCommand(Command):
         # after the command has been executed n the prompt handler, the `command` variable will
         # contain the contents of the prompt
         if command:
+            # always ensure the 'reverse' and 'or' keyword arguments are consistent
+            if '-r' in command and '-r' not in tui.list_args:
+                tui.list_args.insert(1, '-r')
+            elif '-r' not in command and '-r' in tui.list_args:
+                tui.list_args.remove('-r')
+            if '-x' in command and '-x' not in tui.list_args:
+                tui.list_args.insert(1, '-x')
+            elif '-x' not in command and '-x' in tui.list_args:
+                tui.list_args.remove('-x')
+
             if sort_mode:
                 try:
                     sort_arg_idx = command.index('-s')

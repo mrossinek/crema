@@ -6,8 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- respect sort order reversing and filter `XOR`ing from the TUI (#18)
+- `edit` command on Mac OS (#19)
+
 ### Changed
 - made `init` command safe against database overwriting
+- TUI: list entries in reverse order by default (config: TUI/reverse_order)
 
 
 ## [2.0.0b4] - 2020-05-16
