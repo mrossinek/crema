@@ -152,7 +152,7 @@ class TUI:
         # NOTE: -2 leaves an additional empty line for the command prompt
         self.botbar = curses.newwin(1, self.width, self.height-2, 0)
         self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_PAIRS['bottom_statusbar'][0]))
-        self.statusbar(self.botbar, self.infoline)
+        self.statusbar(self.botbar, self.infoline())
 
         # Initialize command prompt and viewport
         self.viewport = curses.newpad(1, 1)
@@ -195,7 +195,7 @@ class TUI:
         # update bottom statusbar
         self.botbar.resize(1, self.width)
         self.botbar.mvwin(self.height-2, 0)
-        self.statusbar(self.botbar, self.infoline)
+        self.statusbar(self.botbar, self.infoline())
         self.botbar.refresh()
         # update prompt
         self.prompt.resize(1, self.width)
@@ -270,8 +270,8 @@ class TUI:
         statusline.addnstr(0, 0, text, max_x-1, attr)
         statusline.refresh()
 
-    @property
-    def infoline(self):
+    @staticmethod
+    def infoline():
         """Returns a list of the available key bindings."""
         cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
                 "Search", "Filter", "Sort", "Select", "", "Export"]

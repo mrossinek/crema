@@ -2,8 +2,11 @@
 # pylint: disable=unused-argument, redefined-outer-name
 
 import curses
+import fcntl
 import os
 import select
+import termios
+from array import array
 from pathlib import Path
 
 import pyte
@@ -30,19 +33,22 @@ def setup():
 
 def assert_list_view(screen, current, expected):
     """Asserts the list view of the TUI."""
+    term_width = len(screen.buffer[0])
     # assert default colors
-    assert [c.bg for c in screen.buffer[0].values()] == ['brown'] * 80
-    assert [c.bg for c in screen.buffer[22].values()] == ['brown'] * 80
+    assert [c.bg for c in screen.buffer[0].values()] == ['brown'] * term_width
+    assert [c.bg for c in screen.buffer[len(screen.buffer)-2].values()] == ['brown'] * term_width
     # the top statusline contains the version info and number of entries
     assert f"CoBib v{version} - {len(expected)} Entries" in screen.display[0]
     # check current line
     if current >= 0:
-        assert [c.fg for c in screen.buffer[current].values()] == ['white'] * 80
-        assert [c.bg for c in screen.buffer[current].values()] == ['cyan'] * 80
+        assert [c.fg for c in screen.buffer[current].values()] == ['white'] * term_width
+        assert [c.bg for c in screen.buffer[current].values()] == ['cyan'] * term_width
     # the entries per line
     for idx, label in enumerate(expected):
         # offset of 1 due to top statusline
         assert label in screen.display[idx+1]
+    # the bottom statusline should contain at least parts of the information string
+    assert screen.display[-2].strip() in TUI.infoline()
     # the prompt line should be empty
     assert screen.display[-1].strip() == ""
 
@@ -59,12 +65,13 @@ def assert_scroll(screen, update, direction):
 
     Attention: The values of update *strongly* depend on the contents of the dummy scrolling entry.
     """
+    term_width = len(screen.buffer[0])
     if direction == 'y' or update == 0:
-        assert [c.fg for c in screen.buffer[1 + update].values()] == ['white'] * 80
-        assert [c.bg for c in screen.buffer[1 + update].values()] == ['cyan'] * 80
+        assert [c.fg for c in screen.buffer[1 + update].values()] == ['white'] * term_width
+        assert [c.bg for c in screen.buffer[1 + update].values()] == ['cyan'] * term_width
     elif direction == 'x':
-        assert [c.fg for c in screen.buffer[1].values()] == ['white'] * 80
-        assert [c.bg for c in screen.buffer[1].values()] == ['cyan'] * 80
+        assert [c.fg for c in screen.buffer[1].values()] == ['white'] * term_width
+        assert [c.bg for c in screen.buffer[1].values()] == ['cyan'] * term_width
 
 
 def assert_wrap(screen, state):
@@ -220,12 +227,15 @@ def test_tui(setup, keys, assertion, assertion_kwargs):
 
 def assert_config_color(screen, colors):
     """Assert configured colors."""
-    assert [c.bg for c in screen.buffer[0].values()] == [colors['top_statusbar_bg']] * 80
-    assert [c.fg for c in screen.buffer[0].values()] == [colors['top_statusbar_fg']] * 80
-    assert [c.bg for c in screen.buffer[22].values()] == [colors['bottom_statusbar_bg']] * 80
-    assert [c.fg for c in screen.buffer[22].values()] == [colors['bottom_statusbar_fg']] * 80
-    assert [c.bg for c in screen.buffer[1].values()] == [colors['cursor_line_bg']] * 80
-    assert [c.fg for c in screen.buffer[1].values()] == [colors['cursor_line_fg']] * 80
+    term_width = len(screen.buffer[0])
+    assert [c.bg for c in screen.buffer[0].values()] == [colors['top_statusbar_bg']] * term_width
+    assert [c.fg for c in screen.buffer[0].values()] == [colors['top_statusbar_fg']] * term_width
+    assert [c.bg for c in screen.buffer[len(screen.buffer)-2].values()] == \
+        [colors['bottom_statusbar_bg']] * term_width
+    assert [c.fg for c in screen.buffer[len(screen.buffer)-2].values()] == \
+        [colors['bottom_statusbar_fg']] * term_width
+    assert [c.bg for c in screen.buffer[1].values()] == [colors['cursor_line_bg']] * term_width
+    assert [c.fg for c in screen.buffer[1].values()] == [colors['cursor_line_fg']] * term_width
 
 
 def test_tui_config_color():
@@ -265,3 +275,41 @@ def test_tui_config_keys(command, key):
         test_tui(None, key, assert_show, {})
     finally:
         DeleteCommand().execute(['dummy_entry_for_scroll_testing'])
+
+
+def test_tui_resize(setup):
+    """Test TUI resize handling."""
+    # create pseudo-terminal
+    pid, f_d = os.forkpty()
+    if pid == 0:
+        # child process spawns TUI
+        curses.wrapper(TUI)
+    else:
+        # resize pseudo terminal
+        fcntl.ioctl(f_d, termios.TIOCSWINSZ, array('h', [10, 120, 1200, 220]))
+        # parent process sets up virtual screen of identical size
+        screen = pyte.Screen(120, 10)
+        stream = pyte.ByteStream(screen)
+        # scrape pseudo-terminal's screen
+        while True:
+            try:
+                [f_d], _, _ = select.select([f_d], [], [], 1)
+            except (KeyboardInterrupt, ValueError):
+                # either test was interrupted or file descriptor of child process provides nothing
+                # to be read
+                break
+            else:
+                try:
+                    # scrape screen of child process
+                    data = os.read(f_d, 1024)
+                    stream.feed(data)
+                except OSError:
+                    # reading empty
+                    break
+        for line in screen.display:
+            print(line)
+        assert_list_view(screen, 1, [
+            'dummy_entry_for_scroll_testing', 'knuthwebsite', 'latexcompanion', 'einstein'
+        ])
+        # the terminal should be wide enough to contain the full information text
+        assert screen.display[-2].strip() == TUI.infoline()
