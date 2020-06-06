@@ -1,15 +1,17 @@
 """CoBib parsing module."""
 
 from collections import OrderedDict
+from shutil import which
 import os
 import re
-import requests
+import subprocess
 
 from bs4 import BeautifulSoup
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 import bibtexparser
+import requests
 
 from cobib.config import CONFIG
 
@@ -167,6 +169,32 @@ class Entry:
         if _or:
             return any(m for m in match_list)
         return all(m for m in match_list)
+
+    def search(self, query):
+        """Search entry contents for query string.
+
+        The search will try its best to recursively query all the data associated with this entry
+        for the given query string.
+
+        Args:
+            query (str): text to search for.
+
+        Returns:
+            A list of matching strings associated with this entry.
+        """
+        matches = []
+        for line in str(self).split('\n'):
+            if query in line:
+                matches.append(line)
+
+        if self.file and os.path.exists(self.file):
+            grep_prog = 'pdfgrep' if which('pdfgrep') and self.file.endswith('.pdf') else 'grep'
+            grep = subprocess.Popen([grep_prog, query, self.file], stdout=subprocess.PIPE)
+            results = grep.stdout.read().decode().strip()
+            if results:
+                matches.append(results)
+
+        return matches
 
     def to_bibtex(self):
         """Returns the entry in bibtex format."""
