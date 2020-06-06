@@ -123,6 +123,13 @@ def assert_export(screen):
     # actual command execution is tested by the test_commands.test_export unittest
 
 
+def assert_show(screen):
+    """Asserts the show menu."""
+    with open('./test/dummy_scrolling_entry.bib', 'r') as source:
+        for screen_line, source_line in zip(screen.display[1:5], source.readlines()):
+            assert screen_line.strip() in source_line.strip()
+
+
 @pytest.mark.parametrize(['keys', 'assertion', 'assertion_kwargs'], [
         ['', assert_list_view, {
             'current': 1, 'expected': [
@@ -165,6 +172,7 @@ def assert_export(screen):
             marks=[pytest.mark.skip("There is currently no meaningful way of testing this.")]
         ),
         ['x', assert_export, {}],
+        ['\n', assert_show, {}],
         ['/', lambda _: None, {}],  # TODO unittest Search command
         ['v', lambda _: None, {}],  # TODO unittest Select command
     ])
