@@ -33,9 +33,9 @@ def assert_normal_view(screen):
     # current line should be first line below top statusbar
     assert screen.display[1][-4:] == "@@@@"  # testing mode indicator for current line
     # the entries per line
-    assert "einstein" in screen.display[1]
-    assert "latexcompanion" in screen.display[2]
-    assert "knuthwebsite" in screen.display[3]
+    assert "knuthwebsite" in screen.display[2]
+    assert "latexcompanion" in screen.display[3]
+    assert "einstein" in screen.display[4]
     # the prompt line should be empty
     assert screen.display[-1].strip() == ""
 
@@ -61,9 +61,9 @@ def assert_scroll(screen, update, direction):
 def assert_wrap(screen, state):
     """Asserts the viewport buffer is wrapped."""
     if state:
-        assert screen.display[5][:2] == TextBuffer.INDENT
+        assert screen.display[2][:2] == TextBuffer.INDENT
     else:
-        assert screen.display[5][:2].strip() == ''
+        assert screen.display[2][:2] == 'kn'
 
 
 def assert_delete(screen):
@@ -96,11 +96,11 @@ def assert_editor(screen):
 def assert_add(screen):
     """Asserts the add prompt."""
     assert f"CoBib v{version} - 5 Entries" in screen.display[0]
-    assert "einstein" in screen.display[1]
-    assert "latexcompanion" in screen.display[2]
+    assert "Cao_2019" in screen.display[1]
+    assert "dummy_entry_for_scroll_testing" in screen.display[2]
     assert "knuthwebsite" in screen.display[3]
-    assert "dummy_entry_for_scroll_testing" in screen.display[4]
-    assert "Cao_2019" in screen.display[5]
+    assert "latexcompanion" in screen.display[4]
+    assert "einstein" in screen.display[5]
     DeleteCommand().execute(['Cao_2019'])
 
 
@@ -125,8 +125,8 @@ def assert_export(screen):
         ['w', assert_wrap, {'state': True}],
         ['ww', assert_wrap, {'state': False}],
         ['a-b ./test/example_entry.bib\n', assert_add, {}],
-        ['Gd', assert_delete, {}],
-        ['e', assert_editor, {}],
+        ['d', assert_delete, {}],
+        ['Ge', assert_editor, {}],
         ['f', lambda _: None, {}],
         ['s', lambda _: None, {}],
         pytest.param(
