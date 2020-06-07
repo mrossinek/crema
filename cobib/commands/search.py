@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 import sys
 
 from cobib import __version__
@@ -68,6 +69,8 @@ class SearchCommand(Command):
 
         labels = ListCommand().execute(largs.list_args, out=open(os.devnull, 'w'))
 
+        re_flags = re.IGNORECASE if largs.ignore_case else 0
+
         hits = 0
         output = []
         for label in labels:
@@ -83,10 +86,8 @@ class SearchCommand(Command):
 
             for idx, match in enumerate(matches):
                 for line in match:
-                    if largs.ignore_case:
-                        line = line.replace(largs.query.lower(), SEARCH_QUERY_ANSI +
-                                            largs.query.lower() + '\033[0m')
-                    line = line.replace(largs.query, SEARCH_QUERY_ANSI + largs.query + '\033[0m')
+                    line = re.sub(rf'({largs.query})', SEARCH_QUERY_ANSI + r'\1' + '\033[0m',
+                                  line, flags=re_flags)
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
         print('\n'.join(output), file=out)

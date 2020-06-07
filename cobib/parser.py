@@ -187,12 +187,9 @@ class Entry:
         """
         matches = []
         bibtex = str(self).split('\n')
+        re_flags = re.IGNORECASE if ignore_case else 0
         for idx, line in enumerate(bibtex):
-            if ignore_case:
-                match = query.lower() in line.lower()
-            else:
-                match = query in line
-            if match:
+            if re.search(rf'{query}', line, flags=re_flags):
                 # extract context
                 match = bibtex[max(idx-context, 0):min(idx+context+1, len(bibtex))]
                 matches.append(match)
