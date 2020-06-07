@@ -7,6 +7,28 @@ from cobib import __version__
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 
+ANSI_COLORS = [
+    'black',
+    'red',
+    'green',
+    'yellow',
+    'blue',
+    'magenta',
+    'cyan',
+    'white',
+]
+
+if 'COLORS' not in CONFIG.config.keys():
+    CONFIG.config['COLORS'] = {}
+
+SEARCH_LABEL_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_label_fg', 'blue'))
+SEARCH_LABEL_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_label_bg', 'black'))
+SEARCH_QUERY_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_query_fg', 'red'))
+SEARCH_QUERY_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('search_query_bg', 'black'))
+
+SEARCH_LABEL_ANSI = f'\033[{SEARCH_LABEL_FG};{SEARCH_LABEL_BG}m'
+SEARCH_QUERY_ANSI = f'\033[{SEARCH_QUERY_FG};{SEARCH_QUERY_BG}m'
+
 
 class SearchCommand(Command):
     """Search Command."""
@@ -48,15 +70,13 @@ class SearchCommand(Command):
 
             hits += len(matches)
             title = f"{label} - {len(matches)} match" + ("es" if len(matches) > 1 else "")
-            if out == sys.stdout:
-                title = title.replace(label, '\033[1;34m' + label + '\033[0m')
+            title = title.replace(label, SEARCH_LABEL_ANSI + label + '\033[0m')
             output.append(title)
 
             for idx, match in enumerate(matches):
                 for line in match:
-                    if out == sys.stdout:
-                        line = line.replace(largs.query, '\033[31m' + largs.query + '\033[0m')
-                    output.append(f"[{idx+1}]\t" + line)
+                    line = line.replace(largs.query, SEARCH_QUERY_ANSI + largs.query + '\033[0m')
+                    output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 
         print('\n'.join(output), file=out)
         return hits
@@ -70,7 +90,9 @@ class SearchCommand(Command):
         if tui.buffer.lines:
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
+            tui.buffer.view(tui.viewport, tui.visible, tui.width-1,
+                            {SEARCH_LABEL_ANSI: tui.COLOR_PAIRS['search_label'][0],
+                             SEARCH_QUERY_ANSI: tui.COLOR_PAIRS['search_query'][0]})
             # reset current cursor position
             tui.top_line = 0
             tui.current_line = 0

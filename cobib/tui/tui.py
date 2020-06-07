@@ -35,6 +35,8 @@ class TUI:
         'top_statusbar': [2, 'black', 'yellow'],
         'bottom_statusbar': [3, 'black', 'yellow'],
         'help': [4, 'white', 'red'],
+        'search_label': [5, 'blue', 'black'],
+        'search_query': [6, 'red', 'black'],
         # TODO when implementing select command add a color configuration option
     }
 
