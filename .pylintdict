@@ -21,6 +21,8 @@ ini
 init
 initscr
 io
+pdf
+pdfgrep
 pylatexenc
 pytest
 signum
