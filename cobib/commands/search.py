@@ -54,14 +54,14 @@ class SearchCommand(Command):
                             help="ignore case for searching")
         parser.add_argument("-p", "--pdf", action="store_true",
                             help="use pdfgrep to search associated files")
-        parser.add_argument('list_args', nargs=argparse.REMAINDER)
+        parser.add_argument('list_args', nargs='*')
 
         if not args:
             parser.print_usage(sys.stderr)
             sys.exit(1)
 
         try:
-            largs = parser.parse_args(args)
+            largs = parser.parse_intermixed_args(args)
         except argparse.ArgumentError as exc:
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
