@@ -1,11 +1,13 @@
 """CoBib search command."""
 
 import argparse
+import os
 import sys
 
 from cobib import __version__
 from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
+from .list import ListCommand
 
 ANSI_COLORS = [
     'black',
@@ -50,6 +52,7 @@ class SearchCommand(Command):
                             help="number of context lines to provide for each match")
         parser.add_argument("-p", "--pdf", action="store_true",
                             help="use pdfgrep to search associated files")
+        parser.add_argument('list_args', nargs=argparse.REMAINDER)
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -61,9 +64,12 @@ class SearchCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
 
+        labels = ListCommand().execute(largs.list_args, out=open(os.devnull, 'w'))
+
         hits = 0
         output = []
-        for label, entry in CONFIG.config['BIB_DATA'].items():
+        for label in labels:
+            entry = CONFIG.config['BIB_DATA'][label]
             matches = entry.search(largs.query, largs.context, largs.pdf)
             if not matches:
                 continue
