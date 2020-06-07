@@ -509,20 +509,19 @@ class TUI:
         return command
 
     def get_current_label(self):
-        """Returns the label of the currently selected entry."""
+        """Returns the label and y position of the currently selected entry."""
+        cur_y, _ = self.viewport.getyx()
         # Two cases are possible: the list and the show mode
         if self.list_mode == -1:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
-            cur_y, _ = self.viewport.getyx()
             while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
                 cur_y -= 1
             label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
-            self.list_mode = cur_y
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
-        return label
+        return label, cur_y
 
     def update_list(self):
         """Updates the default list view."""
