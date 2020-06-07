@@ -129,6 +129,7 @@ class TUI:
         self.height, self.width = self.stdscr.getmaxyx()
         self.visible = self.height-3
         # and colors
+        curses.use_default_colors()
         TUI.colors()
         # and user key mappings
         TUI.bind_keys()
@@ -345,9 +346,6 @@ class TUI:
         key = 0
         # key is the last character pressed
         while True:
-            # reset highlight of current line
-            self.viewport.chgat(self.current_line, 0, curses.A_NORMAL)
-
             # handle possible keys
             try:
                 if key in TUI.KEYDICT.keys():
@@ -361,6 +359,9 @@ class TUI:
                 break
 
             # highlight current line
+            current_attrs = []
+            for x_pos in range(0, self.width):
+                current_attrs.append(self.viewport.inch(self.current_line, x_pos))
             self.viewport.chgat(self.current_line, 0,
                                 curses.color_pair(TUI.COLOR_PAIRS['cursor_line'][0]))
 
@@ -369,6 +370,10 @@ class TUI:
 
             # Wait for next input
             key = self.stdscr.getch()
+
+            # reset highlight of current line
+            for x_pos in range(0, self.width):
+                self.viewport.chgat(self.current_line, x_pos, 1, current_attrs[x_pos])
 
     def scroll_y(self, update):
         """Scroll viewport vertically.

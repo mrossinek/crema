@@ -78,7 +78,8 @@ class SearchCommand(Command):
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")
             tui.statusbar(tui.topbar, tui.topstatus)
-        else:
+        elif command[1:] and not tui.buffer.lines:
             tui.prompt.clear()
             tui.prompt.addstr(0, 0, f"No search hits for '{' '.join(command[1:])}'!")
             tui.prompt.refresh()
+            tui.update_list()
