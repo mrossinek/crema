@@ -1,6 +1,7 @@
 """CoBib curses interface."""
 
 import curses
+import re
 import sys
 from functools import partial
 from signal import signal, SIGWINCH
@@ -47,7 +48,7 @@ class TUI:
         'Help': lambda self: self.help(),
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
-        'Search': lambda _: None,  # TODO search command
+        'Search': commands.SearchCommand.tui,
         'Select': lambda _: None,  # TODO select command
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
@@ -518,6 +519,11 @@ class TUI:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
             while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
+                cur_y -= 1
+            label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
+        elif re.match(r'\d+ hit',
+                      '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()):
+            while chr(self.viewport.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
                 cur_y -= 1
             label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
         else:
