@@ -190,9 +190,20 @@ class Entry:
         re_flags = re.IGNORECASE if ignore_case else 0
         for idx, line in enumerate(bibtex):
             if re.search(rf'{query}', line, flags=re_flags):
-                # extract context
-                match = bibtex[max(idx-context, 0):min(idx+context+1, len(bibtex))]
-                matches.append(match)
+                # add new match
+                matches.append([])
+                # upper context
+                for string in bibtex[max(idx-context, 0):min(idx+1, len(bibtex))]:
+                    if not re.search(rf'{query}', string, flags=re_flags):
+                        matches[-1].append(string)
+                # matching line itself
+                matches[-1].append(line)
+                # lower context
+                for string in bibtex[max(idx+1, 0):min(idx+context+1, len(bibtex))]:
+                    if not re.search(rf'{query}', string, flags=re_flags):
+                        matches[-1].append(string)
+                    else:
+                        break
 
         if self.file and os.path.exists(self.file):
             grep_prog = 'pdfgrep' if pdf and which('pdfgrep') and self.file.endswith('.pdf') \
