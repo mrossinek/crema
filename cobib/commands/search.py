@@ -15,12 +15,16 @@ class SearchCommand(Command):
     def execute(self, args, out=sys.stdout):
         """Search database.
 
-        Searches the database recursively (i.e. including any associated files) for a query string.
+        Searches the database recursively (i.e. including any associated files) using `grep` for a
+        query string. Since CoBib is meant to manage PDF files it supports an optional keyword
+        argument to enable `pdfgrep` as the search tool for associated files.
 
         Args: See base class.
         """
         parser = ArgumentParser(prog="search", description="Search subcommand parser.")
         parser.add_argument("query", type=str, help="text to search for")
+        parser.add_argument("-p", "--pdf", action="store_true",
+                            help="use pdfgrep to search associated files")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -34,7 +38,7 @@ class SearchCommand(Command):
 
         output = []
         for label, entry in CONFIG.config['BIB_DATA'].items():
-            matches = entry.search(largs.query)
+            matches = entry.search(largs.query, largs.pdf)
             if not matches:
                 continue
 

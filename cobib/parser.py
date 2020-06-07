@@ -170,7 +170,7 @@ class Entry:
             return any(m for m in match_list)
         return all(m for m in match_list)
 
-    def search(self, query):
+    def search(self, query, pdf=False):
         """Search entry contents for query string.
 
         The search will try its best to recursively query all the data associated with this entry
@@ -178,6 +178,7 @@ class Entry:
 
         Args:
             query (str): text to search for.
+            pdf (bool): if True, use pdfgrep to search associated PDF files.
 
         Returns:
             A list of matching strings associated with this entry.
@@ -188,7 +189,8 @@ class Entry:
                 matches.append(line)
 
         if self.file and os.path.exists(self.file):
-            grep_prog = 'pdfgrep' if which('pdfgrep') and self.file.endswith('.pdf') else 'grep'
+            grep_prog = 'pdfgrep' if pdf and which('pdfgrep') and self.file.endswith('.pdf') \
+                    else 'grep'
             grep = subprocess.Popen([grep_prog, query, self.file], stdout=subprocess.PIPE)
             results = grep.stdout.read().decode().strip()
             if results:
