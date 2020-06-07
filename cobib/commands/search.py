@@ -23,6 +23,8 @@ class SearchCommand(Command):
         """
         parser = ArgumentParser(prog="search", description="Search subcommand parser.")
         parser.add_argument("query", type=str, help="text to search for")
+        parser.add_argument("-c", "--context", type=int, default=1,
+                            help="number of context lines to provide for each match")
         parser.add_argument("-p", "--pdf", action="store_true",
                             help="use pdfgrep to search associated files")
 
@@ -38,20 +40,20 @@ class SearchCommand(Command):
 
         output = []
         for label, entry in CONFIG.config['BIB_DATA'].items():
-            matches = entry.search(largs.query, largs.pdf)
+            matches = entry.search(largs.query, largs.context, largs.pdf)
             if not matches:
                 continue
 
-            output.append(label)
+            title = f"{label}: {len(matches)} match" + ("es" if len(matches) > 1 else "")
             if out == sys.stdout:
-                output[-1] = '\033[1;34m' + output[-1] + '\033[0m'
+                title = title.replace(label, '\033[1;34m' + label + '\033[0m')
+            output.append(title)
 
-            if out == sys.stdout:
-                for line in matches:
-                    line = line.replace(largs.query, '\033[31m' + largs.query + '\033[0m')
-                    output.append(line)
-            else:
-                output.extend(matches)
+            for idx, match in enumerate(matches):
+                for line in match:
+                    if out == sys.stdout:
+                        line = line.replace(largs.query, '\033[31m' + largs.query + '\033[0m')
+                    output.append(f"[{idx+1}]\t" + line)
 
         print('\n'.join(output), file=out)
 

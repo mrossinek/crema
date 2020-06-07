@@ -170,7 +170,7 @@ class Entry:
             return any(m for m in match_list)
         return all(m for m in match_list)
 
-    def search(self, query, pdf=False):
+    def search(self, query, context=1, pdf=False):
         """Search entry contents for query string.
 
         The search will try its best to recursively query all the data associated with this entry
@@ -178,23 +178,30 @@ class Entry:
 
         Args:
             query (str): text to search for.
+            context (int): number of context lines to provide for each match.
             pdf (bool): if True, use pdfgrep to search associated PDF files.
 
         Returns:
-            A list of matching strings associated with this entry.
+            A list of lists containing the context for each match associated with this entry.
         """
         matches = []
-        for line in str(self).split('\n'):
+        bibtex = str(self).split('\n')
+        for idx, line in enumerate(bibtex):
             if query in line:
-                matches.append(line)
+                # extract context
+                match = bibtex[max(idx-context, 0):min(idx+context+1, len(bibtex))]
+                matches.append(match)
 
         if self.file and os.path.exists(self.file):
             grep_prog = 'pdfgrep' if pdf and which('pdfgrep') and self.file.endswith('.pdf') \
                     else 'grep'
-            grep = subprocess.Popen([grep_prog, query, self.file], stdout=subprocess.PIPE)
-            results = grep.stdout.read().decode().strip()
-            if results:
-                matches.append(results)
+            grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
+                                    stdout=subprocess.PIPE)
+            # extract results
+            results = grep.stdout.read().decode().split('--')
+            for match in results:
+                if match:
+                    matches.append([line.strip() for line in match.split('\n') if line.strip()])
 
         return matches
 
