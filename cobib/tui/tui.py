@@ -436,7 +436,8 @@ class TUI:
             out (stream, optional): the output stream to redirect stdout to.
 
         Returns:
-            A list with the executed command to allow further handling.
+            A pair with the first element being the list with the executed command to allow further
+            handling and the second element being whatever is returned by the command.
         """
         # make cursor visible
         curses.curs_set(1)
@@ -490,13 +491,14 @@ class TUI:
         self.prompt.refresh()
 
         # process command if it non empty and actually has arguments
+        result = None
         if command and command[1:]:
             # temporarily disable prints to stdout
             original_stdout = sys.stderr
             sys.stderr = TextBuffer()
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
-            subcmd.execute(command[1:], out=out)
+            result = subcmd.execute(command[1:], out=out)
             # if error occurred print info to prompt
             if sys.stderr.lines:
                 self.prompt.addstr(0, 0, sys.stderr.lines[0])
@@ -506,7 +508,7 @@ class TUI:
             # restore stdout
             sys.stderr = original_stdout
         # return command to enable additional handling by function caller
-        return command
+        return (command, result)
 
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
