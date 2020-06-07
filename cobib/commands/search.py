@@ -50,6 +50,8 @@ class SearchCommand(Command):
         parser.add_argument("query", type=str, help="text to search for")
         parser.add_argument("-c", "--context", type=int, default=1,
                             help="number of context lines to provide for each match")
+        parser.add_argument("-i", "--ignore-case", action="store_true",
+                            help="ignore case for searching")
         parser.add_argument("-p", "--pdf", action="store_true",
                             help="use pdfgrep to search associated files")
         parser.add_argument('list_args', nargs=argparse.REMAINDER)
@@ -70,7 +72,7 @@ class SearchCommand(Command):
         output = []
         for label in labels:
             entry = CONFIG.config['BIB_DATA'][label]
-            matches = entry.search(largs.query, largs.context, largs.pdf)
+            matches = entry.search(largs.query, largs.context, largs.ignore_case, largs.pdf)
             if not matches:
                 continue
 
@@ -81,6 +83,9 @@ class SearchCommand(Command):
 
             for idx, match in enumerate(matches):
                 for line in match:
+                    if largs.ignore_case:
+                        line = line.replace(largs.query.lower(), SEARCH_QUERY_ANSI +
+                                            largs.query.lower() + '\033[0m')
                     line = line.replace(largs.query, SEARCH_QUERY_ANSI + largs.query + '\033[0m')
                     output.append(f"[{idx+1}]\t".expandtabs(8) + line)
 

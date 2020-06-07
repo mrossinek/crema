@@ -170,7 +170,7 @@ class Entry:
             return any(m for m in match_list)
         return all(m for m in match_list)
 
-    def search(self, query, context=1, pdf=False):
+    def search(self, query, context=1, ignore_case=False, pdf=False):
         """Search entry contents for query string.
 
         The search will try its best to recursively query all the data associated with this entry
@@ -179,6 +179,7 @@ class Entry:
         Args:
             query (str): text to search for.
             context (int): number of context lines to provide for each match.
+            ignore_case (bool): if True, ignore case when searching.
             pdf (bool): if True, use pdfgrep to search associated PDF files.
 
         Returns:
@@ -187,7 +188,11 @@ class Entry:
         matches = []
         bibtex = str(self).split('\n')
         for idx, line in enumerate(bibtex):
-            if query in line:
+            if ignore_case:
+                match = query.lower() in line.lower()
+            else:
+                match = query in line
+            if match:
                 # extract context
                 match = bibtex[max(idx-context, 0):min(idx+context+1, len(bibtex))]
                 matches.append(match)
