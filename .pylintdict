@@ -21,6 +21,7 @@ ini
 init
 initscr
 io
+msg
 pdf
 pdfgrep
 pylatexenc

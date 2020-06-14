@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- allow configuring the program used to `open` associated files
+
+
+## [2.1.0] - 2020-06-14
+
+Pypi: https://pypi.org/project/cobib/2.1.0/
+
+### Added
+- added half- and full-page scrolling (#22)
+
+### Changed
+- importing from `bibtex` data defaults to **not** ignored non-standard entry types (#28)
+- suppress LaTex encoding warnings except when adding entries (#29)
+- `Search` and `Select` print warnings to the prompt while not implemented
+
+### Fixed
+- `init` command ensures directory of database file exists
+- remove window artefacts after `help` menu is closed (#20)
+- configuration file detection was missing a user home expansion (#31)
 
 ## [2.0.0] - 2020-06-06
 
@@ -168,7 +188,8 @@ Note: this release was not marked MAJOR because this is still a WIP and early
 - initial version with a basic `sqlite3`-based database
 
 
-[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.0.0...master
+[Unreleased]: https://gitlab.com/mrossinek/cobib/-/compare/v2.1.0...master
+[2.1.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.1.0
 [2.0.0]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0
 [2.0.0b4]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b4
 [2.0.0b3]: https://gitlab.com/mrossinek/cobib/-/tags/v2.0.0b3

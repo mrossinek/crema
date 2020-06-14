@@ -22,7 +22,7 @@ Currently CoBib provides the following functionality:
 * and general database inspection/modification via a curses-based TUI
 
 ## Installation
-You can either install cobib via pip: `pip install cobib` or you can download
+You can either install cobib via pip: `pip3 install cobib` or you can download
 the source code and install it manually:
 ```
 git clone https://gitlab.com/mrossinek/cobib
@@ -51,6 +51,8 @@ directly via the CLI. Available commands are `add`, `list`, `edit`, `remove`,
 `show`, `open` and `export`. Type `cobib --help` for further information or
 `cobib <subcommand> --help` for more detailed information on the specific
 subcommands.
+
+**Note**: when adding data from a `.bib` file, make sure that it is in the Bib**La**Tex format!
 
 You can also find more information in the man page.
 

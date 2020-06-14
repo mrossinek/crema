@@ -53,16 +53,17 @@ class Entry:
             if inefficient:
                 return stream.getvalue()
 
-    def __init__(self, label, data):
+    def __init__(self, label, data, suppress_warnings=True):
         """Initializes the Entry object.
 
         Args:
             label (str): Database Id used for this entry.
             data (dict): Dictionary of fields specifying this entry.
+            suppress_warnings (bool): if True, suppresses warnings.
         """
         self._label = label
         self.data = data.copy()
-        self.escape_special_chars()
+        self.escape_special_chars(suppress_warnings)
         if 'FORMAT' in CONFIG.config.keys():
             month_type = CONFIG.config['FORMAT'].get('month', None)
         if month_type:
@@ -127,15 +128,19 @@ class Entry:
             elif isinstance(month, int):
                 self.data['month'] = months[month-1]
 
-    def escape_special_chars(self):
+    def escape_special_chars(self, suppress_warnings=True):
         """Escapes special characters.
 
         Special characters should be escaped to ensure proper rendering in LaTeX documents. This
         function leverages the existing implementation of the pylatexenc module.
+
+        Args:
+            suppress_warnings (bool): if True, suppresses warnings.
         """
         enc = UnicodeToLatexEncoder(non_ascii_only=True,
                                     replacement_latex_protection='braces-all',
-                                    unknown_char_policy='keep')
+                                    unknown_char_policy='keep',
+                                    unknown_char_warning=not suppress_warnings)
         for key, value in self.data.items():
             if isinstance(value, str):
                 self.data[key] = enc.unicode_to_latex(value)
@@ -219,7 +224,7 @@ class Entry:
         return matches
 
     def to_bibtex(self):
-        """Returns the entry in bibtex format."""
+        """Returns the entry in biblatex format."""
         database = bibtexparser.bibdatabase.BibDatabase()
         database.entries = [self.data]
         return bibtexparser.dumps(database)
@@ -233,22 +238,28 @@ class Entry:
 
     @staticmethod
     def from_bibtex(file, string=False):
-        """Creates a new bibliography from a bibtex source file.
+        """Creates a new bibliography from a BibLaTex source file.
 
         Args:
-            file (str or file): string with bibtex data or path to the bibtex file.
+            file (str or file): string with BibLaTex data or path to the BibLaTex file.
             string (bool, optional): indicates whether the file argument is of string or file type.
 
         Returns:
-            An OrderedDict containing the bibliography as per the provided bibtex data.
+            An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
-        if string:
-            database = bibtexparser.loads(file)
+        bparser = bibtexparser.bparser.BibTexParser()
+        if 'DATABASE' in CONFIG.config.keys():
+            bparser.ignore_non_standard_types = bool(CONFIG.config['DATABASE'].get(
+                'ignore_non_standard_types', False))
         else:
-            database = bibtexparser.load(file)
+            bparser.ignore_non_standard_types = False
+        if string:
+            database = bibtexparser.loads(file, parser=bparser)
+        else:
+            database = bibtexparser.load(file, parser=bparser)
         bib = OrderedDict()
         for entry in database.entries:
-            bib[entry['ID']] = Entry(entry['ID'], entry)
+            bib[entry['ID']] = Entry(entry['ID'], entry, suppress_warnings=False)
         return bib
 
     @staticmethod
