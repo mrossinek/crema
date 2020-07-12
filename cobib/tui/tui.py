@@ -208,7 +208,18 @@ class TUI:
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
         if self.list_mode == -1:
-            raise StopIteration
+            self.prompt.clear()
+            self.prompt.insstr(0, 0, 'Do you really want to quit CoBib? [y/n] ')
+            self.prompt.refresh()
+            key = 0
+            while True:
+                if key in (ord('y'), ord('Y')):
+                    raise StopIteration
+                if key in (ord('n'), ord('N')):
+                    break
+                key = self.prompt.getch()
+            self.prompt.clear()
+            self.prompt.refresh()
         self.update_list()
 
     @staticmethod
