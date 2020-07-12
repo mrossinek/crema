@@ -296,7 +296,7 @@ def assert_quit(screen, prompt):
         [False, 'q'],
     ])
 def test_tui_quit_prompt(setting, keys):
-    """Test TUI's prompt before quit setting."""
+    """Test the prompt_before_quit setting of the TUI."""
     # ensure configuration is empty
     CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
