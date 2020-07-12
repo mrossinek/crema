@@ -1,7 +1,6 @@
 """CoBib parsing module."""
 
 from collections import OrderedDict
-from shutil import which
 import os
 import re
 import subprocess
