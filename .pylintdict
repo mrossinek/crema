@@ -23,7 +23,6 @@ initscr
 io
 msg
 pdf
-pdfgrep
 pylatexenc
 pytest
 signum
