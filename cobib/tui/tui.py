@@ -403,6 +403,7 @@ class TUI:
         Args:
             update (int or str): the offset specifying the scrolling height.
         """
+        scrolloff = 5
         # jump to top
         if update == 0:
             self.top_line = 0
@@ -414,7 +415,7 @@ class TUI:
         # scroll up
         elif update < 0:
             next_line = self.current_line + update
-            if self.top_line > 0 and next_line < self.top_line:
+            if self.top_line > 0 and next_line < self.top_line + scrolloff:
                 self.top_line += update
             if next_line >= 0:
                 self.current_line = next_line
@@ -423,7 +424,7 @@ class TUI:
         # scroll down
         elif update > 0:
             next_line = self.current_line + update
-            if next_line - self.top_line >= self.visible and \
+            if next_line - self.top_line >= self.visible - scrolloff and \
                     self.top_line + self.visible < self.buffer.height:
                 self.top_line += update
             if next_line < self.buffer.height:
