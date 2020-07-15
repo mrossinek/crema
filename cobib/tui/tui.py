@@ -403,7 +403,7 @@ class TUI:
         Args:
             update (int or str): the offset specifying the scrolling height.
         """
-        scrolloff = 99
+        scrolloff = CONFIG.config['TUI'].getint('scroll_offset', 3)
         overlap = scrolloff >= self.visible - scrolloff
         scroll_lock = overlap and self.current_line - self.top_line == self.visible // 2
         # jump to top
