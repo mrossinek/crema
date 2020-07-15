@@ -87,7 +87,7 @@ class TUI:
         curses.KEY_PPAGE: ('y', -20),
         ord('j'): ('y', 1),
         ord('k'): ('y', -1),
-        ord('g'): ('y', 0),
+        ord('g'): ('y', 'g'),
         ord('G'): ('y', 'G'),
         2: ('y', -20),  # CTRL-B
         4: ('y', 10),  # CTRL-D
@@ -407,7 +407,7 @@ class TUI:
         scroll_lock = scrolloff >= self.visible - scrolloff and \
             self.current_line - self.top_line == self.visible // 2
         # jump to top
-        if update == 0:
+        if update == 'g':
             self.top_line = 0
             self.current_line = 0
         # jump to bottom
