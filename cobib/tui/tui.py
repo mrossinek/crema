@@ -417,15 +417,12 @@ class TUI:
             next_line = self.current_line + update
             if self.top_line > 0 and next_line < self.top_line + scrolloff:
                 self.top_line += update
-            if next_line >= 0:
-                self.current_line = next_line
-            else:
-                self.current_line = 0
+            self.current_line = max(next_line, 0)
         # scroll down
         elif update > 0:
             next_line = self.current_line + update
-            if next_line - self.top_line >= self.visible - scrolloff and \
-                    self.top_line + self.visible < self.buffer.height:
+            if next_line >= self.top_line + self.visible - scrolloff and \
+                    self.buffer.height > self.top_line + self.visible:
                 self.top_line += update
             if next_line < self.buffer.height:
                 self.current_line = next_line
