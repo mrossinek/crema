@@ -3,6 +3,7 @@
 from os import path
 from pathlib import Path
 import pytest
+from requests.exceptions import ReadTimeout
 from cobib import parser
 from cobib.config import CONFIG
 
@@ -32,6 +33,7 @@ EXAMPLE_ENTRY_DICT = {
 def test_entry_set_label():
     """Test label changing."""
     # this test may fail if the input dict is not copied
+    CONFIG.set_config()
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     entry.set_label = 'Cao2019'
     assert entry.label == 'Cao2019'
@@ -40,6 +42,7 @@ def test_entry_set_label():
 
 def test_entry_set_tags():
     """Test tags setting."""
+    CONFIG.set_config()
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     # NB: tags must be a list
     entry.set_tags = ['foo']
@@ -61,6 +64,7 @@ def test_entry_set_tags():
 
 def test_entry_set_file():
     """Test file setting."""
+    CONFIG.set_config()
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     entry.set_file = EXAMPLE_BIBTEX_FILE
     # checks for absolute path
@@ -69,6 +73,7 @@ def test_entry_set_file():
 
 def test_entry_matches():
     """Test match filter."""
+    CONFIG.set_config()
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     # author must match
     _filter = {('author', True): ['Cao']}
@@ -95,6 +100,7 @@ def test_match_with_wrong_key():
     When matches() is called with a key in the filter which does not exist in the entry, the key
     should be ignored and the function should return normally.
     """
+    CONFIG.set_config()
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     _filter = {('tags', False): ['test']}
     assert entry.matches(_filter, _or=False)
@@ -107,6 +113,7 @@ def test_to_bibtex():
 
 def test_to_yaml():
     """Test to yaml conversion."""
+    CONFIG.set_config()
     entry = parser.Entry('article', EXAMPLE_ENTRY_DICT)
     yaml_str = entry.to_yaml()
     with open(EXAMPLE_YAML_FILE, 'r') as file:
@@ -188,7 +195,10 @@ def test_parser_from_doi(month_type):
     # brackets in the escaped special characters of the author field. Thus, we correct for this
     # inconsistency manually before asserting the equality.
     reference['author'] = reference['author'].replace("'a", "'{a}")
-    entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
+    try:
+        entries = parser.Entry.from_doi('10.1021/acs.chemrev.8b00803')
+    except ReadTimeout:
+        pytest.skip("The requests library experienced a ReadTimeout!")
     entry = list(entries.values())[0]
     assert entry.data == reference
 
