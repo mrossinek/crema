@@ -404,8 +404,8 @@ class TUI:
             update (int or str): the offset specifying the scrolling height.
         """
         scrolloff = 99
-        scroll_lock = scrolloff >= self.visible - scrolloff and \
-            self.current_line - self.top_line == self.visible // 2
+        overlap = scrolloff >= self.visible - scrolloff
+        scroll_lock = overlap and self.current_line - self.top_line == self.visible // 2
         # jump to top
         if update == 'g':
             self.top_line = 0
@@ -417,15 +417,25 @@ class TUI:
         # scroll up
         elif update < 0:
             next_line = self.current_line + update
-            if self.top_line > 0 and next_line < self.top_line + scrolloff and scroll_lock:
-                self.top_line += update
+            if self.top_line > 0 and next_line < self.top_line + scrolloff:
+                if scroll_lock or not overlap:
+                    self.top_line += update
+                elif overlap and \
+                        self.current_line - self.top_line > self.visible // 2 and \
+                        next_line - self.top_line < self.visible // 2:
+                    self.top_line = next_line - self.visible // 2
             self.current_line = max(next_line, 0)
         # scroll down
         elif update > 0:
             next_line = self.current_line + update
             if next_line >= self.top_line + self.visible - scrolloff and \
-                    self.buffer.height > self.top_line + self.visible and scroll_lock:
-                self.top_line += update
+                    self.buffer.height > self.top_line + self.visible:
+                if scroll_lock or not overlap:
+                    self.top_line += update
+                elif overlap and \
+                        self.current_line - self.top_line < self.visible // 2 and \
+                        next_line - self.top_line > self.visible // 2:
+                    self.top_line = next_line - self.visible // 2
             if next_line < self.buffer.height:
                 self.current_line = next_line
             else:
