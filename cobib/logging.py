@@ -1,4 +1,4 @@
-"""CoBib logger module."""
+"""CoBib logging module."""
 
 import logging
 import logging.config

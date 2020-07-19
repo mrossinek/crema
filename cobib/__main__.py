@@ -11,7 +11,7 @@ from cobib import commands, zsh_helper
 from cobib import __version__
 from cobib.config import CONFIG
 from cobib.database import read_database
-from cobib.logger import log_to_stream, log_to_file
+from cobib.logging import log_to_stream, log_to_file
 from cobib.tui import tui
 
 LOGGER = logging.getLogger(__name__)
