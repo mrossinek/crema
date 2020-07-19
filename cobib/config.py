@@ -39,7 +39,7 @@ DEFAULTS = {
     },
 }
 
-XDG_CONFIG_FILE = '~/.config/cobib/config/ini'
+XDG_CONFIG_FILE = '~/.config/cobib/config.ini'
 
 
 class Config:
