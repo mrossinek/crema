@@ -3,12 +3,14 @@
 
 import argparse
 import inspect
+import logging
 import sys
 
 from cobib import commands, zsh_helper
 from cobib import __version__
 from cobib.config import CONFIG
 from cobib.database import read_database
+from cobib.logger import LOGGER, switch_to_file_handler
 from cobib.tui import tui
 
 
@@ -27,14 +29,23 @@ def main():
                                      Cobib input arguments.
                                      If no arguments are given, the TUI will start as a default.
                                      """)
-    parser.add_argument("-v", "--version", action="version",
+    parser.add_argument("--version", action="version",
                         version="%(prog)s v{}".format(__version__))
+    parser.add_argument('--verbose', '-v', action='count', default=0)
     parser.add_argument("-c", "--config", type=argparse.FileType('r'),
                         help="Alternative config file")
     parser.add_argument('command', help="subcommand to be called", choices=subcommands, nargs='?')
     parser.add_argument('args', nargs=argparse.REMAINDER)
 
     args = parser.parse_args()
+
+    # set logging verbosity level
+    if args.verbose == 1:
+        logging.getLogger().setLevel(logging.INFO)
+        LOGGER.info('Logging level set to INFO.')
+    elif args.verbose > 1:
+        logging.getLogger().setLevel(logging.DEBUG)
+        LOGGER.info('Logging level set to DEBUG.')
 
     CONFIG.set_config(args.config)
     if args.command == 'init':
@@ -46,6 +57,8 @@ def main():
 
     read_database()
     if not args.command:
+        LOGGER.info('Switching to FileHandler logger in %s', '/tmp/cobib.log')
+        switch_to_file_handler()
         tui()
     else:
         subcmd = getattr(commands, args.command.title()+'Command')()
