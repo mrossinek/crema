@@ -6,6 +6,8 @@ import io
 import os
 import sys
 
+from cobib.logger import LOGGER
+
 DEFAULTS = {
     'DATABASE': {
         'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
@@ -37,6 +39,8 @@ DEFAULTS = {
     },
 }
 
+XDG_CONFIG_FILE = '~/.config/cobib/config/ini'
+
 
 class Config:
     """Class used solely for the global configuration object."""
@@ -64,9 +68,12 @@ class Config:
         if configpath is not None:
             if isinstance(configpath, io.TextIOWrapper):
                 configpath = configpath.name
+            LOGGER.info('Loading configuration from %s', configpath)
             ini_conf.read(configpath)
-        elif os.path.exists(os.path.expanduser('~/.config/cobib/config.ini')):
-            ini_conf.read(os.path.expanduser('~/.config/cobib/config.ini'))
+        elif os.path.exists(os.path.expanduser(XDG_CONFIG_FILE)):
+            LOGGER.info('Loading configuration from default location: %s',
+                        os.path.expanduser(XDG_CONFIG_FILE))
+            ini_conf.read(os.path.expanduser(XDG_CONFIG_FILE))
 
         # overwrite settings
         for section in ini_conf.sections():
