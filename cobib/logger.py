@@ -1,27 +1,67 @@
-"""CoBib logging module."""
+"""CoBib logger module."""
 
 import logging
-
-LOGGER = logging.getLogger('cobib')
-
-
-def switch_to_stream_handler():
-    """Switches the logger to a stream handler."""
-    for handler in LOGGER.handlers:
-        LOGGER.removeHandler(handler)
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter('{levelname:8s} {name} {message}', style='{'))
-    LOGGER.addHandler(handler)
+import logging.config
 
 
-def switch_to_file_handler():
-    """Switches the logger to a file handler."""
-    for handler in LOGGER.handlers:
-        LOGGER.removeHandler(handler)
-    handler = logging.FileHandler(filename='/tmp/cobib.log', mode='a')
-    handler.setFormatter(logging.Formatter('{asctime} {levelname:8s} {name} {message}', style='{'))
-    LOGGER.addHandler(handler)
+def log_to_stream(level='WARNING'):
+    """Configures a StreamHandler logger.
+
+    Args:
+        level (str, optional): verbosity level indicator.
+    """
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s %(funcName)s:%(lineno)d %(message)s'
+            },
+        },
+        'handlers': {
+            'default': {
+                'formatter': 'standard',
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['default'],
+                'level': level,
+                'formatter': 'standard',
+                'propagate': True
+            }
+        }
+    })
 
 
-# initialize stream logger
-switch_to_stream_handler()
+def log_to_file(level='INFO'):
+    """Configures a FileHandler logger.
+
+    Args:
+        level (str, optional): verbosity level indicator.
+    """
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s %(funcName)s:%(lineno)d %(message)s'
+            },
+        },
+        'handlers': {
+            'default': {
+                'formatter': 'standard',
+                'class': 'logging.FileHandler',
+                'filename': '/tmp/cobib.log',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['default'],
+                'level': level,
+                'formatter': 'standard',
+                'propagate': True
+            }
+        }
+    })

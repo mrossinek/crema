@@ -3,10 +3,11 @@
 from copy import deepcopy
 import configparser
 import io
+import logging
 import os
 import sys
 
-from cobib.logger import LOGGER
+LOGGER = logging.getLogger(__name__)
 
 DEFAULTS = {
     'DATABASE': {

@@ -2,12 +2,14 @@
 
 from collections import OrderedDict
 from pathlib import Path
+import logging
 import os
 import sys
 
 from cobib.config import CONFIG
-from cobib.logger import LOGGER
 from cobib.parser import Entry
+
+LOGGER = logging.getLogger(__name__)
 
 
 def read_database(fresh=False):

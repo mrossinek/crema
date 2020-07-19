@@ -4,14 +4,17 @@
 import argparse
 import inspect
 import logging
+import logging.config
 import sys
 
 from cobib import commands, zsh_helper
 from cobib import __version__
 from cobib.config import CONFIG
 from cobib.database import read_database
-from cobib.logger import LOGGER, switch_to_file_handler
+from cobib.logger import log_to_stream, log_to_file
 from cobib.tui import tui
+
+LOGGER = logging.getLogger(__name__)
 
 
 def main():
@@ -23,6 +26,9 @@ def main():
         # zsh helper function called
         zsh_main()
         sys.exit()
+
+    # initialize logging
+    log_to_stream()
 
     subcommands = [cmd.split(':')[0] for cmd in zsh_helper.list_commands()]
     parser = argparse.ArgumentParser(prog='CoBib', description="""
@@ -58,7 +64,7 @@ def main():
     read_database()
     if not args.command:
         LOGGER.info('Switching to FileHandler logger in %s', '/tmp/cobib.log')
-        switch_to_file_handler()
+        log_to_file('DEBUG' if args.verbose > 1 else 'INFO')
         tui()
     else:
         subcmd = getattr(commands, args.command.title()+'Command')()

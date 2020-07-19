@@ -1,6 +1,7 @@
 """CoBib parsing module."""
 
 from collections import OrderedDict
+import logging
 import os
 import re
 import subprocess
@@ -13,7 +14,8 @@ import bibtexparser
 import requests
 
 from cobib.config import CONFIG
-from cobib.logger import LOGGER
+
+LOGGER = logging.getLogger(__name__)
 
 # API and HEADER settings according to this resource: https://crosscite.org/docs.html
 DOI_URL = "https://doi.org/"

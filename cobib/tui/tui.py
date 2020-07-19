@@ -1,6 +1,7 @@
 """CoBib curses interface."""
 
 import curses
+import logging
 import re
 import sys
 from functools import partial
@@ -10,6 +11,8 @@ from cobib import __version__
 from cobib import commands
 from cobib.config import CONFIG
 from .buffer import TextBuffer
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TUI:
@@ -387,6 +390,7 @@ class TUI:
 
             # Wait for next input
             key = self.stdscr.getch()
+            LOGGER.debug('Key press registered: %s', str(key))
 
             # reset highlight of current line
             for x_pos in range(0, self.buffer.width):
