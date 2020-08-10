@@ -613,6 +613,7 @@ class TUI:
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
+        LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
         return label, cur_y
 
     def update_list(self):
