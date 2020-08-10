@@ -55,8 +55,8 @@ class OpenCommand(Command):
             except FileNotFoundError:
                 pass
         except KeyError:
-            msg = "No entry with the label '%s' could be found."
-            LOGGER.error(msg, largs.label)
+            print("Error: No entry with the label '{}' could be found.".format(largs.label))
+            LOGGER.error(msg)
             print(msg, file=out)
 
         return None
