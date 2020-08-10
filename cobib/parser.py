@@ -83,6 +83,7 @@ class Entry:
     @label.setter
     def set_label(self, label):
         """Sets the database Id of this entry."""
+        LOGGER.debug("Changing the label '%s' to '%s'.", self.label, label)
         self._label = label
         self.data['ID'] = label
 
@@ -95,6 +96,7 @@ class Entry:
     def set_tags(self, tags):
         """Sets the tags of this entry."""
         self.data['tags'] = ''.join(tag.strip('+')+', ' for tag in tags).strip(', ')
+        LOGGER.debug("Adding the tags '%s' to '%s'.", self.data['tags'], self.label)
 
     @property
     def file(self):
@@ -105,6 +107,7 @@ class Entry:
     def set_file(self, file):
         """Sets the associated file of this entry."""
         self.data['file'] = os.path.abspath(file)
+        LOGGER.debug("Adding '%s' as the file to '%s'.", self.data['file'], self.label)
 
     def convert_month(self, type_):
         """Converts the month into the specified type.
