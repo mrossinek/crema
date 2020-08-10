@@ -68,5 +68,3 @@ def write_database(entries):
             for line in new_lines:
                 LOGGER.debug('Appending line to database file: %s', line)
                 bib.write(line+'\n')
-        # update bibliography data
-        read_database(fresh=True)

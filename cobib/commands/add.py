@@ -5,7 +5,7 @@ import os
 import sys
 from collections import OrderedDict
 
-from cobib.database import write_database
+from cobib.database import read_database, write_database
 from cobib.parser import Entry
 from .base_command import ArgumentParser, Command
 
@@ -80,6 +80,8 @@ class AddCommand(Command):
         sys.stdout = open(os.devnull, 'w')
         # handle input via prompt
         tui.prompt_handler('add')
+        # update bibliography data
+        read_database(fresh=True)
         # restore stdout
         sys.stdout.close()
         sys.stdout = original_stdout
