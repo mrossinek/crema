@@ -35,7 +35,7 @@ def log_to_stream(level='WARNING'):
     })
 
 
-def log_to_file(level='INFO'):
+def log_to_file(level='INFO', logfile='/tmp/cobib.log'):
     """Configures a FileHandler logger.
 
     Args:
@@ -53,7 +53,7 @@ def log_to_file(level='INFO'):
             'default': {
                 'formatter': 'standard',
                 'class': 'logging.FileHandler',
-                'filename': '/tmp/cobib.log',
+                'filename': logfile,
             },
         },
         'loggers': {
