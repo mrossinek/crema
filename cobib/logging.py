@@ -40,6 +40,7 @@ def log_to_file(level='INFO', logfile='/tmp/cobib.log'):
 
     Args:
         level (str, optional): verbosity level indicator.
+        logfile (str, optional): output path for log file.
     """
     logging.config.dictConfig({
         'version': 1,
