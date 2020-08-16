@@ -21,8 +21,10 @@ ini
 init
 initscr
 io
+logfile
 msg
 pdf
+py
 pylatexenc
 pytest
 SHA
