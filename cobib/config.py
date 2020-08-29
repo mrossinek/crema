@@ -89,16 +89,38 @@ class Config:
         LOGGER.debug('Validing the DATABASE configuration section.')
         self._assert(self.config.get('DATABASE', None) is not None,
                      "Missing DATABASE section.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).get('file', None), str),
+                     "DATABASE/file should be a string.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).get('open', None), str),
+                     "DATABASE/open should be a string.")
+        self._assert(isinstance(self.config.get('DATABASE', {}).get('grep', None), str),
+                     "DATABASE/grep should be a string.")
 
         # FORMAT section
         LOGGER.debug('Validing the FORMAT configuration section.')
         self._assert(self.config.get('FORMAT', None) is not None,
                      "Missing FORMAT section.")
+        self._assert(self.config.get('FORMAT', {}).get('month', None) in ('int', 'str'),
+                     "FORMAT/month should be either 'int' or 'str'.")
+        self._assert(isinstance(
+            self.config.get('FORMAT', {}).getboolean('ignore_non_standard_types', None), bool),
+                     "FORMAT/ignore_non_standard_types should be a boolean.")
 
         # TUI section
         LOGGER.debug('Validing the TUI configuration section.')
         self._assert(self.config.get('TUI', None) is not None,
                      "Missing TUI section.")
+        self._assert(isinstance(self.config.get('TUI', {}).get('default_list_args', None), str),
+                     "TUI/default_list_args should be a string.")
+        self._assert(isinstance(
+            self.config.get('TUI', {}).getboolean('prompt_before_quit', None), bool),
+                     "TUI/prompt_before_quit should be a boolean.")
+        self._assert(isinstance(
+            self.config.get('TUI', {}).getboolean('reverse_order', None), bool),
+                     "TUI/reverse_order should be a boolean.")
+        self._assert(isinstance(
+            self.config.get('TUI', {}).getint('scroll_offset', None), int),
+                     "TUI/scroll_offset should be an integer.")
 
         # KEY_BINDINGS section
         LOGGER.debug('Validing the KEY_BINDINGS configuration section.')

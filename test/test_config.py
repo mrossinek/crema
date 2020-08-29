@@ -35,3 +35,22 @@ def test_missing_section(setup, section):
         del CONFIG.config[section]
         CONFIG.validate()
     assert section in str(exc_info.value)
+
+
+@pytest.mark.parametrize(['section', 'field'], [
+        ['DATABASE', 'file'],
+        ['DATABASE', 'open'],
+        ['DATABASE', 'grep'],
+        ['FORMAT', 'month'],
+        ['FORMAT', 'ignore_non_standard_types'],
+        ['TUI', 'default_list_args'],
+        ['TUI', 'prompt_before_quit'],
+        ['TUI', 'reverse_order'],
+        ['TUI', 'scroll_offset'],
+    ])
+def test_database_section(setup, section, field):
+    """Test raised RuntimeError for invalid config fields."""
+    with pytest.raises(RuntimeError) as exc_info:
+        del CONFIG.config.get(section, {})[field]
+        CONFIG.validate()
+    assert f'{section}/{field}' in str(exc_info.value)
