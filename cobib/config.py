@@ -81,7 +81,44 @@ class Config:
         for section in ini_conf.sections():
             self.config[section] = deepcopy(ini_conf[section])
 
-    # TODO config validation
+    def validate(self):
+        """Validates the configuration at runtime."""
+        LOGGER.info('Validating the runtime configuration.')
+
+        # DATABASE section
+        LOGGER.debug('Validing the DATABASE configuration section.')
+        self._assert(self.config.get('DATABASE', None) is not None,
+                     "Missing DATABASE section.")
+
+        # FORMAT section
+        LOGGER.debug('Validing the FORMAT configuration section.')
+        self._assert(self.config.get('FORMAT', None) is not None,
+                     "Missing FORMAT section.")
+
+        # TUI section
+        LOGGER.debug('Validing the TUI configuration section.')
+        self._assert(self.config.get('TUI', None) is not None,
+                     "Missing TUI section.")
+
+        # KEY_BINDINGS section
+        LOGGER.debug('Validing the KEY_BINDINGS configuration section.')
+        self._assert(self.config.get('KEY_BINDINGS', None) is not None,
+                     "Missing KEY_BINDINGS section.")
+
+        # COLORS section
+        LOGGER.debug('Validing the COLORS configuration section.')
+        self._assert(self.config.get('COLORS', None) is not None,
+                     "Missing COLORS section.")
+
+    @staticmethod
+    def _assert(expression, error):
+        """Asserts the expression is True.
+
+        Raises:
+            RuntimeError with the specified error string.
+        """
+        if not expression:
+            raise RuntimeError(error)
 
 
 CONFIG = Config()
