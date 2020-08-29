@@ -126,11 +126,22 @@ class Config:
         LOGGER.debug('Validing the KEY_BINDINGS configuration section.')
         self._assert(self.config.get('KEY_BINDINGS', None) is not None,
                      "Missing KEY_BINDINGS section.")
+        # actual key bindings are asserted when mapped by the TUI instance
 
         # COLORS section
         LOGGER.debug('Validing the COLORS configuration section.')
         self._assert(self.config.get('COLORS', None) is not None,
                      "Missing COLORS section.")
+        for name in DEFAULTS['COLORS']:
+            self._assert(name in self.config.get('COLORS', {}).keys(),
+                         f"Missing value for COLORS/{name}")
+        available_colors = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
+        for name, color in self.config.get('COLORS', {}).items():
+            if name not in DEFAULTS['COLORS']:
+                LOGGER.warning('Ignoring unknown TUI color: %s', name)
+            self._assert(color in available_colors or
+                         (len(color.strip('#')) == 6 and color.strip('#').isdigit()),
+                         f"Unknown color specification: {color}")
 
     @staticmethod
     def _assert(expression, error):

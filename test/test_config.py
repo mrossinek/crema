@@ -47,10 +47,40 @@ def test_missing_section(setup, section):
         ['TUI', 'prompt_before_quit'],
         ['TUI', 'reverse_order'],
         ['TUI', 'scroll_offset'],
+        ['COLORS', 'cursor_line_fg'],
+        ['COLORS', 'cursor_line_bg'],
+        ['COLORS', 'top_statusbar_fg'],
+        ['COLORS', 'top_statusbar_bg'],
+        ['COLORS', 'bottom_statusbar_fg'],
+        ['COLORS', 'bottom_statusbar_bg'],
+        ['COLORS', 'search_label_fg'],
+        ['COLORS', 'search_label_bg'],
+        ['COLORS', 'search_query_fg'],
+        ['COLORS', 'search_query_bg'],
     ])
 def test_database_section(setup, section, field):
-    """Test raised RuntimeError for invalid config fields."""
+    """Test raised RuntimeError for missing config fields."""
     with pytest.raises(RuntimeError) as exc_info:
         del CONFIG.config.get(section, {})[field]
         CONFIG.validate()
     assert f'{section}/{field}' in str(exc_info.value)
+
+
+@pytest.mark.parametrize(['color'], [
+        ['cursor_line_fg'],
+        ['cursor_line_bg'],
+        ['top_statusbar_fg'],
+        ['top_statusbar_bg'],
+        ['bottom_statusbar_fg'],
+        ['bottom_statusbar_bg'],
+        ['search_label_fg'],
+        ['search_label_bg'],
+        ['search_query_fg'],
+        ['search_query_bg'],
+    ])
+def test_valid_tui_colors(setup, color):
+    """Test curses color specification validation."""
+    with pytest.raises(RuntimeError) as exc_info:
+        CONFIG.config.get('COLORS', {})[color] = 'test'
+        CONFIG.validate()
+    assert str(exc_info.value) == 'Unknown color specification: test'
