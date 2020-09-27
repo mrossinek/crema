@@ -9,6 +9,17 @@ import sys
 
 LOGGER = logging.getLogger(__name__)
 
+ANSI_COLORS = [
+    'black',
+    'red',
+    'green',
+    'yellow',
+    'blue',
+    'magenta',
+    'cyan',
+    'white',
+]
+
 DEFAULTS = {
     'DATABASE': {
         'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
@@ -46,6 +57,8 @@ DEFAULTS = {
         'popup_stdout_bg': 'blue',
         'popup_stderr_fg': 'white',
         'popup_stderr_bg': 'red',
+        'selection_fg': 'white',
+        'selection_bg': 'magenta',
     },
 }
 

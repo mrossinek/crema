@@ -9,10 +9,18 @@ from signal import signal, SIGWINCH
 
 from cobib import __version__
 from cobib import commands
-from cobib.config import CONFIG
+from cobib.config import CONFIG, ANSI_COLORS
 from .buffer import TextBuffer
 
 LOGGER = logging.getLogger(__name__)
+
+if 'COLORS' not in CONFIG.config.keys():
+    CONFIG.config['COLORS'] = {}
+
+SELECTION_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('selection', 'white'))
+SELECTION_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('selection', 'magenta'))
+
+SELECTION_ANSI = f'\033[{SELECTION_FG};{SELECTION_BG}m'
 
 
 class TUI:
@@ -42,7 +50,7 @@ class TUI:
         'popup_stderr': [6, 'white', 'red'],
         'search_label': [7, 'blue', 'black'],
         'search_query': [8, 'red', 'black'],
-        # TODO when implementing select command add a color configuration option
+        'selection': [9, 'white', 'magenta'],
     }
 
     # available command dictionary
@@ -56,8 +64,7 @@ class TUI:
         'Open': commands.OpenCommand.tui,
         'Quit': lambda self: self.quit(),
         'Search': commands.SearchCommand.tui,
-        # TODO select command
-        'Select': lambda self: self.prompt_print('Warning: The Select command is not implemented!'),
+        'Select': lambda self: self.select(),
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
         'Wrap': lambda self: self.wrap(),
@@ -149,6 +156,8 @@ class TUI:
         self.inactive_commands = []
         # and default list args
         self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
+        # and empty selection
+        self.selection = set()
 
         if CONFIG.config['TUI'].getboolean('reverse_order', True):
             self.list_args += ['-r']
@@ -481,6 +490,27 @@ class TUI:
         if self.buffer.height and self.current_line >= self.buffer.height:
             self.current_line -= 1
 
+    def select(self):
+        """Toggles selection of the current label."""
+        LOGGER.debug('Select command triggered.')
+        # get current label
+        label, cur_y = self.get_current_label()
+        # setup ANSI color map
+        ansi_map = {SELECTION_ANSI: self.COLOR_PAIRS['selection'][0]}
+        # toggle selection
+        if label not in self.selection:
+            LOGGER.info("Adding '%s' to the selection.", label)
+            self.selection.add(label)
+            # Note, the two spaces following the label ensure that only labels in the first column
+            # are replaced (in case where a label can appear in e.g. the title, too)
+            self.buffer.replace(cur_y, label + '  ', SELECTION_ANSI + label + '\033[0m  ')
+        else:
+            LOGGER.info("Removing '%s' from the selection.", label)
+            self.selection.remove(label)
+            self.buffer.replace(cur_y, SELECTION_ANSI + label + '\033[0m', label)
+        # update buffer view
+        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map)
+
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
 
@@ -690,8 +720,17 @@ class TUI:
         self.top_line = 0
         self.left_edge = 0
         self.inactive_commands = []
+        # setup ANSI color map
+        ansi_map = {SELECTION_ANSI: self.COLOR_PAIRS['selection'][0]}
+        # highlight current selection
+        for label in self.selection:
+            # Note: the two spaces are explained in the `select()` method.
+            # Also: this step may become a performance bottleneck because we replace inside the
+            # whole buffer for each selected label!
+            self.buffer.replace(range(self.buffer.height), label + '  ',
+                                SELECTION_ANSI + label + '\033[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.viewport, self.visible, self.width-1)
+        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.statusbar(self.topbar, self.topstatus)

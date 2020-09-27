@@ -38,6 +38,19 @@ class TextBuffer:
             self.height = len(self.lines)
             self.width = max(self.width, len(string))
 
+    def replace(self, lines, old_str, new_str):
+        """Replaces the old string with the new in the given lines.
+
+        Args:
+            lines (int or list): index or indices on which lines to do the replacement.
+            old_str (str): old string to be replaced.
+            new_str (str): new string to be inserted.
+        """
+        if isinstance(lines, int):
+            lines = [lines]
+        for idx in lines:
+            self.lines[idx] = self.lines[idx].replace(old_str, new_str)
+
     def flush(self):
         """Compatibility function."""
 
