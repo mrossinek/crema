@@ -216,7 +216,11 @@ def test_add_overwrite_label():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-def test_delete():
+@pytest.mark.parametrize(['labels'], [
+        ['knuthwebsite'],
+        [['knuthwebsite', 'latexcompanion']],
+    ])
+def test_delete(labels):
     """Test delete command."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
@@ -227,7 +231,7 @@ def test_delete():
     copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test_database.yaml'))
     # delete some data
     # NOTE: for testing simplicity we delete the last entry
-    commands.DeleteCommand().execute(['knuthwebsite'])
+    commands.DeleteCommand().execute(labels)
     with open('/tmp/cobib_test_database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
             # NOTE: do NOT use zip_longest to omit last entry (thus, we deleted the last one)

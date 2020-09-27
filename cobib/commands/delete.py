@@ -18,15 +18,15 @@ class DeleteCommand(Command):
     name = 'delete'
 
     def execute(self, args, out=sys.stdout):
-        """Delete entry.
+        """Delete entries.
 
-        Deletes the entry from the database.
+        Deletes the entries from the database.
 
         Args: See base class.
         """
         LOGGER.debug('Starting Delete command.')
         parser = ArgumentParser(prog="delete", description="Delete subcommand parser.")
-        parser.add_argument("label", type=str, help="label of the entry")
+        parser.add_argument("labels", type=str, nargs='+', help="labels of the entries")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -43,15 +43,17 @@ class DeleteCommand(Command):
         with open(file, 'r') as bib:
             lines = bib.readlines()
         entry_to_be_deleted = False
+        current_label = None
         buffer = []
         for line in lines:
-            if line.startswith(largs.label):
-                LOGGER.debug('Entry "%s" found. Starting to remove lines.', largs.label)
+            if any([line.startswith(label + ':') for label in largs.labels]):
+                current_label = line[:line.find(':')]
+                LOGGER.debug('Entry "%s" found. Starting to remove lines.', current_label)
                 entry_to_be_deleted = True
                 buffer.pop()
                 continue
             if entry_to_be_deleted and line.startswith('...'):
-                LOGGER.debug('Reached end of entry "%s".', largs.label)
+                LOGGER.debug('Reached end of entry "%s".', current_label)
                 entry_to_be_deleted = False
                 continue
             if not entry_to_be_deleted:
