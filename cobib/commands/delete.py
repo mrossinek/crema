@@ -66,10 +66,16 @@ class DeleteCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Delete command triggered from TUI.')
-        # get current label
-        label, _ = tui.get_current_label()
+        if tui.selection:
+            # use selection for command
+            labels = list(tui.selection)
+            tui.selection.clear()
+        else:
+            # get current label
+            label, _ = tui.get_current_label()
+            labels = [label]
         # delete selected entry
-        DeleteCommand().execute([label])
+        DeleteCommand().execute(labels)
         # update database list
         LOGGER.debug('Updating list after Delete command.')
         read_database(fresh=True)

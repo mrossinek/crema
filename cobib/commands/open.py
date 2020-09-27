@@ -76,9 +76,14 @@ class OpenCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Open command triggered from TUI.')
-        # get current label
-        label, _ = tui.get_current_label()
+        if tui.selection:
+            # use selection for command
+            labels = list(tui.selection)
+        else:
+            # get current label
+            label, _ = tui.get_current_label()
+            labels = [label]
         # populate buffer with entry data
-        error = OpenCommand().execute([label], out=None)
+        error = OpenCommand().execute(labels, out=None)
         if error:
             tui.prompt_print(error)
