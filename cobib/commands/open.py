@@ -49,8 +49,7 @@ class OpenCommand(Command):
                     if out is None:
                         errors.append(msg)
                     continue
-                opener = None
-                opener = CONFIG.config['DATABASE'].get('open')
+                opener = CONFIG.config['DATABASE'].get('open', None)
                 try:
                     LOGGER.debug('Parsing "%s" for URLs.', entry.data['file'])
                     url = urlparse(entry.data['file'])
@@ -61,11 +60,9 @@ class OpenCommand(Command):
                         # assume we are talking about a file and thus get its absolute path
                         url = os.path.abspath(url.geturl())
                     LOGGER.debug('Opening "%s" with %s.', url, opener)
-                    err = subprocess.Popen([opener, url], stderr=subprocess.PIPE)
-                    err = err.stderr.read().decode()
-                    if err:
-                        raise FileNotFoundError(err)
-                            close_fds=True)
+                    with open(os.devnull, 'w') as devnull:
+                        subprocess.Popen([opener, url], stdout=devnull, stderr=devnull,
+                                         stdin=devnull, close_fds=True)
                 except FileNotFoundError as err:
                     LOGGER.error(err)
                     errors.append(str(err))
