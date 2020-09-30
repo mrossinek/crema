@@ -161,10 +161,11 @@ class Config:
                          f"Missing value for COLORS/{name}")
         available_colors = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
         for name, color in self.config.get('COLORS', {}).items():
-            if name not in DEFAULTS['COLORS']:
+            if name not in DEFAULTS['COLORS'] and name not in available_colors:
                 LOGGER.warning('Ignoring unknown TUI color: %s', name)
             self._assert(color in available_colors or
-                         (len(color.strip('#')) == 6 and color.strip('#').isdigit()),
+                         (len(color.strip('#')) == 6 and
+                          tuple(int(color.strip('#')[i:i+2], 16) for i in (0, 2, 4))),
                          f"Unknown color specification: {color}")
 
     @staticmethod
