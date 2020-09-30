@@ -93,8 +93,10 @@ class SearchCommand(Command):
             tui.list_mode, _ = tui.viewport.getyx()
             tui.buffer.split()
             LOGGER.debug('Populating viewport with search results.')
-            ansi_map = {CONFIG.get_ansi_color('search_label'): tui.COLOR_PAIRS['search_label'][0],
-                        CONFIG.get_ansi_color('search_query'): tui.COLOR_PAIRS['search_query'][0]}
+            ansi_map = {
+                CONFIG.get_ansi_color('search_label'): tui.COLOR_NAMES.index('search_label') + 1,
+                CONFIG.get_ansi_color('search_query'): tui.COLOR_NAMES.index('search_query') + 1
+            }
             LOGGER.debug('Using ANSI color map: %s', ansi_map)
             tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map)
             # reset current cursor position
