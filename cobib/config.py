@@ -177,5 +177,20 @@ class Config:
         if not expression:
             raise RuntimeError(error)
 
+    def get_ansi_color(self, name):
+        """Returns an ANSI color code for the named color.
+
+        Args:
+            name (str): a named color as specified in the configuration *excluding* the `_fg` or
+                        `_bg` suffix.
+
+        Returns:
+            A string representing the foreground and background ANSI color code.
+        """
+        fg_color = 30 + ANSI_COLORS.index(self.config['COLORS'].get(name + '_fg'))
+        bg_color = 40 + ANSI_COLORS.index(self.config['COLORS'].get(name + '_bg'))
+
+        return f'\033[{fg_color};{bg_color}m'
+
 
 CONFIG = Config()
