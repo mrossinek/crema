@@ -115,6 +115,7 @@ class SearchCommand(Command):
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")
             tui.statusbar(tui.topbar, tui.topstatus)
+            tui.inactive_commands = ['Add', 'Filter', 'Sort', 'Select']
         elif command[1:]:
             msg = f"No search hits for '{' '.join(command[1:])}'!"
             LOGGER.info(msg)
