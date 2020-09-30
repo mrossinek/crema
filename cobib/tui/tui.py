@@ -503,7 +503,10 @@ class TUI:
             self.selection.add(label)
             # Note, the two spaces following the label ensure that only labels in the first column
             # are replaced (in case where a label can appear in e.g. the title, too)
-            self.buffer.replace(cur_y, label + '  ', SELECTION_ANSI + label + '\033[0m  ')
+            if self.list_mode == -1:
+                self.buffer.replace(cur_y, label + '  ', SELECTION_ANSI + label + '\033[0m  ')
+            else:
+                self.buffer.replace(cur_y, label, SELECTION_ANSI + label + '\033[0m')
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
@@ -703,6 +706,8 @@ class TUI:
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
+            # We also set cur_y to 0 for the select command to find it
+            cur_y = 0
         LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
         return label, cur_y
 
