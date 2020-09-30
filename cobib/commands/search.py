@@ -7,22 +7,11 @@ import re
 import sys
 
 from cobib import __version__
-from cobib.config import CONFIG
+from cobib.config import CONFIG, ANSI_COLORS
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
 LOGGER = logging.getLogger(__name__)
-
-ANSI_COLORS = [
-    'black',
-    'red',
-    'green',
-    'yellow',
-    'blue',
-    'magenta',
-    'cyan',
-    'white',
-]
 
 if 'COLORS' not in CONFIG.config.keys():
     CONFIG.config['COLORS'] = {}
