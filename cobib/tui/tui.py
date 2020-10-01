@@ -397,7 +397,6 @@ class TUI:
                 # Source: https://docs.python.org/3/library/curses.html#curses.window.inch
                 # Thus, we can find the color attribute by striping the last 8 bits.
                 x_attr = x_ch >> 8
-                LOGGER.debug(x_attr)
                 if x_attr <= TUI.COLOR_NAMES.index('cursor_line'):
                     self.viewport.chgat(self.current_line, x_pos, 1,
                                         curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
@@ -504,14 +503,14 @@ class TUI:
         if label not in self.selection:
             LOGGER.info("Adding '%s' to the selection.", label)
             self.selection.add(label)
-            # Note, the two spaces following the label ensure that only labels in the first column
-            # are replaced (in case where a label can appear in e.g. the title, too)
-            if self.list_mode == -1:
-                self.buffer.replace(cur_y, label + '  ',
-                                    CONFIG.get_ansi_color('selection') + label + '\033[0m  ')
-            else:
-                self.buffer.replace(cur_y, label,
-                                    CONFIG.get_ansi_color('selection') + label + '\033[0m')
+            # Note, that we use an additional two spaces to attempt to uniquely identify the label
+            # in the list mode. Otherwise it might be possible that the same text (as used for the
+            # label) can occur elsewhere in the buffer.
+            # We do not need this outside of the list view because then the line indexed by `cur_y`
+            # will surely only include the one label which we acutally want to operate on.
+            offset = '  ' if self.list_mode == -1 else ''
+            self.buffer.replace(cur_y, label + offset,
+                                CONFIG.get_ansi_color('selection') + label + '\033[0m' + offset)
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
