@@ -45,6 +45,8 @@ class TUI:
         # TODO when implementing select command add a color configuration option
     ]
 
+    ANSI_MAP = {}
+
     # available command dictionary
     COMMANDS = {
         'Add': commands.AddCommand.tui,
@@ -275,6 +277,8 @@ class TUI:
             background = colors[attr].get('bg', 'black')
             LOGGER.debug('Initiliazing color pair %d for %s', idx + 1, attr)
             curses.init_pair(idx + 1, TUI.COLOR_VALUES[foreground], TUI.COLOR_VALUES[background])
+            LOGGER.debug('Adding ANSI color code for %s', attr)
+            TUI.ANSI_MAP[CONFIG.get_ansi_color(attr)] = TUI.COLOR_NAMES.index(attr) + 1
 
     @staticmethod
     def bind_keys():
