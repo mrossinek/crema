@@ -34,14 +34,14 @@ class TUI:
     }
 
     COLOR_NAMES = [
-        'cursor_line',
         'top_statusbar',
         'bottom_statusbar',
+        'search_label',
+        'search_query',
+        'cursor_line',
         'popup_help',
         'popup_stdout',
         'popup_stderr',
-        'search_label',
-        'search_query',
         'selection',
     ]
 
@@ -388,11 +388,19 @@ class TUI:
                 break
 
             # highlight current line
-            current_attrs = []
+            current_colors = []
             for x_pos in range(0, self.viewport.getmaxyx()[1]):
-                current_attrs.append(self.viewport.inch(self.current_line, x_pos))
-            self.viewport.chgat(self.current_line, 0,
-                                curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
+                x_ch = self.viewport.inch(self.current_line, x_pos)
+                current_colors.append(x_ch)
+                # x_ch is the character at the queried position. The bottom 8 bits are the character
+                # proper, and upper bits are the attributes.
+                # Source: https://docs.python.org/3/library/curses.html#curses.window.inch
+                # Thus, we can find the color attribute by striping the last 8 bits.
+                x_attr = x_ch >> 8
+                LOGGER.debug(x_attr)
+                if x_attr <= TUI.COLOR_NAMES.index('cursor_line'):
+                    self.viewport.chgat(self.current_line, x_pos, 1,
+                                        curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
 
             # Refresh the screen
             self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
@@ -403,7 +411,7 @@ class TUI:
 
             # reset highlight of current line
             for x_pos in range(0, self.viewport.getmaxyx()[1]):
-                self.viewport.chgat(self.current_line, x_pos, 1, current_attrs[x_pos])
+                self.viewport.chgat(self.current_line, x_pos, 1, current_colors[x_pos])
 
     def scroll_y(self, update):
         """Scroll viewport vertically.
