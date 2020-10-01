@@ -5,15 +5,10 @@ import logging
 import sys
 
 from cobib import __version__
-from cobib.config import CONFIG, ANSI_COLORS
+from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 
 LOGGER = logging.getLogger(__name__)
-
-SELECTION_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('selection', 'white'))
-SELECTION_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('selection', 'magenta'))
-
-SELECTION_ANSI = f'\033[{SELECTION_FG};{SELECTION_BG}m'
 
 
 class ShowCommand(Command):
@@ -62,13 +57,11 @@ class ShowCommand(Command):
         tui.buffer.clear()
         ShowCommand().execute([label], out=tui.buffer)
         tui.buffer.split()
-        # if selected, apply highlighting
-        ansi_map = {SELECTION_ANSI: tui.COLOR_PAIRS['selection'][0]}
         if label in tui.selection:
             LOGGER.debug('Current entry is selected. Applying highlighting.')
-            tui.buffer.replace(0, label, SELECTION_ANSI + label + '\033[0m')
+            tui.buffer.replace(0, label, CONFIG.get_ansi_color('selection') + label + '\033[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
-        tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map)
+        tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
 
         # reset current cursor position
         tui.top_line = 0

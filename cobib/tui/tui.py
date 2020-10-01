@@ -9,18 +9,10 @@ from signal import signal, SIGWINCH
 
 from cobib import __version__
 from cobib import commands
-from cobib.config import CONFIG, ANSI_COLORS
+from cobib.config import CONFIG
 from .buffer import TextBuffer
 
 LOGGER = logging.getLogger(__name__)
-
-if 'COLORS' not in CONFIG.config.keys():
-    CONFIG.config['COLORS'] = {}
-
-SELECTION_FG = 30 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('selection', 'white'))
-SELECTION_BG = 40 + ANSI_COLORS.index(CONFIG.config['COLORS'].get('selection', 'magenta'))
-
-SELECTION_ANSI = f'\033[{SELECTION_FG};{SELECTION_BG}m'
 
 
 class TUI:
@@ -500,8 +492,6 @@ class TUI:
         LOGGER.debug('Select command triggered.')
         # get current label
         label, cur_y = self.get_current_label()
-        # setup ANSI color map
-        ansi_map = {SELECTION_ANSI: self.COLOR_PAIRS['selection'][0]}
         # toggle selection
         if label not in self.selection:
             LOGGER.info("Adding '%s' to the selection.", label)
@@ -509,15 +499,18 @@ class TUI:
             # Note, the two spaces following the label ensure that only labels in the first column
             # are replaced (in case where a label can appear in e.g. the title, too)
             if self.list_mode == -1:
-                self.buffer.replace(cur_y, label + '  ', SELECTION_ANSI + label + '\033[0m  ')
+                self.buffer.replace(cur_y, label + '  ',
+                                    CONFIG.get_ansi_color('selection') + label + '\033[0m  ')
             else:
-                self.buffer.replace(cur_y, label, SELECTION_ANSI + label + '\033[0m')
+                self.buffer.replace(cur_y, label,
+                                    CONFIG.get_ansi_color('selection') + label + '\033[0m')
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
-            self.buffer.replace(cur_y, SELECTION_ANSI + label + '\033[0m', label)
+            self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\033[0m',
+                                label)
         # update buffer view
-        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map)
+        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
 
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
@@ -730,17 +723,15 @@ class TUI:
         self.top_line = 0
         self.left_edge = 0
         self.inactive_commands = []
-        # setup ANSI color map
-        ansi_map = {SELECTION_ANSI: self.COLOR_PAIRS['selection'][0]}
         # highlight current selection
         for label in self.selection:
             # Note: the two spaces are explained in the `select()` method.
             # Also: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!
             self.buffer.replace(range(self.buffer.height), label + '  ',
-                                SELECTION_ANSI + label + '\033[0m  ')
+                                CONFIG.get_ansi_color('selection') + label + '\033[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map)
+        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.statusbar(self.topbar, self.topstatus)
