@@ -507,7 +507,7 @@ class TUI:
             # in the list mode. Otherwise it might be possible that the same text (as used for the
             # label) can occur elsewhere in the buffer.
             # We do not need this outside of the list view because then the line indexed by `cur_y`
-            # will surely only include the one label which we acutally want to operate on.
+            # will surely only include the one label which we actually want to operate on.
             offset = '  ' if self.list_mode == -1 else ''
             self.buffer.replace(cur_y, label + offset,
                                 CONFIG.get_ansi_color('selection') + label + '\033[0m' + offset)

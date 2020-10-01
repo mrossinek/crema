@@ -7,7 +7,7 @@ import re
 import sys
 
 from cobib import __version__
-from cobib.config import CONFIG, ANSI_COLORS
+from cobib.config import CONFIG
 from .base_command import ArgumentParser, Command
 from .list import ListCommand
 
@@ -98,7 +98,7 @@ class SearchCommand(Command):
                 if label not in tui.selection:
                     continue
                 # we match the label including its 'search_label' highlight to ensure that we really
-                # only match this specific occurence of whatever the label may be
+                # only match this specific occurrence of whatever the label may be
                 tui.buffer.replace(range(tui.buffer.height),
                                    CONFIG.get_ansi_color('search_label') + label + '\033[0m',
                                    CONFIG.get_ansi_color('search_label') +
