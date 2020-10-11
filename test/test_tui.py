@@ -149,6 +149,24 @@ def assert_export(screen, contents):
     # actual command execution is tested by the test_commands.test_export unittest
 
 
+def assert_search_view(screen, label, search, selected):
+    """Asserts the search screen contents."""
+    term_width = len(screen.buffer[0])
+    if selected:
+        assert [c.bg for c in screen.buffer[1].values()] == \
+            ['magenta'] * len(label) + \
+            ['default'] * (term_width - len(label))
+    else:
+        assert [c.fg for c in screen.buffer[1].values()] == \
+            ['blue'] * len(label) + \
+            ['default'] * (term_width - len(label))
+    offset = screen.display[2].index(search)
+    assert [c.fg for c in screen.buffer[2].values()] == \
+        ['default'] * offset + \
+        ['red'] * len(search) + \
+        ['default'] * (term_width - len(search) - offset)
+
+
 def assert_select_list_view(screen, current, selected, labels):
     """Asserts the selection in the list view of the TUI."""
     term_width = len(screen.buffer[0])
@@ -204,7 +222,23 @@ def assert_select_show_view(screen, current):
             'o', lambda _: None, {},
             marks=[pytest.mark.skip("There is currently no meaningful way of testing this.")]
         ),
-        ['/', lambda _: None, {}],  # TODO unittest Search command
+        ['/einstein\njj', assert_search_view, {
+            'label': 'einstein',
+            'search': 'einstein',
+            'selected': False
+        }],
+        ['/einstein\njjv', assert_search_view, {
+            'label': 'einstein',
+            'search': 'einstein',
+            'selected': True
+        }],
+        ['Gv/einstein\njj', assert_search_view, {
+            'label': 'einstein',
+            'search': 'einstein',
+            'selected': True
+        }],
+        ['/einstein\nvq', assert_select_list_view, {'current': 1, 'selected': [4],
+                                                    'labels': ['einstein']}],
         ['v', assert_select_list_view, {'current': 1, 'selected': [1],
                                         'labels': ['dummy_entry_for_scroll_testing']}],
         ['vj', assert_select_list_view, {'current': 2, 'selected': [1],
