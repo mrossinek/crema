@@ -267,6 +267,28 @@ def test_export(setup):
     os.remove('/tmp/cobib_test_export.bib')
 
 
+def test_export_selection(setup):
+    """Test the `selection` interface of the export command.
+
+    Args:
+        setup: runs pytest fixture.
+    """
+    commands.ExportCommand().execute(['-b', '/tmp/cobib_test_export_s.bib', '-s', '--', 'einstein'])
+    with open('/tmp/cobib_test_export_s.bib', 'r') as file:
+        with open('./test/example_literature.bib', 'r') as expected:
+            for line, truth in zip_longest(file, expected):
+                print(line, truth)
+                if truth[0] == '%':
+                    # ignore comments
+                    continue
+                if truth.strip() == '@book{latexcompanion,':
+                    # reached next entry
+                    break
+                assert line == truth
+    # clean up file system
+    os.remove('/tmp/cobib_test_export_s.bib')
+
+
 @pytest.mark.parametrize(['args', 'expected', 'config_overwrite'], [
         [['einstein'], ['einstein - 1 match', '@article{einstein,', 'author = {Albert Einstein},'],
          'False'],

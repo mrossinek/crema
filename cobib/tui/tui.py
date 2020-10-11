@@ -542,12 +542,14 @@ class TUI:
             buffer.write(text)
             self.popup(buffer, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
-    def prompt_handler(self, command, out=None):
+    def prompt_handler(self, command, out=None, pass_selection=False):
         """Handle prompt input.
 
         Args:
             command (str or None): the command string to populate the prompt with.
             out (stream, optional): the output stream to redirect stdout to.
+            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
+                                                executed command arguments.
 
         Returns:
             A pair with the first element being the list with the executed command to allow further
@@ -630,6 +632,9 @@ class TUI:
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
             try:
+                if pass_selection:
+                    command += ['--']
+                    command.extend(list(self.selection))
                 result = subcmd.execute(command[1:], out=out)
             except SystemExit:
                 pass
