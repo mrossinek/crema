@@ -40,11 +40,10 @@ class OpenCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
 
-        opener = CONFIG.config['DATABASE'].get('open', None)
-
         errors = []
         for label in largs.labels:
             things_to_open = defaultdict(list)
+            count = 0
             # first: find all possible things to open
             try:
                 entry = CONFIG.config['BIB_DATA'][label]
@@ -53,6 +52,7 @@ class OpenCommand(Command):
                         for val in entry.data[field].split(','):
                             LOGGER.debug('Parsing "%s" for URLs.', val)
                             things_to_open[field] += [urlparse(val)]
+                            count += 1
             except KeyError:
                 msg = "Error: No entry with the label '{}' could be found.".format(label)
                 LOGGER.error(msg)
@@ -66,30 +66,35 @@ class OpenCommand(Command):
                     errors.append(msg)
                 continue
 
-            # now try to open them
-            for field, urls in things_to_open.items():
-                for url in urls:
-                    try:
-                        # TODO instead of simply opening all we should prompt the user what to do
-                        # here - if a single entry exists, simply open it - if multiple exist, print
-                        # a menu for the user to choose from - the choices should be either a single
-                        # entry given by index, or a group of values given by their field, or all of
-                        # them
-                        if url.scheme:
-                            # actual URL
-                            url = url.geturl()
-                        else:
-                            # assume we are talking about a file and thus get its absolute path
-                            url = os.path.abspath(url.geturl())
-                        LOGGER.debug('Opening "%s" with %s.', url, opener)
-                        with open(os.devnull, 'w') as devnull:
-                            subprocess.Popen([opener, url], stdout=devnull, stderr=devnull,
-                                             stdin=devnull, close_fds=True)
-                    except FileNotFoundError as err:
-                        LOGGER.error(err)
-                        errors.append(str(err))
+            if count == 1:
+                # we found a single url to open
+                err = self._open_url(list(things_to_open.values()))[0]
+                if err:
+                    errors.append(err)
+            else:
+                # we query the user what to do
+                for field, urls in things_to_open.items():
+                    for url in urls:
+                        err = self._open_url(url)
+                        if err:
+                            errors.append(err)
 
         return '\n'.join(errors)
+
+    @staticmethod
+    def _open_url(url):
+        """Opens a url."""
+        opener = CONFIG.config['DATABASE'].get('open', None)
+        try:
+            url = url.geturl() if url.scheme else os.path.abspath(url.geturl())
+            LOGGER.debug('Opening "%s" with %s.', url, opener)
+            with open(os.devnull, 'w') as devnull:
+                subprocess.Popen([opener, url], stdout=devnull, stderr=devnull,
+                                 stdin=devnull, close_fds=True)
+        except FileNotFoundError as err:
+            LOGGER.error(err)
+            return str(err)
+        return ''
 
     @staticmethod
     def tui(tui):
