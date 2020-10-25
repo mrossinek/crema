@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import sys
+from collections import defaultdict
 from urllib.parse import urlparse
 
 from cobib.config import CONFIG
@@ -43,14 +44,15 @@ class OpenCommand(Command):
 
         errors = []
         for label in largs.labels:
-            things_to_open = {}
+            things_to_open = defaultdict(list)
             # first: find all possible things to open
             try:
                 entry = CONFIG.config['BIB_DATA'][label]
                 for field in ('file', 'url'):
                     if field in entry.data.keys() and entry.data[field]:
-                        LOGGER.debug('Parsing "%s" for URLs.', entry.data[field])
-                        things_to_open[field] = urlparse(entry.data[field])
+                        for val in entry.data[field].split(','):
+                            LOGGER.debug('Parsing "%s" for URLs.', val)
+                            things_to_open[field] += [urlparse(val)]
             except KeyError:
                 msg = "Error: No entry with the label '{}' could be found.".format(label)
                 LOGGER.error(msg)
@@ -64,27 +66,28 @@ class OpenCommand(Command):
                     errors.append(msg)
                 continue
 
-            try:
-                # TODO instead of simply opening all we should prompt the user what to do here
-                # - if a single entry exists, simply open it
-                # - if multiple exist, print a menu for the user to choose from
-                # - the choices should be either a single entry given by index, or a group of values
-                # given by their field, or all of them
-                # now try to open them
-                for url in things_to_open.values():
-                    if url.scheme:
-                        # actual URL
-                        url = url.geturl()
-                    else:
-                        # assume we are talking about a file and thus get its absolute path
-                        url = os.path.abspath(url.geturl())
-                    LOGGER.debug('Opening "%s" with %s.', url, opener)
-                    with open(os.devnull, 'w') as devnull:
-                        subprocess.Popen([opener, url], stdout=devnull, stderr=devnull,
-                                         stdin=devnull, close_fds=True)
-            except FileNotFoundError as err:
-                LOGGER.error(err)
-                errors.append(str(err))
+            # now try to open them
+            for field, urls in things_to_open.items():
+                for url in urls:
+                    try:
+                        # TODO instead of simply opening all we should prompt the user what to do
+                        # here - if a single entry exists, simply open it - if multiple exist, print
+                        # a menu for the user to choose from - the choices should be either a single
+                        # entry given by index, or a group of values given by their field, or all of
+                        # them
+                        if url.scheme:
+                            # actual URL
+                            url = url.geturl()
+                        else:
+                            # assume we are talking about a file and thus get its absolute path
+                            url = os.path.abspath(url.geturl())
+                        LOGGER.debug('Opening "%s" with %s.', url, opener)
+                        with open(os.devnull, 'w') as devnull:
+                            subprocess.Popen([opener, url], stdout=devnull, stderr=devnull,
+                                             stdin=devnull, close_fds=True)
+                    except FileNotFoundError as err:
+                        LOGGER.error(err)
+                        errors.append(str(err))
 
         return '\n'.join(errors)
 
