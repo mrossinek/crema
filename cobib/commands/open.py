@@ -39,20 +39,38 @@ class OpenCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
 
+        opener = CONFIG.config['DATABASE'].get('open', None)
+
         errors = []
         for label in largs.labels:
+            things_to_open = {}
+            # first: find all possible things to open
             try:
                 entry = CONFIG.config['BIB_DATA'][label]
-                if 'file' not in entry.data.keys() or entry.data['file'] is None:
-                    msg = "Error: There is no file associated with this entry."
-                    LOGGER.error(msg)
-                    if out is None:
-                        errors.append(msg)
-                    continue
-                opener = CONFIG.config['DATABASE'].get('open', None)
-                try:
+                if 'file' in entry.data.keys() and entry.data['file']:
                     LOGGER.debug('Parsing "%s" for URLs.', entry.data['file'])
-                    url = urlparse(entry.data['file'])
+                    things_to_open['file'] = urlparse(entry.data['file'])
+            except KeyError:
+                msg = "Error: No entry with the label '{}' could be found.".format(label)
+                LOGGER.error(msg)
+                continue
+
+            # if there are none, skip current label
+            if not things_to_open:
+                msg = "Error: There is no file associated with this entry."
+                LOGGER.error(msg)
+                if out is None:
+                    errors.append(msg)
+                continue
+
+            try:
+                # TODO instead of simply opening all we should prompt the user what to do here
+                # - if a single entry exists, simply open it
+                # - if multiple exist, print a menu for the user to choose from
+                # - the choices should be either a single entry given by index, or a group of values
+                # given by their field, or all of them
+                # now try to open them
+                for url in things_to_open.values():
                     if url.scheme:
                         # actual URL
                         url = url.geturl()
@@ -63,12 +81,9 @@ class OpenCommand(Command):
                     with open(os.devnull, 'w') as devnull:
                         subprocess.Popen([opener, url], stdout=devnull, stderr=devnull,
                                          stdin=devnull, close_fds=True)
-                except FileNotFoundError as err:
-                    LOGGER.error(err)
-                    errors.append(str(err))
-            except KeyError:
-                msg = "Error: No entry with the label '{}' could be found.".format(label)
-                LOGGER.error(msg)
+            except FileNotFoundError as err:
+                LOGGER.error(err)
+                errors.append(str(err))
 
         return '\n'.join(errors)
 
