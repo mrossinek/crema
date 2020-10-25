@@ -47,9 +47,10 @@ class OpenCommand(Command):
             # first: find all possible things to open
             try:
                 entry = CONFIG.config['BIB_DATA'][label]
-                if 'file' in entry.data.keys() and entry.data['file']:
-                    LOGGER.debug('Parsing "%s" for URLs.', entry.data['file'])
-                    things_to_open['file'] = urlparse(entry.data['file'])
+                for field in ('file', 'url'):
+                    if field in entry.data.keys() and entry.data[field]:
+                        LOGGER.debug('Parsing "%s" for URLs.', entry.data[field])
+                        things_to_open[field] = urlparse(entry.data[field])
             except KeyError:
                 msg = "Error: No entry with the label '{}' could be found.".format(label)
                 LOGGER.error(msg)
@@ -57,8 +58,8 @@ class OpenCommand(Command):
 
             # if there are none, skip current label
             if not things_to_open:
-                msg = "Error: There is no file associated with this entry."
-                LOGGER.error(msg)
+                msg = "Warning: This entry has no actionable field associated with it."
+                LOGGER.warning(msg)
                 if out is None:
                     errors.append(msg)
                 continue
