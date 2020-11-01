@@ -3,6 +3,7 @@
 import curses
 import logging
 import re
+import shlex
 import sys
 from functools import partial
 from signal import signal, SIGWINCH
@@ -611,7 +612,7 @@ class TUI:
             self.prompt.refresh(0, max(0, cur_x - self.width + 2),
                                 self.height-1, 0, self.height, self.width-1)
         # split command into separate arguments for cobib
-        command = command.split(' ')
+        command = shlex.split(command)
 
         # leave echo mode and make cursor invisible
         curses.curs_set(0)
@@ -643,6 +644,8 @@ class TUI:
                 LOGGER.warning('The command "%s" resulted in an error.', ' '.join(command))
                 sys.stderr.split()
                 LOGGER.info('sys.stderr contains:\n%s', '\n'.join(sys.stderr.lines))
+                # wrap before checking the height:
+                sys.stderr.wrap(self.width)
                 if sys.stderr.height > 1:
                     self.popup(sys.stderr, background=TUI.COLOR_NAMES.index('popup_stderr'))
                 else:
@@ -653,6 +656,8 @@ class TUI:
                 LOGGER.info('A message to stdout from "%s" was intercepted.', ' '.join(command))
                 sys.stdout.split()
                 LOGGER.info('sys.stdout contains:\n%s', '\n'.join(sys.stdout.lines))
+                # wrap before checking the height:
+                sys.stdout.wrap(self.width)
                 if sys.stdout.height > 1:
                     self.popup(sys.stdout, background=TUI.COLOR_NAMES.index('popup_stdout'))
                 else:
