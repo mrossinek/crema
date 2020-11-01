@@ -73,15 +73,19 @@ class OpenCommand(Command):
                 # we query the user what to do
                 idx = 1
                 url_list = []
+                prompt = []
                 # print formatted list of available URLs
                 for field, urls in things_to_open.items():
                     for url in urls:
-                        print(f"{idx:3}: [{field}] {url.geturl()}")
+                        prompt.append(f"{idx:3}: [{field}] {url.geturl()}")
                         url_list.append(url)
                         idx += 1
                 # loop until the user picks a valid choice
+                help_requested = False
                 while True:
-                    choice = input("Entry to open [Type 'help' for more info]: ")
+                    prompt_copy = prompt.copy()
+                    prompt_copy.append("Entry to open [Type 'help' for more info]: ")
+                    choice = input('\n'.join(prompt_copy))
                     if not choice:
                         # empty input
                         msg = 'User aborted open command.'
@@ -90,12 +94,15 @@ class OpenCommand(Command):
                         return None
                     if choice == 'help':
                         LOGGER.debug('User requested help.')
-                        msg = "\nYou can specify one of the following options:" + \
-                              "\n  1. a url number" + \
-                              "\n  2. a field name provided in '[...]'" + \
-                              "\n  3. or simply 'all'" + \
-                              "\n  4. ENTER will abort the command"
-                        print(msg)
+                        if not help_requested:
+                            msg = ["You can specify one of the following options:",
+                                   "  1. a url number",
+                                   "  2. a field name provided in '[...]'",
+                                   "  3. or simply 'all'",
+                                   "  4. ENTER will abort the command",
+                                   ""]
+                            prompt = msg + prompt
+                        help_requested = True
                     elif choice == 'all':
                         LOGGER.debug('User selected all urls.')
                         for url in url_list:
