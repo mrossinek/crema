@@ -39,7 +39,7 @@ class OpenCommand(Command):
             largs = parser.parse_args(args)
         except argparse.ArgumentError as exc:
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
-            return None
+            return
 
         # pylint: disable=too-many-nested-blocks
         for label in largs.labels:
@@ -91,7 +91,7 @@ class OpenCommand(Command):
                         msg = 'User aborted open command.'
                         LOGGER.warning(msg)
                         print(msg, file=sys.stderr)
-                        return None
+                        break
                     if choice == 'help':
                         LOGGER.debug('User requested help.')
                         if not help_requested:
