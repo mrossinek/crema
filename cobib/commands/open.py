@@ -73,11 +73,48 @@ class OpenCommand(Command):
                     errors.append(err)
             else:
                 # we query the user what to do
+                idx = 1
+                url_list = []
                 for field, urls in things_to_open.items():
                     for url in urls:
-                        err = self._open_url(url)
+                        print(f"{idx:3}: [{field}] {url.geturl()}")
+                        url_list.append(url)
+                        idx += 1
+                while True:
+                    choice = input("Entry to open [Type 'help' for more info]: ")
+                    if not choice:
+                        msg = 'User aborted open command.'
+                        LOGGER.warning(msg)
+                        print(msg, file=sys.stderr)
+                        return None
+                    if choice == 'help':
+                        LOGGER.debug('User requested help.')
+                        help = "\nYou can specify one of the following options:" + \
+                               "\n  1. a url number" + \
+                               "\n  2. a field name provided in '[...]'" + \
+                               "\n  3. or simply 'all'"
+                        print(help)
+                    elif choice == 'all':
+                        LOGGER.debug('User selected all urls.')
+                        for url in url_list:
+                            err = self._open_url(url)
+                            if err:
+                                errors.append(err)
+                        break
+                    elif choice in things_to_open.keys():
+                        LOGGER.debug('User selected the %s set of urls.', choice)
+                        for url in things_to_open[choice]:
+                            err = self._open_url(url)
+                            if err:
+                                errors.append(err)
+                        break
+                    elif choice.isdigit() and int(choice) > 0 and int(choice) <= count:
+                        LOGGER.debug('User selected url %s', choice)
+                        err = self._open_url(url_list[int(choice)-1])
                         if err:
                             errors.append(err)
+                        break
+
 
         return '\n'.join(errors)
 
