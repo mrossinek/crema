@@ -19,6 +19,7 @@ class OpenCommand(Command):
 
     name = 'open'
 
+    # pylint: disable=too-many-branches
     def execute(self, args, out=sys.stderr):
         """Open file from entries.
 
@@ -41,6 +42,7 @@ class OpenCommand(Command):
             return None
 
         errors = []
+        # pylint: disable=too-many-nested-blocks
         for label in largs.labels:
             things_to_open = defaultdict(list)
             count = 0
@@ -67,7 +69,7 @@ class OpenCommand(Command):
                 continue
 
             if count == 1:
-                # we found a single url to open
+                # we found a single URL to open
                 err = self._open_url(list(things_to_open.values()))[0]
                 if err:
                     errors.append(err)
@@ -75,25 +77,29 @@ class OpenCommand(Command):
                 # we query the user what to do
                 idx = 1
                 url_list = []
+                # print formatted list of available URLs
                 for field, urls in things_to_open.items():
                     for url in urls:
                         print(f"{idx:3}: [{field}] {url.geturl()}")
                         url_list.append(url)
                         idx += 1
+                # loop until the user picks a valid choice
                 while True:
                     choice = input("Entry to open [Type 'help' for more info]: ")
                     if not choice:
+                        # empty input
                         msg = 'User aborted open command.'
                         LOGGER.warning(msg)
                         print(msg, file=sys.stderr)
                         return None
                     if choice == 'help':
                         LOGGER.debug('User requested help.')
-                        help = "\nYou can specify one of the following options:" + \
-                               "\n  1. a url number" + \
-                               "\n  2. a field name provided in '[...]'" + \
-                               "\n  3. or simply 'all'"
-                        print(help)
+                        msg = "\nYou can specify one of the following options:" + \
+                              "\n  1. a url number" + \
+                              "\n  2. a field name provided in '[...]'" + \
+                              "\n  3. or simply 'all'" + \
+                              "\n  4. ENTER will abort the command"
+                        print(msg)
                     elif choice == 'all':
                         LOGGER.debug('User selected all urls.')
                         for url in url_list:
@@ -115,12 +121,11 @@ class OpenCommand(Command):
                             errors.append(err)
                         break
 
-
         return '\n'.join(errors)
 
     @staticmethod
     def _open_url(url):
-        """Opens a url."""
+        """Opens a URL."""
         opener = CONFIG.config['DATABASE'].get('open', None)
         try:
             url = url.geturl() if url.scheme else os.path.abspath(url.geturl())
