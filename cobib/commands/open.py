@@ -41,7 +41,6 @@ class OpenCommand(Command):
             print("{}: {}".format(exc.argument_name, exc.message), file=sys.stderr)
             return None
 
-        errors = []
         # pylint: disable=too-many-nested-blocks
         for label in largs.labels:
             things_to_open = defaultdict(list)
@@ -64,15 +63,12 @@ class OpenCommand(Command):
             if not things_to_open:
                 msg = "Warning: This entry has no actionable field associated with it."
                 LOGGER.warning(msg)
-                if out is None:
-                    errors.append(msg)
+                print(msg, file=out or sys.stderr)
                 continue
 
             if count == 1:
                 # we found a single URL to open
-                err = self._open_url(list(things_to_open.values()))[0]
-                if err:
-                    errors.append(err)
+                self._open_url(list(things_to_open.values())[0][0])
             else:
                 # we query the user what to do
                 idx = 1
@@ -103,25 +99,17 @@ class OpenCommand(Command):
                     elif choice == 'all':
                         LOGGER.debug('User selected all urls.')
                         for url in url_list:
-                            err = self._open_url(url)
-                            if err:
-                                errors.append(err)
+                            self._open_url(url)
                         break
                     elif choice in things_to_open.keys():
                         LOGGER.debug('User selected the %s set of urls.', choice)
                         for url in things_to_open[choice]:
-                            err = self._open_url(url)
-                            if err:
-                                errors.append(err)
+                            self._open_url(url)
                         break
                     elif choice.isdigit() and int(choice) > 0 and int(choice) <= count:
                         LOGGER.debug('User selected url %s', choice)
-                        err = self._open_url(url_list[int(choice)-1])
-                        if err:
-                            errors.append(err)
+                        self._open_url(url_list[int(choice)-1])
                         break
-
-        return '\n'.join(errors)
 
     @staticmethod
     def _open_url(url):
@@ -135,8 +123,7 @@ class OpenCommand(Command):
                                  stdin=devnull, close_fds=True)
         except FileNotFoundError as err:
             LOGGER.error(err)
-            return str(err)
-        return ''
+            print(err, file=sys.stderr)
 
     @staticmethod
     def tui(tui):
@@ -149,7 +136,4 @@ class OpenCommand(Command):
             # get current label
             label, _ = tui.get_current_label()
             labels = [label]
-        # populate buffer with entry data
-        error = OpenCommand().execute(labels, out=None)
-        if error:
-            tui.prompt_print(error)
+        tui.execute_command(['open'] + labels)

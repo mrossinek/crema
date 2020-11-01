@@ -621,6 +621,21 @@ class TUI:
         self.prompt.clear()
         self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
 
+        return self.execute_command(command, out, pass_selection)
+
+    def execute_command(self, command, out=None, pass_selection=False):
+        """Executes a command.
+
+        Args:
+            command (str or None): the command to execute.
+            out (stream, optional): the output stream to redirect stdout to.
+            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
+                                                executed command arguments.
+
+        Returns:
+            A pair with the first element being the list with the executed command to allow further
+            handling and the second element being whatever is returned by the command.
+        """
         # process command if it non empty and actually has arguments
         result = None
         if command and command[0]:
