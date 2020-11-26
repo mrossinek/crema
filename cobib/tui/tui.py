@@ -230,8 +230,11 @@ class TUI:
         if self.list_mode == -1:
             LOGGER.debug('Quitting from lowest level.')
             if self.prompt_before_quit:
+                msg = 'Do you really want to quit CoBib? [y/n] '
+                curses.curs_set(1)
                 self.prompt.clear()
-                self.prompt.insstr(0, 0, 'Do you really want to quit CoBib? [y/n] ')
+                self.prompt.insstr(0, 0, msg)
+                self.prompt.move(0, len(msg))
                 self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
                 key = 0
                 while True:
@@ -239,6 +242,7 @@ class TUI:
                         raise StopIteration
                     if key in (ord('n'), ord('N')):
                         LOGGER.info('User aborted quitting.')
+                        curses.curs_set(0)
                         break
                     key = self.prompt.getch()
                 self.prompt.clear()
