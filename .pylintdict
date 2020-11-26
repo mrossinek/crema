@@ -42,6 +42,7 @@ sminrow
 statusbar
 statusline
 stderr
+stdin
 stdout
 stdscr
 str

@@ -11,7 +11,7 @@ from signal import signal, SIGWINCH
 from cobib import __version__
 from cobib import commands
 from cobib.config import CONFIG
-from .buffer import TextBuffer
+from .buffer import TextBuffer, InputBuffer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -643,11 +643,13 @@ class TUI:
         result = None
         if command and command[0]:
             LOGGER.debug('Processing the command: %s', ' '.join(command))
-            # temporarily disable prints to stdout and stderr
+            # temporarily disable prints to stdout, stderr and stdin
+            original_stdin = sys.stdin
             original_stdout = sys.stdout
             original_stderr = sys.stderr
             sys.stdout = TextBuffer()
             sys.stderr = TextBuffer()
+            sys.stdin = InputBuffer(buffer=sys.stdout, tui=self)
             # run command
             subcmd = getattr(commands, command[0].title()+'Command')()
             try:
@@ -680,9 +682,10 @@ class TUI:
                     sys.stdout.popup(self, background=TUI.COLOR_NAMES.index('popup_stdout'))
                 else:
                     self.prompt_print(sys.stdout.lines)
-            # restore stdout and stderr
+            # restore stdout, stderr and stdin
             sys.stdout = original_stdout
             sys.stderr = original_stderr
+            sys.stdin = original_stdin
         # return command to enable additional handling by function caller
         return (command, result)
 

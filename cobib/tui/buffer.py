@@ -233,3 +233,36 @@ class TextBuffer:
         # close popup window
         popup_win.clear()
         tui.resize_handler(None, None)
+
+
+class InputBuffer:
+    """TODO."""
+
+    def __init__(self, buffer, tui):
+        """TODO.
+
+        Args:
+            buffer (TextBuffer): TODO
+            tui (TUI): TODO
+        """
+        self.buffer = buffer
+        self.tui = tui
+
+    def readline(self):
+        """TODO."""
+        self.buffer.split()
+        LOGGER.debug('Create popup window.')
+        popup_win = curses.newpad(self.buffer.height+2, self.tui.width)
+        # view popup window
+        self.buffer.view(popup_win, self.buffer.height+2, self.tui.width, box=True)
+
+        key = 0
+        # loop until quit by user
+        while key != 27:  # exit on ESC
+            key = self.tui.prompt.getch()
+
+        # close popup window
+        popup_win.clear()
+        self.buffer.clear()
+        self.tui.resize_handler(None, None)
+        return key
