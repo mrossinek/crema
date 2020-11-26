@@ -106,7 +106,7 @@ class SearchCommand(Command):
                                    CONFIG.get_ansi_color('search_label') +
                                    CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, tui.ANSI_MAP)
+            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
             tui.top_line = 0

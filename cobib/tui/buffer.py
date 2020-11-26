@@ -116,13 +116,20 @@ class TextBuffer:
         self.height = len(self.lines)
         self.wrapped = not self.wrapped
 
-    def view(self, pad, visible_height, visible_width, ansi_map=None):
+    def view(self, pad, smaxrow, smaxcol,
+             pminrow=0, pmincol=0,
+             sminrow=1, smincol=0,
+             ansi_map=None):
         """View buffer in provided curses pad.
 
         Args:
             pad (curses.window): a re-sizable curses window (aka a pad).
-            visible_height (int): the available height for the pad.
-            visible_width (int): the available width for the pad.
+            smaxrow (int): the available height for the pad.
+            smaxcol (int): the available width for the pad.
+            pminrow (int): the upper display position in the pad.
+            pmincol (int): the left display position in the pad.
+            sminrow (int): the upper display position of the pad.
+            smincol (int): the left display position of the pad.
             ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
         """
         # a regex to detect ANSI color codes
@@ -133,11 +140,11 @@ class TextBuffer:
         # first clear pad
         LOGGER.debug('Clearing curses pad.')
         pad.erase()
-        pad.refresh(0, 0, 1, 0, visible_height, visible_width)
+        pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
         # then resize
         # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
         LOGGER.debug('Adjusting pad size.')
-        pad.resize(self.height+1, max(self.width, visible_width+1))
+        pad.resize(self.height+1, max(self.width, smaxcol+1))
         # and populate
         for row, line in enumerate(self.lines):
             start, end, color = -1, -1, -1
@@ -186,4 +193,4 @@ class TextBuffer:
             for color, start, end in sorted(color_spans):
                 pad.chgat(row, start, end-start, curses.color_pair(color))
         LOGGER.debug('Viewing curses pad.')
-        pad.refresh(0, 0, 1, 0, visible_height, visible_width)
+        pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)

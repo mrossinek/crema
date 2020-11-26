@@ -518,7 +518,7 @@ class TUI:
             self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\x1b[0m',
                                 label)
         # update buffer view
-        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
+        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map=self.ANSI_MAP)
 
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
@@ -763,7 +763,7 @@ class TUI:
             self.buffer.replace(range(self.buffer.height), label + '  ',
                                 CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.viewport, self.visible, self.width-1, self.ANSI_MAP)
+        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map=self.ANSI_MAP)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.statusbar(self.topbar, self.topstatus)
