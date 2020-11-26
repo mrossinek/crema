@@ -90,7 +90,7 @@ class SearchCommand(Command):
         LOGGER.debug('Search command triggered from TUI.')
         tui.buffer.clear()
         # handle input via prompt
-        command, results = tui.prompt_handler('search', out=tui.buffer)
+        command, results = tui.execute_command('search', out=tui.buffer)
         if tui.buffer.lines and results is not None:
             hits, labels = results
             tui.list_mode, _ = tui.viewport.getyx()

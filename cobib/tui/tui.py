@@ -547,18 +547,14 @@ class TUI:
             buffer.write(text)
             buffer.popup(self, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
-    def prompt_handler(self, command, out=None, pass_selection=False):
+    def prompt_handler(self, command):
         """Handle prompt input.
 
         Args:
             command (str or None): the command string to populate the prompt with.
-            out (stream, optional): the output stream to redirect stdout to.
-            pass_selection (boolean, optional): whether to the pass the current TUI selection in the
-                                                executed command arguments.
 
         Returns:
-            A pair with the first element being the list with the executed command to allow further
-            handling and the second element being whatever is returned by the command.
+            The final user command.
         """
         LOGGER.debug('Handling input by the user in prompt line.')
         # make cursor visible
@@ -615,9 +611,6 @@ class TUI:
                 self.prompt.move(_, cur_x + 1)
             self.prompt.refresh(0, max(0, cur_x - self.width + 2),
                                 self.height-1, 0, self.height, self.width-1)
-        # split command into separate arguments for cobib
-        command = shlex.split(command)
-
         # leave echo mode and make cursor invisible
         curses.curs_set(0)
 
@@ -625,9 +618,9 @@ class TUI:
         self.prompt.clear()
         self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
 
-        return self.execute_command(command, out, pass_selection)
+        return command
 
-    def execute_command(self, command, out=None, pass_selection=False):
+    def execute_command(self, command, out=None, pass_selection=False, skip_prompt=False):
         """Executes a command.
 
         Args:
@@ -635,11 +628,17 @@ class TUI:
             out (stream, optional): the output stream to redirect stdout to.
             pass_selection (boolean, optional): whether to the pass the current TUI selection in the
                                                 executed command arguments.
+            skip_prompt (boolean, optional): whether to skip the user prompt for further commands.
 
         Returns:
             A pair with the first element being the list with the executed command to allow further
             handling and the second element being whatever is returned by the command.
         """
+        if not skip_prompt:
+            command = self.prompt_handler(command)
+            # split command into separate arguments for cobib
+            command = shlex.split(command)
+
         # process command if it non empty and actually has arguments
         result = None
         if command and command[0]:

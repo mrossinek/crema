@@ -143,4 +143,4 @@ class OpenCommand(Command):
             # get current label
             label, _ = tui.get_current_label()
             labels = [label]
-        tui.execute_command(['open'] + labels)
+        tui.execute_command(['open'] + labels, skip_prompt=True)

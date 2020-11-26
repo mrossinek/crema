@@ -123,7 +123,7 @@ class AddCommand(Command):
         """See base class."""
         LOGGER.debug('Add command triggered from TUI.')
         # handle input via prompt
-        tui.prompt_handler('add')
+        tui.execute_command('add')
         # update database list
         LOGGER.debug('Updating list after Add command.')
         read_database(fresh=True)
