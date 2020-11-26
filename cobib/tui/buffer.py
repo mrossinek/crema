@@ -194,3 +194,37 @@ class TextBuffer:
                 pad.chgat(row, start, end-start, curses.color_pair(color))
         LOGGER.debug('Viewing curses pad.')
         pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
+
+    def popup(self, tui, background=None):
+        """Displays the buffer in a popup window.
+
+        Args:
+            tui (TUI): the TUI instance in which the popup is displayed.
+            background (int): the curses color pair number with which to highlight the window.
+        """
+        LOGGER.debug('Populating popup window.')
+        popup_win = curses.newpad(self.height+2, tui.width)
+        if background is not None:
+            # setting background color
+            popup_win.bkgd(' ', curses.color_pair(background + 1))
+        for row, line in enumerate(self.lines):
+            # populating popup window with text lines
+            popup_win.addstr(row+1, 1, line)
+        # displaying popup window
+        popup_win.box()
+        popup_h, popup_w = popup_win.getmaxyx()
+        # computing height offset
+        height_offset = tui.height - self.height-4
+        popup_win.refresh(0, 0, height_offset, 0, height_offset+popup_h, popup_w)
+
+        key = 0
+        # loop until quit by user
+        while key not in (27, ord('q')):  # exit on ESC
+            if key != 0:
+                # do not print warning on initial run (key == 0)
+                tui.prompt_print('To quit the popup window, press "q".')
+            key = tui.prompt.getch()
+
+        # close popup window
+        popup_win.clear()
+        tui.resize_handler(None, None)

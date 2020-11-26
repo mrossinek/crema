@@ -365,7 +365,7 @@ class TUI:
         help_text.height += 2
 
         # open help popup
-        self.popup(help_text, background=TUI.COLOR_NAMES.index('popup_help'))
+        help_text.popup(self, background=TUI.COLOR_NAMES.index('popup_help'))
 
     def loop(self):
         """The key-handling event loop."""
@@ -541,7 +541,7 @@ class TUI:
         if len(lines) > 1:
             buffer = TextBuffer()
             buffer.write(text)
-            self.popup(buffer, background=TUI.COLOR_NAMES.index('popup_stderr'))
+            buffer.popup(self, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
     def prompt_handler(self, command, out=None, pass_selection=False):
         """Handle prompt input.
@@ -662,7 +662,7 @@ class TUI:
                 # wrap before checking the height:
                 sys.stderr.wrap(self.width)
                 if sys.stderr.height > 1:
-                    self.popup(sys.stderr, background=TUI.COLOR_NAMES.index('popup_stderr'))
+                    sys.stderr.popup(self, background=TUI.COLOR_NAMES.index('popup_stderr'))
                 else:
                     self.prompt_print(sys.stderr.lines)
                 # command exited with an error
@@ -674,7 +674,7 @@ class TUI:
                 # wrap before checking the height:
                 sys.stdout.wrap(self.width)
                 if sys.stdout.height > 1:
-                    self.popup(sys.stdout, background=TUI.COLOR_NAMES.index('popup_stdout'))
+                    sys.stdout.popup(self, background=TUI.COLOR_NAMES.index('popup_stdout'))
                 else:
                     self.prompt_print(sys.stdout.lines)
             # restore stdout and stderr
@@ -682,40 +682,6 @@ class TUI:
             sys.stderr = original_stderr
         # return command to enable additional handling by function caller
         return (command, result)
-
-    def popup(self, buffer, background=None):
-        """Creates a popup window.
-
-        Args:
-            buffer (TextBuffer): the TextBuffer object which populates the window contents.
-            background (int): the curses color pair number with which to highlight the window.
-        """
-        LOGGER.debug('Populating popup window.')
-        popup_win = curses.newpad(buffer.height+2, self.width)
-        if background is not None:
-            # setting background color
-            popup_win.bkgd(' ', curses.color_pair(background + 1))
-        for row, line in enumerate(buffer.lines):
-            # populating popup window with text lines
-            popup_win.addstr(row+1, 1, line)
-        # displaying popup window
-        popup_win.box()
-        popup_h, popup_w = popup_win.getmaxyx()
-        # computing height offset
-        height_offset = self.height - buffer.height-4
-        popup_win.refresh(0, 0, height_offset, 0, height_offset+popup_h, popup_w)
-
-        key = 0
-        # loop until quit by user
-        while key not in (27, ord('q')):  # exit on ESC
-            if key != 0:
-                # do not print warning on initial run (key == 0)
-                self.prompt_print('To quit the popup window, press "q".')
-            key = self.prompt.getch()
-
-        # close popup window
-        popup_win.clear()
-        self.resize_handler(None, None)
 
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
