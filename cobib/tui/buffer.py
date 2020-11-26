@@ -119,7 +119,9 @@ class TextBuffer:
     def view(self, pad, smaxrow, smaxcol,
              pminrow=0, pmincol=0,
              sminrow=1, smincol=0,
-             ansi_map=None):
+             ansi_map=None,
+             background=None,
+             box=False):
         """View buffer in provided curses pad.
 
         Args:
@@ -131,6 +133,8 @@ class TextBuffer:
             sminrow (int): the upper display position of the pad.
             smincol (int): the left display position of the pad.
             ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
+            background (int): the curses color pair number with which to highlight the window.
+            box (bool): whether to print a frame around the window.
         """
         # a regex to detect ANSI color codes
         ansi_regex = re.compile(r'(\x1b\[(\d+)[;]*(\d+)*m)')
@@ -142,17 +146,17 @@ class TextBuffer:
         pad.erase()
         pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
         # then resize
-        # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
         LOGGER.debug('Adjusting pad size.')
-        pad.resize(self.height+1, max(self.width, smaxcol+1))
+        # NOTE The +1 added onto the height accounts for some weird offset in the curses pad.
+        pad.resize(self.height+(2 if box else 1), max(self.width, smaxcol+(0 if box else 1)))
         # and populate
         for row, line in enumerate(self.lines):
             start, end, color = -1, -1, -1
+            # This list will store the spanned regions for each ANSI color pair.
+            # Its entries will be [curses color pair number, start, end].
+            color_spans = []
             if self.ansi_map:
                 LOGGER.debug('Applying ANSI color map.')
-                # This list will store the spanned regions for each ANSI color pair.
-                # Its entries will be [curses color pair number, start, end].
-                color_spans = []
                 # The index below is used to keep track of the oldest (i.e. lowest in index) color
                 # span which has not been closed yet. This means that we work with the assumption
                 # that ANSI color codes always occur in pairs (even though a single \x1b[0m sequence
@@ -189,9 +193,15 @@ class TextBuffer:
                 # and finally the new line replaces the original one
                 line = new_line
 
-            pad.addstr(row, 0, line)
+            pad.addstr(row+(1 if box else 0), (1 if box else 0), line)
             for color, start, end in sorted(color_spans):
                 pad.chgat(row, start, end-start, curses.color_pair(color))
+        # apply decorations
+        if background is not None:
+            # setting background color
+            pad.bkgd(' ', curses.color_pair(background + 1))
+        if box:
+            pad.box()
         LOGGER.debug('Viewing curses pad.')
         pad.refresh(pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol)
 
@@ -202,20 +212,14 @@ class TextBuffer:
             tui (TUI): the TUI instance in which the popup is displayed.
             background (int): the curses color pair number with which to highlight the window.
         """
-        LOGGER.debug('Populating popup window.')
+        LOGGER.debug('Create popup window.')
         popup_win = curses.newpad(self.height+2, tui.width)
-        if background is not None:
-            # setting background color
-            popup_win.bkgd(' ', curses.color_pair(background + 1))
-        for row, line in enumerate(self.lines):
-            # populating popup window with text lines
-            popup_win.addstr(row+1, 1, line)
-        # displaying popup window
-        popup_win.box()
-        popup_h, popup_w = popup_win.getmaxyx()
         # computing height offset
         height_offset = tui.height - self.height-4
-        popup_win.refresh(0, 0, height_offset, 0, height_offset+popup_h, popup_w)
+        # view popup window
+        self.view(popup_win, height_offset+self.height+2, tui.width,
+                  sminrow=height_offset,
+                  background=background, box=True)
 
         key = 0
         # loop until quit by user
