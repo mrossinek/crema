@@ -116,6 +116,7 @@ class TextBuffer:
         self.height = len(self.lines)
         self.wrapped = not self.wrapped
 
+    # pylint: disable=too-many-arguments
     def view(self, pad, smaxrow, smaxcol,
              pminrow=0, pmincol=0,
              sminrow=1, smincol=0,
