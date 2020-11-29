@@ -32,6 +32,7 @@ pminrow
 py
 pylatexenc
 pytest
+readline
 runtime
 scrolloff
 signum
@@ -47,6 +48,7 @@ stdout
 stdscr
 str
 subcommands
+sys
 tui
 unittest
 viewport

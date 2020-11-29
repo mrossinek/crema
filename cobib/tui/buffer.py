@@ -235,20 +235,25 @@ class TextBuffer:
 
 
 class InputBuffer:
-    """TODO."""
+    """InputBuffer class used to replace `sys.stdin` and handle user interaction.
+
+    This buffer class implements a `readline` method which allows it to be used as a drop-in
+    replacement for `sys.stdin`. It is constructed with a reference to the replacement of
+    `sys.stdout` and the TUI instance.
+    """
 
     def __init__(self, buffer, tui):
-        """TODO.
+        """Initializes the InputBuffer object.
 
         Args:
-            buffer (TextBuffer): TODO
-            tui (TUI): TODO
+            buffer (TextBuffer): the current `sys.stdout` replacement.
+            tui (TUI): the current TUI instance.
         """
         self.buffer = buffer
         self.tui = tui
 
     def readline(self):
-        """TODO."""
+        """Reads an input from the user mimicking `sys.stdin`."""
         self.buffer.split()
         LOGGER.debug('Create popup window.')
         popup_win = curses.newpad(self.buffer.height+2, self.tui.width)
