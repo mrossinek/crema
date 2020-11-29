@@ -253,7 +253,9 @@ class InputBuffer:
         LOGGER.debug('Create popup window.')
         popup_win = curses.newpad(self.buffer.height+2, self.tui.width)
         # view popup window
-        self.buffer.view(popup_win, self.buffer.height+2, self.tui.width, box=True)
+        height_offset = self.tui.height - self.buffer.height-4
+        self.buffer.view(popup_win, height_offset+self.buffer.height+2, self.tui.width,
+                         sminrow=height_offset, box=True)
 
         user_input = self.tui.prompt_handler(None, symbol="> ")
 
