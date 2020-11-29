@@ -85,7 +85,10 @@ class OpenCommand(Command):
                 while True:
                     prompt_copy = prompt.copy()
                     prompt_copy.append("Entry to open [Type 'help' for more info]: ")
-                    choice = input('\n'.join(prompt_copy))
+                    try:
+                        choice = input('\n'.join(prompt_copy)).strip()
+                    except EOFError:
+                        choice = ''
                     if not choice:
                         # empty input
                         msg = 'User aborted open command.'

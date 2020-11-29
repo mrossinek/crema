@@ -547,11 +547,12 @@ class TUI:
             buffer.write(text)
             buffer.popup(self, background=TUI.COLOR_NAMES.index('popup_stderr'))
 
-    def prompt_handler(self, command):
+    def prompt_handler(self, command, symbol=":"):
         """Handle prompt input.
 
         Args:
             command (str or None): the command string to populate the prompt with.
+            symbol (str, optional): the prompt symbol.
 
         Returns:
             The final user command.
@@ -561,7 +562,7 @@ class TUI:
         curses.curs_set(1)
 
         # populate prompt line and place cursor
-        prompt_line = ":" if command is None else f":{command} "
+        prompt_line = symbol if command is None else f"{symbol}{command} "
         self.prompt.clear()
         self.prompt.resize(1, max(len(prompt_line)+2, self.width))
         self.prompt.addstr(0, 0, prompt_line)

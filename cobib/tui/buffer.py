@@ -70,9 +70,8 @@ class TextBuffer:
         self.width = 0
         for line in copy:
             for string in line.split('\n'):
-                if string.strip():
-                    self.lines.append(string)
-                    self.width = max(self.width, len(string))
+                self.lines.append(string)
+                self.width = max(self.width, len(string))
         self.height = len(self.lines)
 
     def wrap(self, width):
@@ -256,13 +255,11 @@ class InputBuffer:
         # view popup window
         self.buffer.view(popup_win, self.buffer.height+2, self.tui.width, box=True)
 
-        key = 0
-        # loop until quit by user
-        while key != 27:  # exit on ESC
-            key = self.tui.prompt.getch()
+        user_input = self.tui.prompt_handler(None, symbol="> ")
 
         # close popup window
         popup_win.clear()
         self.buffer.clear()
         self.tui.resize_handler(None, None)
-        return key
+
+        return user_input
