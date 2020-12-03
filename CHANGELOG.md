@@ -13,7 +13,7 @@ Pypi: https://pypi.org/project/cobib/2.4.1/
 
 ### Added
 - support for multiple associated files (#42,!19)
-- interactive menu when opening an entry with multiple associated files (!19(
+- interactive menu when opening an entry with multiple associated files (!19)
 
 ### Fixed
 - ISBN parser was missing the ENTRYTYPE and did not use strings for number fields
