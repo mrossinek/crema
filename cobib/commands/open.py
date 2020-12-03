@@ -51,6 +51,7 @@ class OpenCommand(Command):
                 for field in ('file', 'url'):
                     if field in entry.data.keys() and entry.data[field]:
                         for val in entry.data[field].split(','):
+                            val = val.strip()
                             LOGGER.debug('Parsing "%s" for URLs.', val)
                             things_to_open[field] += [urlparse(val)]
                             count += 1
