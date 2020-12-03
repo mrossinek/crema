@@ -30,8 +30,8 @@ class AddCommand(Command):
         parser = ArgumentParser(prog="add", description="Add subcommand parser.")
         parser.add_argument("-l", "--label", type=str,
                             help="the label for the new database entry")
-        parser.add_argument("-f", "--file", type=str,
-                            help="a file associated with this entry")
+        parser.add_argument("-f", "--file", type=str, nargs="+", action="extend",
+                            help="iles associated with this entry")
         group_add = parser.add_mutually_exclusive_group()
         group_add.add_argument("-a", "--arxiv", type=str,
                                help="arXiv ID of the new references")
