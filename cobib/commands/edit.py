@@ -104,6 +104,8 @@ class EditCommand(Command):
                 print(msg)
                 LOGGER.info(msg)
 
+        self.git()
+
     @staticmethod
     def tui(tui):
         """See base class."""

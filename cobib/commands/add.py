@@ -113,6 +113,8 @@ class AddCommand(Command):
                 read_database(fresh=True)
                 EditCommand().execute([largs.label])
 
+        self.git()
+
         for label in new_entries:
             msg = f"'{label}' was added to the database."
             print(msg)
