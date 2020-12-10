@@ -58,7 +58,7 @@ class Command(ABC):
         commands = [
             f'cd {root}',
             f'git add -- {file}',
-            f'git commit --no-gpg-sign --message "Auto-commit: {self.name.title()}Command"',
+            f'git commit --no-gpg-sign --quiet --message "Auto-commit: {self.name.title()}Command"',
         ]
         LOGGER.debug('Auto-commit to git from %s command.', self.name)
         os.system('; '.join(commands))
