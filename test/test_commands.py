@@ -80,6 +80,7 @@ def test_init_safe():
 # DEPRECATD: to be removed in v2.6
 def test_init_force():
     """Test init can be forced when database file exists."""
+    pytest.skip("This is in the process of being removed.")
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
