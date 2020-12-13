@@ -220,26 +220,41 @@ def test_open(open_setup):
     sys.stdin = original_stdin
 
 
-def test_add():
+@pytest.mark.parametrize(['git'], [
+        [False],
+        [True],
+    ])
+def test_add(git):
     """Test add command."""
     # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
+    if git:
+        tmp_config += 'git=True\n'
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # ensure database file exists and is empty
-    open('/tmp/cobib_test_database.yaml', 'w').close()
+    open('/tmp/cobib_test/database.yaml', 'w').close()
+    if git:
+        os.system('git init /tmp/cobib_test')
+        # TODO: actually do an initial commit here, to ensure the next command produces the correct
+        # commit message and contents as expected
+        # TODO: do we want this to depend on `InitCommand(['--git'])`?
     # freshly read in database to overwrite anything that was read in during setup()
     read_database(fresh=True)
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # compare with reference file
-    with open('/tmp/cobib_test_database.yaml', 'r') as file:
+    with open('/tmp/cobib_test/database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
             for line, truth in zip_longest(file, expected):
                 assert line == truth
+    if git:
+        # assert the git commit message
+        assert_git_commit_message('add', {})
+        rmtree('/tmp/cobib_test/.git')
     # clean up file system
-    os.remove('/tmp/cobib_test_database.yaml')
+    os.remove('/tmp/cobib_test/database.yaml')
     os.remove('/tmp/cobib_test_config.ini')
 
 
@@ -275,34 +290,47 @@ def test_add_overwrite_label():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-@pytest.mark.parametrize(['labels'], [
-        ['knuthwebsite'],
-        [['knuthwebsite', 'latexcompanion']],
+@pytest.mark.parametrize(['git', 'labels'], [
+        [False, 'knuthwebsite'],
+        [True, 'knuthwebsite'],
+        [False, ['knuthwebsite', 'latexcompanion']],
     ])
-def test_delete(labels):
+def test_delete(git, labels):
     """Test delete command."""
     # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
+    if git:
+        tmp_config += 'git=True\n'
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # copy example database to configured location
-    copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test_database.yaml'))
+    copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test/database.yaml'))
+    if git:
+        os.system('git init /tmp/cobib_test')
+        # TODO: actually do an initial commit here, to ensure the next command produces the correct
+        # commit message and contents as expected
+        # TODO: do we want this to depend on `InitCommand(['--git'])`?
     # delete some data
     # NOTE: for testing simplicity we delete the last entry
     commands.DeleteCommand().execute(labels)
-    with open('/tmp/cobib_test_database.yaml', 'r') as file:
+    with open('/tmp/cobib_test/database.yaml', 'r') as file:
         with open('./test/example_literature.yaml', 'r') as expected:
             # NOTE: do NOT use zip_longest to omit last entry (thus, we deleted the last one)
             for line, truth in zip(file, expected):
                 assert line == truth
             with pytest.raises(StopIteration):
                 file.__next__()
+    if git:
+        # assert the git commit message
+        assert_git_commit_message('delete', {})
+        rmtree('/tmp/cobib_test/.git')
     # clean up file system
-    os.remove('/tmp/cobib_test_database.yaml')
+    os.remove('/tmp/cobib_test/database.yaml')
     os.remove('/tmp/cobib_test_config.ini')
 
 
+# TODO: figure out some very crude and basic way of testing this
 def test_edit():
     """Test edit command."""
     pytest.skip("There is currently no meaningful way of testing this.")
