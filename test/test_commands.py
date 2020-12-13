@@ -3,6 +3,7 @@
 
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime
 from io import StringIO
@@ -14,6 +15,20 @@ import pytest
 from cobib import commands
 from cobib.config import CONFIG
 from cobib.database import read_database
+
+
+def assert_git_commit_message(command, args):
+    """Assert the last auto-generated git commit message."""
+    # get last commit message
+    proc = subprocess.Popen(['git', '-C', '/tmp/cobib_test', 'show',
+                             '--format=format:%B', '--no-patch', 'HEAD'],
+                            stdout=subprocess.PIPE)
+    message, _ = proc.communicate()
+    # decode it
+    message = message.decode('utf-8').split('\n')
+    # assert subject line
+    assert f'Auto-commit: {command.title()}Command' in message[0]
+    # TODO assert args
 
 
 @pytest.fixture
@@ -82,13 +97,14 @@ def test_init(init_setup, safe, git):
         # assert these times are close
         assert ctime - now < 0.1 or now - ctime < 0.1
     if git:
-        # do the same for the `.git` folder
         # check creation time of temporary database git folder
         ctime = os.stat('/tmp/cobib_test/.git').st_ctime
         # assert these times are close
         assert ctime - now < 0.1 or now - ctime < 0.1
         # and assert that it is indeed a folder
         assert os.path.isdir('/tmp/cobib_test/.git')
+        # assert the git commit message
+        assert_git_commit_message('init', {'git': True, 'force': False})
         # clean up file system
         rmtree('/tmp/cobib_test/.git')
     # clean up file system
