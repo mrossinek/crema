@@ -38,100 +38,61 @@ def test_set_config(setup):
         os.path.expanduser('~/.local/share/cobib/literature.yaml')
 
 
-def test_init():
+@pytest.fixture
+def init_setup():
+    """Setup for InitCommand testing."""
+    # use temporary config
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
+    with open('/tmp/cobib_test_config.ini', 'w') as file:
+        file.write(tmp_config)
+    # ensure configuration is empty
+    CONFIG.config = {}
+    # load config
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    yield setup
+    # clean up file system
+    os.remove('/tmp/cobib_test_config.ini')
+
+
+@pytest.mark.parametrize(['safe', 'git'], [
+        [False, False],
+        [True, False],
+        [False, True],
+        [True, True],
+    ])
+def test_init(init_setup, safe, git):
     """Test init command."""
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    if git:
+        CONFIG.config['DATABASE']['git'] = 'True'
+    if safe:
+        # fill database file
+        with open('/tmp/cobib_test/database.yaml', 'w') as file:
+            file.write('test')
     # store current time
     now = float(datetime.now().timestamp())
-    commands.InitCommand().execute({})
-    # check creation time of temporary database file
-    ctime = os.stat('/tmp/cobib_test_database.yaml').st_ctime
-    # assert these times are close
-    assert ctime - now < 0.1 or now - ctime < 0.1
-    # clean up file system
-    os.remove('/tmp/cobib_test_database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
-
-
-def test_init_safe():
-    """Test init aborts when database file exists."""
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    # fill database file
-    with open('/tmp/cobib_test_database.yaml', 'w') as file:
-        file.write('test')
     # try running init
-    commands.InitCommand().execute({})
-    # check init aborted and database file still contains 'test'
-    with open('/tmp/cobib_test_database.yaml', 'r') as file:
-        assert file.read() == 'test'
+    commands.InitCommand().execute(['--git'] if git else [])
+    if safe:
+        # check database file still contains 'test'
+        with open('/tmp/cobib_test/database.yaml', 'r') as file:
+            assert file.read() == 'test'
+    else:
+        # check creation time of temporary database file
+        ctime = os.stat('/tmp/cobib_test/database.yaml').st_ctime
+        # assert these times are close
+        assert ctime - now < 0.1 or now - ctime < 0.1
+    if git:
+        # do the same for the `.git` folder
+        # check creation time of temporary database git folder
+        ctime = os.stat('/tmp/cobib_test/.git').st_ctime
+        # assert these times are close
+        assert ctime - now < 0.1 or now - ctime < 0.1
+        # and assert that it is indeed a folder
+        assert os.path.isdir('/tmp/cobib_test/.git')
+        # clean up file system
+        rmtree('/tmp/cobib_test/.git')
     # clean up file system
-    os.remove('/tmp/cobib_test_database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
-
-
-def test_init_git():
-    """Test init with git tracking."""
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\ngit=True\n"
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    # store current time
-    now = float(datetime.now().timestamp())
-    # initialize database with git
-    commands.InitCommand().execute(['--git'])
-    # check creation time of temporary database file
-    ctime = os.stat('/tmp/cobib_test/database.yaml').st_ctime
-    # assert these times are close
-    assert ctime - now < 0.1 or now - ctime < 0.1
-    # do the same for the `.git` folder
-    # check creation time of temporary database file
-    ctime = os.stat('/tmp/cobib_test/.git').st_ctime
-    # assert these times are close
-    assert ctime - now < 0.1 or now - ctime < 0.1
-    # and assert that it is indeed a folder
-    assert os.path.isdir('/tmp/cobib_test/.git')
-    # clean up file system
-    rmtree('/tmp/cobib_test/.git')
     os.remove('/tmp/cobib_test/database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
-
-
-def test_init_git_safe():
-    """Test init with git when database file exists."""
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\ngit=True\n"
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    # fill database file
-    with open('/tmp/cobib_test_database.yaml', 'w') as file:
-        file.write('test')
-    # store current time
-    now = float(datetime.now().timestamp())
-    # try running init
-    commands.InitCommand().execute(['--git'])
-    # check database file still contains 'test'
-    with open('/tmp/cobib_test_database.yaml', 'r') as file:
-        assert file.read() == 'test'
-    # check creation time of temporary database file
-    ctime = os.stat('/tmp/cobib_test/.git').st_ctime
-    # assert these times are close
-    assert ctime - now < 0.1 or now - ctime < 0.1
-    # and assert that it is indeed a folder
-    assert os.path.isdir('/tmp/cobib_test/.git')
-    # clean up file system
-    rmtree('/tmp/cobib_test/.git')
-    os.remove('/tmp/cobib_test_database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
 
 
 @pytest.mark.parametrize(['args', 'expected'], [
