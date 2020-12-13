@@ -8,7 +8,7 @@ from datetime import datetime
 from io import StringIO
 from itertools import zip_longest
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, rmtree
 
 import pytest
 from cobib import commands
@@ -77,24 +77,59 @@ def test_init_safe():
     os.remove('/tmp/cobib_test_config.ini')
 
 
-# DEPRECATD: to be removed in v2.6
-def test_init_force():
-    """Test init can be forced when database file exists."""
-    pytest.skip("This is in the process of being removed.")
+def test_init_git():
+    """Test init with git tracking."""
     # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\ngit=True\n"
+    with open('/tmp/cobib_test_config.ini', 'w') as file:
+        file.write(tmp_config)
+    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    # store current time
+    now = float(datetime.now().timestamp())
+    # initialize database with git
+    commands.InitCommand().execute(['--git'])
+    # check creation time of temporary database file
+    ctime = os.stat('/tmp/cobib_test/database.yaml').st_ctime
+    # assert these times are close
+    assert ctime - now < 0.1 or now - ctime < 0.1
+    # do the same for the `.git` folder
+    # check creation time of temporary database file
+    ctime = os.stat('/tmp/cobib_test/.git').st_ctime
+    # assert these times are close
+    assert ctime - now < 0.1 or now - ctime < 0.1
+    # and assert that it is indeed a folder
+    assert os.path.isdir('/tmp/cobib_test/.git')
+    # clean up file system
+    rmtree('/tmp/cobib_test/.git')
+    os.remove('/tmp/cobib_test/database.yaml')
+    os.remove('/tmp/cobib_test_config.ini')
+
+
+def test_init_git_safe():
+    """Test init with git when database file exists."""
+    # use temporary config
+    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\ngit=True\n"
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
     # fill database file
     with open('/tmp/cobib_test_database.yaml', 'w') as file:
         file.write('test')
+    # store current time
+    now = float(datetime.now().timestamp())
     # try running init
-    with pytest.deprecated_call():
-        commands.InitCommand().execute(['-f'])
-        # check init was forced and database file was overwritten
-        assert os.stat('/tmp/cobib_test_database.yaml').st_size == 0
+    commands.InitCommand().execute(['--git'])
+    # check database file still contains 'test'
+    with open('/tmp/cobib_test_database.yaml', 'r') as file:
+        assert file.read() == 'test'
+    # check creation time of temporary database file
+    ctime = os.stat('/tmp/cobib_test/.git').st_ctime
+    # assert these times are close
+    assert ctime - now < 0.1 or now - ctime < 0.1
+    # and assert that it is indeed a folder
+    assert os.path.isdir('/tmp/cobib_test/.git')
     # clean up file system
+    rmtree('/tmp/cobib_test/.git')
     os.remove('/tmp/cobib_test_database.yaml')
     os.remove('/tmp/cobib_test_config.ini')
 
