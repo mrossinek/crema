@@ -104,7 +104,7 @@ class EditCommand(Command):
                 print(msg)
                 LOGGER.info(msg)
 
-        self.git()
+        self.git(args=vars(largs))
 
     @staticmethod
     def tui(tui):

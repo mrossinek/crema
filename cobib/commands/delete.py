@@ -64,7 +64,7 @@ class DeleteCommand(Command):
             for line in buffer:
                 bib.write(line)
 
-        self.git()
+        self.git(args=vars(largs))
 
         for label in deleted_entries:
             msg = f"'{label}' was removed from the database."

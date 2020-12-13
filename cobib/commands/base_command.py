@@ -1,6 +1,7 @@
 """CoBib Command interface."""
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -33,10 +34,11 @@ class Command(ABC):
             tui (cobib.TUI): instance of CoBib's TUI.
         """
 
-    def git(self, force=False):
+    def git(self, args=None, force=False):
         """Track command's changes with git.
 
         Args:
+            args (optional, dict): a dictionary containing the command arguments.
             force (boolean): whether to ignore the configuration setting.
         """
         conf_database = CONFIG.config['DATABASE']
@@ -55,10 +57,15 @@ class Command(ABC):
                 LOGGER.warning(msg)
                 return
 
+        msg = f"Auto-commit: {self.name.title()}Command"
+        if args:
+            msg += '\n\n'
+            msg += json.dumps(args, indent=2)
+
         commands = [
             f'cd {root}',
             f'git add -- {file}',
-            f'git commit --no-gpg-sign --quiet --message "Auto-commit: {self.name.title()}Command"',
+            f'git commit --no-gpg-sign --quiet --message \"{msg}\"',
         ]
         LOGGER.debug('Auto-commit to git from %s command.', self.name)
         os.system('; '.join(commands))

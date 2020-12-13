@@ -79,4 +79,4 @@ class InitCommand(Command):
                 LOGGER.warning(msg)
             LOGGER.debug('Initializing git repository in "%s"', root)
             os.system(f'git init {root}')
-            self.git(force=True)
+            self.git(args=vars(largs), force=True)
