@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import shlex
 import sys
 from abc import ABC, abstractmethod
 
@@ -60,12 +61,13 @@ class Command(ABC):
         msg = f"Auto-commit: {self.name.title()}Command"
         if args:
             msg += '\n\n'
-            msg += json.dumps(args, indent=2)
+            msg += json.dumps(args, indent=2, default=str)
+            print(msg)
 
         commands = [
             f'cd {root}',
             f'git add -- {file}',
-            f'git commit --no-gpg-sign --quiet --message \"{msg}\"',
+            f'git commit --no-gpg-sign --quiet --message {shlex.quote(msg)}',
         ]
         LOGGER.debug('Auto-commit to git from %s command.', self.name)
         os.system('; '.join(commands))
