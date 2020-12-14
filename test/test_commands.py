@@ -1,6 +1,7 @@
 """Tests for CoBib's commands."""
 # pylint: disable=unused-argument, redefined-outer-name
 
+import json
 import os
 import re
 import subprocess
@@ -28,7 +29,10 @@ def assert_git_commit_message(command, args):
     message = message.decode('utf-8').split('\n')
     # assert subject line
     assert f'Auto-commit: {command.title()}Command' in message[0]
-    # TODO assert args
+    # assert args
+    args = json.dumps(args, indent=2, default=str)
+    for ref, truth in zip(args.split('\n'), message[2:]):
+        assert ref == truth
 
 
 @pytest.fixture
@@ -251,7 +255,16 @@ def test_add(database_setup):
                 assert line == truth
     if git:
         # assert the git commit message
-        assert_git_commit_message('add', {})
+        with open('./test/example_literature.bib', 'r') as bibtex:
+            assert_git_commit_message('add', {
+                'label': None,
+                'file': None,
+                'arxiv': None,
+                'bibtex': bibtex,
+                'doi': None,
+                'isbn': None,
+                'tags': [],
+            })
 
 
 def test_add_overwrite_label(database_setup):
@@ -296,7 +309,7 @@ def test_delete(database_setup, labels):
                 file.__next__()
     if git:
         # assert the git commit message
-        assert_git_commit_message('delete', {})
+        assert_git_commit_message('delete', {'labels': labels})
 
 
 # TODO: figure out some very crude and basic way of testing this
