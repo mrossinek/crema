@@ -9,7 +9,7 @@ from datetime import datetime
 from io import StringIO
 from itertools import zip_longest
 from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import rmtree
 
 import pytest
 from cobib import commands
@@ -224,29 +224,24 @@ def test_open(open_setup):
     sys.stdin = original_stdin
 
 
-@pytest.mark.parametrize(['git'], [
-        [False],
-        [True],
-    ])
-def test_add(git):
-    """Test add command."""
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
-    if git:
-        tmp_config += 'git=True\n'
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    CONFIG.validate()
-    # ensure database file exists and is empty
-    open('/tmp/cobib_test/database.yaml', 'w').close()
-    if git:
-        os.system('git init /tmp/cobib_test')
-        # TODO: actually do an initial commit here, to ensure the next command produces the correct
-        # commit message and contents as expected
-        # TODO: do we want this to depend on `InitCommand(['--git'])`?
+@pytest.fixture
+def database_setup(init_setup):
+    """Initialize a database on top of the init_setup fixture."""
+    git = init_setup
+    # initialize database
+    # NOTE: if the InitCommand fails, all tests depending on this will fail, too
+    commands.InitCommand().execute(['--git'] if git else [])
     # freshly read in database to overwrite anything that was read in during setup()
     read_database(fresh=True)
+    # yield the parameter to allow re-use in actual test function
+    yield git
+    # clean up file system
+    os.remove('/tmp/cobib_test/database.yaml')
+
+
+def test_add(database_setup):
+    """Test add command."""
+    git = database_setup
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # compare with reference file
@@ -257,27 +252,13 @@ def test_add(git):
     if git:
         # assert the git commit message
         assert_git_commit_message('add', {})
-        rmtree('/tmp/cobib_test/.git')
-    # clean up file system
-    os.remove('/tmp/cobib_test/database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
 
 
-def test_add_overwrite_label():
+def test_add_overwrite_label(database_setup):
     """Test add command while specifying a label manually.
 
     Regression test against #4.
     """
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test_database.yaml\n"
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    CONFIG.validate()
-    # ensure database file exists and is empty
-    open('/tmp/cobib_test_database.yaml', 'w').close()
-    # freshly read in database to overwrite anything that was read in during setup()
-    read_database(fresh=True)
     # add some data
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # add potentially duplicate entry
@@ -288,36 +269,21 @@ def test_add_overwrite_label():
         true_lines = expected.readlines()
     with open('./test/example_duplicate_entry.yaml', 'r') as extra:
         true_lines += extra.readlines()
-    with open('/tmp/cobib_test_database.yaml', 'r') as file:
+    with open('/tmp/cobib_test/database.yaml', 'r') as file:
         for line, truth in zip_longest(file, true_lines):
             assert line == truth
-    # clean up file system
-    os.remove('/tmp/cobib_test_database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
 
 
-@pytest.mark.parametrize(['git', 'labels'], [
-        [False, ['knuthwebsite']],
-        [True, ['knuthwebsite']],
-        [False, ['knuthwebsite', 'latexcompanion']],
+@pytest.mark.parametrize(['labels'], [
+        [['knuthwebsite']],
+        [['knuthwebsite', 'latexcompanion']],
     ])
-def test_delete(git, labels):
+def test_delete(database_setup, labels):
     """Test delete command."""
-    # use temporary config
-    tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
-    if git:
-        tmp_config += 'git=True\n'
-    with open('/tmp/cobib_test_config.ini', 'w') as file:
-        file.write(tmp_config)
-    CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    CONFIG.validate()
-    # copy example database to configured location
-    copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test/database.yaml'))
-    if git:
-        os.system('git init /tmp/cobib_test')
-        # TODO: actually do an initial commit here, to ensure the next command produces the correct
-        # commit message and contents as expected
-        # TODO: do we want this to depend on `InitCommand(['--git'])`?
+    git = database_setup
+    # NOTE: DeleteCommand depends on AddCommand to work. While this is not so nice for the
+    # unittests, it is the easiest method of testing all git and non-git scenarios.
+    commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # delete some data
     # NOTE: for testing simplicity we delete the last entry
     commands.DeleteCommand().execute(labels)
@@ -331,10 +297,6 @@ def test_delete(git, labels):
     if git:
         # assert the git commit message
         assert_git_commit_message('delete', {})
-        rmtree('/tmp/cobib_test/.git')
-    # clean up file system
-    os.remove('/tmp/cobib_test/database.yaml')
-    os.remove('/tmp/cobib_test_config.ini')
 
 
 # TODO: figure out some very crude and basic way of testing this
