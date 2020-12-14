@@ -291,8 +291,8 @@ def test_add_overwrite_label():
 
 
 @pytest.mark.parametrize(['git', 'labels'], [
-        [False, 'knuthwebsite'],
-        [True, 'knuthwebsite'],
+        [False, ['knuthwebsite']],
+        [True, ['knuthwebsite']],
         [False, ['knuthwebsite', 'latexcompanion']],
     ])
 def test_delete(git, labels):
