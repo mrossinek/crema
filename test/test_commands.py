@@ -36,6 +36,7 @@ def setup():
     """Setup."""
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.validate()
     read_database()
 
 
@@ -49,6 +50,7 @@ def test_set_config(setup):
     assert CONFIG.config['DATABASE']['file'] == './test/example_literature.yaml'
     # change back to default
     CONFIG.set_config()
+    CONFIG.validate()
     assert CONFIG.config['DATABASE']['file'] == \
         os.path.expanduser('~/.local/share/cobib/literature.yaml')
 
@@ -66,6 +68,7 @@ def init_setup(request):
     CONFIG.config = {}
     # load config
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.validate()
     # yielding the arguments allows re-using them inside of the actual test function
     yield request.param
     # clean up file system
@@ -179,6 +182,7 @@ def open_setup():
     CONFIG.config = {}
     root = os.path.abspath(os.path.dirname(__file__))
     CONFIG.set_config(Path(root + '/../cobib/docs/debug.ini'))
+    CONFIG.validate()
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     commands.AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
@@ -233,6 +237,7 @@ def test_add(git):
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.validate()
     # ensure database file exists and is empty
     open('/tmp/cobib_test/database.yaml', 'w').close()
     if git:
@@ -268,6 +273,7 @@ def test_add_overwrite_label():
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.validate()
     # ensure database file exists and is empty
     open('/tmp/cobib_test_database.yaml', 'w').close()
     # freshly read in database to overwrite anything that was read in during setup()
@@ -304,6 +310,7 @@ def test_delete(git, labels):
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
+    CONFIG.validate()
     # copy example database to configured location
     copyfile(Path('./test/example_literature.yaml'), Path('/tmp/cobib_test/database.yaml'))
     if git:
