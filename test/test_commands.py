@@ -53,32 +53,34 @@ def test_set_config(setup):
         os.path.expanduser('~/.local/share/cobib/literature.yaml')
 
 
-@pytest.fixture
-def init_setup():
+@pytest.fixture(params=[False, True])
+def init_setup(request):
     """Setup for InitCommand testing."""
     # use temporary config
     tmp_config = "[DATABASE]\nfile=/tmp/cobib_test/database.yaml\n"
+    if request.param:
+        tmp_config += 'git=True\n'
     with open('/tmp/cobib_test_config.ini', 'w') as file:
         file.write(tmp_config)
     # ensure configuration is empty
     CONFIG.config = {}
     # load config
     CONFIG.set_config(Path('/tmp/cobib_test_config.ini'))
-    yield setup
+    # yielding the arguments allows re-using them inside of the actual test function
+    yield request.param
     # clean up file system
     os.remove('/tmp/cobib_test_config.ini')
+    if request.param:
+        rmtree('/tmp/cobib_test/.git')
 
 
-@pytest.mark.parametrize(['safe', 'git'], [
-        [False, False],
-        [True, False],
-        [False, True],
-        [True, True],
+@pytest.mark.parametrize(['safe'], [
+        [False],
+        [True],
     ])
-def test_init(init_setup, safe, git):
+def test_init(init_setup, safe):
     """Test init command."""
-    if git:
-        CONFIG.config['DATABASE']['git'] = 'True'
+    git = init_setup
     if safe:
         # fill database file
         with open('/tmp/cobib_test/database.yaml', 'w') as file:
@@ -105,8 +107,6 @@ def test_init(init_setup, safe, git):
         assert os.path.isdir('/tmp/cobib_test/.git')
         # assert the git commit message
         assert_git_commit_message('init', {'git': True, 'force': False})
-        # clean up file system
-        rmtree('/tmp/cobib_test/.git')
     # clean up file system
     os.remove('/tmp/cobib_test/database.yaml')
 
