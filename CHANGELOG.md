@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - must be enabled by setting the `DATABASE/git` option to `True` **and** running `cobib init --git`
     - Note, that you must have at least set a `name` and `email` in the git config!
 
+### Fixed
+- gracefully handle multiple terminal sizing issues with regards to popups (#58)
+
 
 ## [2.5.0] - 2020-12-08
 
