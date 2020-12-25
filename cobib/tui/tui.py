@@ -154,9 +154,12 @@ class TUI:
         # load further configuration settings
         self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
 
+        # the selection needs to be tracked outside of the State in order to persist across
+        # different views
+        self.selection = set()
+
         # Initialize top status bar
         LOGGER.debug('Populating top status bar.')
-        self.topstatus = ''
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('top_statusbar') + 1))
 
@@ -202,7 +205,7 @@ class TUI:
         LOGGER.debug('New stdscr dimension determined to be %dx%d', self.width, self.height)
         # update top statusbar
         self.topbar.resize(1, self.width)
-        self.statusbar(self.topbar, self.topstatus)
+        self.statusbar(self.topbar, STATE.topstatus)
         self.topbar.refresh()
         # update bottom statusbar
         self.botbar.resize(1, self.width)
@@ -410,9 +413,9 @@ class TUI:
         # get current label
         label, cur_y = self.viewport.get_current_label()
         # toggle selection
-        if label not in STATE.selection:
+        if label not in self.selection:
             LOGGER.info("Adding '%s' to the selection.", label)
-            STATE.selection.add(label)
+            self.selection.add(label)
             # Note, that we use an additional two spaces to attempt to uniquely identify the label
             # in the list mode. Otherwise it might be possible that the same text (as used for the
             # label) can occur elsewhere in the buffer.
@@ -423,7 +426,7 @@ class TUI:
                                          + label + '\x1b[0m' + offset)
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
-            STATE.selection.remove(label)
+            self.selection.remove(label)
             self.viewport.buffer.replace(cur_y, CONFIG.get_ansi_color('selection')
                                          + label + '\x1b[0m', label)
         # update buffer view
@@ -561,7 +564,7 @@ class TUI:
             try:
                 if pass_selection:
                     command += ['--']
-                    command.extend(list(STATE.selection))
+                    command.extend(list(self.selection))
                 result = subcmd.execute(command[1:], out=out)
             except SystemExit:
                 pass

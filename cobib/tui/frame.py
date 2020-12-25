@@ -47,7 +47,15 @@ class Frame:
         """Reverts the frame to the previous state."""
         self.buffer, state = self.history.pop()
         STATE.update(state)
-        self.view()
+        # highlight current selection
+        for label in self.tui.selection:
+            # Note: the two spaces are explained in the `select()` method.
+            # Also: this step may become a performance bottleneck because we replace inside the
+            # whole buffer for each selected label!
+            self.buffer.replace(range(self.buffer.height), label + '  ',
+                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
+        self.view(ansi_map=self.tui.ANSI_MAP)
+        self.tui.statusbar(self.tui.topbar, STATE.topstatus)
 
     def resize(self, new_height, new_width):
         """Resizes the Frame to the new dimensions.
@@ -165,15 +173,14 @@ class Frame:
             while chr(self.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
                 cur_y -= 1
             label = self.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
-        elif re.match(r'\d+ hit',
-                      '-'.join(self.tui.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()):
+        elif re.match(r'\d+ hit', '-'.join(STATE.topstatus.split('-')[1:]).strip()):
             # In the show mode, the same holds but we need to slightly change the label detection.
             while chr(self.pad.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
                 cur_y -= 1
             label = self.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
         else:
             # In any other mode, the label can be found in the top statusbar
-            label = '-'.join(self.tui.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
+            label = '-'.join(STATE.topstatus.split('-')[1:]).strip()
             # We also set cur_y to 0 for the select command to find it
             cur_y = 0
         LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
@@ -194,7 +201,7 @@ class Frame:
         STATE.left_edge = 0
         STATE.inactive_commands = []
         # highlight current selection
-        for label in STATE.selection:
+        for label in self.tui.selection:
             # Note: the two spaces are explained in the `select()` method.
             # Also: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!
@@ -203,8 +210,8 @@ class Frame:
         # display buffer in viewport
         self.view(ansi_map=self.tui.ANSI_MAP)
         # update top statusbar
-        self.tui.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
-        self.tui.statusbar(self.tui.topbar, self.tui.topstatus)
+        STATE.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
+        self.tui.statusbar(self.tui.topbar, STATE.topstatus)
         # if cursor position is out-of-view (due to e.g. top-line reset in Show command), reset the
         # top-line such that the current line becomes height again
         if STATE.current_line > STATE.top_line + self.height:

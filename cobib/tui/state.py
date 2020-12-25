@@ -23,7 +23,7 @@ class State:
 
         self.list_mode = -1
         self.inactive_commands = []
-        self.selection = set()
+        self.topstatus = ''
 
         # these cannot be set yet, because the CONFIG has not been fully populated at the time of
         # creation of the STATE singleton
@@ -47,7 +47,7 @@ class State:
 
         self.list_mode = state.list_mode
         self.inactive_commands = state.inactive_commands
-        self.selection = state.selection
+        self.topstatus = state.topstatus
 
         self.list_args = state.list_args
 
