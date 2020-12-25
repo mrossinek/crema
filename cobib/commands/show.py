@@ -57,7 +57,7 @@ class ShowCommand(Command):
         tui.viewport.buffer.clear()
         ShowCommand().execute([label], out=tui.viewport.buffer)
         tui.viewport.buffer.split()
-        if label in tui.selection:
+        if label in tui.STATE.selection:
             LOGGER.debug('Current entry is selected. Applying highlighting.')
             tui.viewport.buffer.replace(0, label,
                                         CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
@@ -72,5 +72,5 @@ class ShowCommand(Command):
         tui.topstatus = "CoBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.topstatus)
         # enter show menu
-        tui.viewport.list_mode = cur_y
-        tui.inactive_commands = ['Add', 'Filter', 'Search', 'Show', 'Sort']
+        tui.STATE.list_mode = cur_y
+        tui.STATE.inactive_commands = ['Add', 'Filter', 'Search', 'Show', 'Sort']

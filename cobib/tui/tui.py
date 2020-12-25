@@ -13,6 +13,7 @@ from cobib import commands
 from cobib.config import CONFIG
 from .buffer import TextBuffer, InputBuffer
 from .frame import Frame
+from .state import STATE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -147,15 +148,6 @@ class TUI:
         # and user key mappings
         LOGGER.debug('Initializing key bindings.')
         TUI.bind_keys()
-        # and inactive commands
-        self.inactive_commands = []
-        # and default list args
-        self.list_args = CONFIG.config['TUI'].get('default_list_args').split(' ')
-        # and empty selection
-        self.selection = set()
-
-        if CONFIG.config['TUI'].getboolean('reverse_order', True):
-            self.list_args += ['-r']
 
         # load further configuration settings
         self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
@@ -172,8 +164,11 @@ class TUI:
         self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('bottom_statusbar') + 1))
         self.statusbar(self.botbar, self.infoline())
 
-        LOGGER.debug('Intializing viewport with Frame')
-        self.viewport = Frame(self.height-3, self.width)
+        LOGGER.debug('Initializing viewport with Frame')
+        self.viewport = Frame(self, self.height-3, self.width)
+        LOGGER.debug('Initializing global State')
+        self.STATE = STATE  # pylint: disable=invalid-name
+        STATE.initialize()
         # The prompt is a pad to allow command/error prompts to exceed the terminal width.
         self.prompt = curses.newpad(1, self.width)
 
@@ -221,7 +216,7 @@ class TUI:
 
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
-        if self.viewport.list_mode == -1:
+        if STATE.list_mode == -1:
             LOGGER.debug('Quitting from lowest level.')
             if self.prompt_before_quit:
                 msg = 'Do you really want to quit CoBib? [y/n] '
@@ -371,7 +366,7 @@ class TUI:
             try:
                 if key in TUI.KEYDICT.keys():
                     cmd = TUI.KEYDICT[key]
-                    if cmd not in self.inactive_commands:
+                    if cmd not in STATE.inactive_commands:
                         if isinstance(cmd, tuple):
                             TUI.COMMANDS[cmd[0]](self, cmd[1])
                         else:
@@ -415,20 +410,20 @@ class TUI:
         # get current label
         label, cur_y = self.get_current_label()
         # toggle selection
-        if label not in self.selection:
+        if label not in STATE.selection:
             LOGGER.info("Adding '%s' to the selection.", label)
-            self.selection.add(label)
+            STATE.selection.add(label)
             # Note, that we use an additional two spaces to attempt to uniquely identify the label
             # in the list mode. Otherwise it might be possible that the same text (as used for the
             # label) can occur elsewhere in the buffer.
             # We do not need this outside of the list view because then the line indexed by `cur_y`
             # will surely only include the one label which we actually want to operate on.
-            offset = '  ' if self.viewport.list_mode == -1 else ''
+            offset = '  ' if STATE.list_mode == -1 else ''
             self.viewport.buffer.replace(cur_y, label + offset, CONFIG.get_ansi_color('selection')
                                          + label + '\x1b[0m' + offset)
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
-            self.selection.remove(label)
+            STATE.selection.remove(label)
             self.viewport.buffer.replace(cur_y, CONFIG.get_ansi_color('selection')
                                          + label + '\x1b[0m', label)
         # update buffer view
@@ -567,7 +562,7 @@ class TUI:
             try:
                 if pass_selection:
                     command += ['--']
-                    command.extend(list(self.selection))
+                    command.extend(list(STATE.selection))
                 result = subcmd.execute(command[1:], out=out)
             except SystemExit:
                 pass
@@ -606,7 +601,7 @@ class TUI:
         LOGGER.debug('Obtaining current label "under" cursor.')
         cur_y, _ = self.viewport.pad.getyx()
         # Two cases are possible: the list and the show mode
-        if self.viewport.list_mode == -1:
+        if STATE.list_mode == -1:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
             while chr(self.viewport.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
@@ -629,18 +624,18 @@ class TUI:
         """Updates the default list view."""
         LOGGER.debug('Re-populating the viewport with the list command.')
         self.viewport.buffer.clear()
-        labels = commands.ListCommand().execute(self.list_args, out=self.viewport.buffer)
+        labels = commands.ListCommand().execute(STATE.list_args, out=self.viewport.buffer)
         labels = labels or []  # convert to empty list if labels is None
         # populate buffer with the list
-        if self.viewport.list_mode >= 0:
-            self.viewport.current_line = self.viewport.list_mode
-            self.viewport.list_mode = -1
+        if STATE.list_mode >= 0:
+            self.viewport.current_line = STATE.list_mode
+            STATE.list_mode = -1
         # reset viewport
         self.viewport.top_line = 0
         self.viewport.left_edge = 0
-        self.inactive_commands = []
+        STATE.inactive_commands = []
         # highlight current selection
-        for label in self.selection:
+        for label in STATE.selection:
             # Note: the two spaces are explained in the `select()` method.
             # Also: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!

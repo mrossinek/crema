@@ -75,10 +75,10 @@ class DeleteCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Delete command triggered from TUI.')
-        if tui.selection:
+        if tui.STATE.selection:
             # use selection for command
-            labels = list(tui.selection)
-            tui.selection.clear()
+            labels = list(tui.STATE.selection)
+            tui.STATE.selection.clear()
         else:
             # get current label
             label, _ = tui.get_current_label()

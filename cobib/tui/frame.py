@@ -5,6 +5,7 @@ import logging
 
 from cobib.config import CONFIG
 from .buffer import TextBuffer
+from .state import STATE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class Frame:
     navigation.
     """
 
-    def __init__(self, max_height, max_width):
+    def __init__(self, tui, max_height, max_width):
         """Initializes the Frame object."""
         LOGGER.debug("Initializing frame's buffer")
         self.buffer = TextBuffer()
@@ -26,9 +27,10 @@ class Frame:
         # Also store a history of buffer contents and state (such as the current line, etc.)
         self.history = []
 
+        # store TUI reference
+        self.tui = tui
         self.visible = max_height
         self.width = max_width
-        self.list_mode = -1  # -1: list mode active, >=0: previously selected line
         self.current_line = 0
         self.top_line = 0
         self.left_edge = 0

@@ -90,7 +90,7 @@ class ExportCommand(Command):
         """See base class."""
         LOGGER.debug('Export command triggered from TUI.')
         # handle input via prompt
-        if tui.selection:
+        if tui.STATE.selection:
             tui.execute_command('export -s', pass_selection=True)
         else:
             tui.execute_command('export')

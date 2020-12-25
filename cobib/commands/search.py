@@ -93,11 +93,11 @@ class SearchCommand(Command):
         command, results = tui.execute_command('search', out=tui.viewport.buffer)
         if tui.viewport.buffer.lines and results is not None:
             hits, labels = results
-            tui.viewport.list_mode, _ = tui.viewport.pad.getyx()
+            tui.STATE.list_mode, _ = tui.viewport.pad.getyx()
             tui.viewport.buffer.split()
             LOGGER.debug('Applying selection highlighting in search results.')
             for label in labels:
-                if label not in tui.selection:
+                if label not in tui.STATE.selection:
                     continue
                 # we match the label including its 'search_label' highlight to ensure that we really
                 # only match this specific occurrence of whatever the label may be
@@ -118,7 +118,7 @@ class SearchCommand(Command):
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")
             tui.statusbar(tui.topbar, tui.topstatus)
-            tui.inactive_commands = ['Add', 'Filter', 'Sort']
+            tui.STATE.inactive_commands = ['Add', 'Filter', 'Sort']
         elif command[1:]:
             msg = f"No search hits for '{shlex.join(command[1:])}'!"
             LOGGER.info(msg)

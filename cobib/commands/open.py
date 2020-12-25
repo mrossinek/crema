@@ -140,9 +140,9 @@ class OpenCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Open command triggered from TUI.')
-        if tui.selection:
+        if tui.STATE.selection:
             # use selection for command
-            labels = list(tui.selection)
+            labels = list(tui.STATE.selection)
         else:
             # get current label
             label, _ = tui.get_current_label()
