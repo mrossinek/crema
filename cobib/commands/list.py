@@ -177,7 +177,8 @@ class ListCommand(Command):
                 tui.STATE.current_line = 0
         # populate buffer with the list
         LOGGER.debug('Populating buffer with ListCommand results.')
-        tui.STATE.list_mode = -1
+        tui.STATE.mode = 'list'
+        tui.STATE.previous_line = -1
         tui.STATE.inactive_commands = []
         tui.viewport.view()
         # update database list

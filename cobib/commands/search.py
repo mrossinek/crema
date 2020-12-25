@@ -93,7 +93,9 @@ class SearchCommand(Command):
         command, results = tui.execute_command('search', out=tui.viewport.buffer)
         if tui.viewport.buffer.lines and results is not None:
             hits, labels = results
-            tui.STATE.list_mode, _ = tui.viewport.pad.getyx()
+            tui.STATE.mode = 'search'
+            cur_y, _ = tui.viewport.pad.getyx()
+            tui.STATE.previous_line = cur_y
             tui.viewport.buffer.split()
             LOGGER.debug('Applying selection highlighting in search results.')
             for label in labels:

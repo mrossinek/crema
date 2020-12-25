@@ -71,5 +71,6 @@ class ShowCommand(Command):
         tui.STATE.topstatus = "CoBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.STATE.topstatus)
         # enter show menu
-        tui.STATE.list_mode = cur_y
+        tui.STATE.mode = 'show'
+        tui.STATE.previous = cur_y
         tui.STATE.inactive_commands = ['Add', 'Filter', 'Show', 'Sort']

@@ -9,7 +9,7 @@ from cobib import __version__
 from cobib.commands import ListCommand
 from cobib.config import CONFIG
 from .buffer import TextBuffer
-from .state import STATE
+from .state import Mode, STATE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,11 +51,19 @@ class Frame:
                             + r'(.+)' + re.escape('\x1b[0m'), r'\1')
         # highlight current selection
         for label in self.tui.selection:
-            # Note: the two spaces are explained in the `select()` method.
-            # Also: this step may become a performance bottleneck because we replace inside the
+            # Note: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!
-            self.buffer.replace(range(self.buffer.height), label + '  ',
-                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
+            if STATE.mode == Mode.SEARCH.value:
+                # Note: the inclusion of the search label is explained in the `SearchCommand`.
+                self.buffer.replace(range(self.buffer.height),
+                                    re.escape(CONFIG.get_ansi_color('search_label')) + label
+                                    + re.escape('\x1b[0m'),
+                                    CONFIG.get_ansi_color('search_label') +
+                                    CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
+            else:
+                # Note: the two spaces are explained in the `select()` method.
+                self.buffer.replace(range(self.buffer.height), label + '  ',
+                                    CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
         self.view(ansi_map=self.tui.ANSI_MAP)
         self.tui.statusbar(self.tui.topbar, STATE.topstatus)
 
@@ -169,14 +177,14 @@ class Frame:
         LOGGER.debug('Obtaining current label "under" cursor.')
         cur_y, _ = self.pad.getyx()
         # Two cases are possible: the list and the show mode
-        if STATE.list_mode == -1:
+        if STATE.mode == Mode.LIST.value:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
             while chr(self.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
                 cur_y -= 1
             label = self.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
-        elif re.match(r'\d+ hit', '-'.join(STATE.topstatus.split('-')[1:]).strip()):
-            # In the show mode, the same holds but we need to slightly change the label detection.
+        elif STATE.mode == Mode.SEARCH.value:
+            # In the search mode, the same holds but we need to slightly change the label detection.
             while chr(self.pad.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
                 cur_y -= 1
             label = self.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
@@ -195,9 +203,9 @@ class Frame:
         labels = ListCommand().execute(STATE.list_args, out=self.buffer)
         labels = labels or []  # convert to empty list if labels is None
         # populate buffer with the list
-        if STATE.list_mode >= 0:
-            STATE.current_line = STATE.list_mode
-            STATE.list_mode = -1
+        if STATE.mode != Mode.LIST.value:
+            STATE.current_line = STATE.previous_line
+            STATE.mode = Mode.LIST.value
         # reset viewport
         STATE.top_line = 0
         STATE.left_edge = 0

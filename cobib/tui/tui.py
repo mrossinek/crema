@@ -12,7 +12,7 @@ from cobib import commands
 from cobib.config import CONFIG
 from .buffer import TextBuffer, InputBuffer
 from .frame import Frame
-from .state import STATE
+from .state import Mode, STATE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -221,7 +221,7 @@ class TUI:
 
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
-        if STATE.list_mode == -1:
+        if STATE.mode == Mode.LIST.value:
             LOGGER.debug('Quitting from lowest level.')
             if self.prompt_before_quit:
                 msg = 'Do you really want to quit CoBib? [y/n] '
@@ -422,7 +422,7 @@ class TUI:
             # label) can occur elsewhere in the buffer.
             # We do not need this outside of the list view because then the line indexed by `cur_y`
             # will surely only include the one label which we actually want to operate on.
-            offset = '  ' if STATE.list_mode == -1 else ''
+            offset = '  ' if STATE.mode == Mode.LIST.value else ''
             self.viewport.buffer.replace(cur_y, label + offset, CONFIG.get_ansi_color('selection')
                                          + label + '\x1b[0m' + offset)
         else:

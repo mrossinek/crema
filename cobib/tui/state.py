@@ -2,9 +2,18 @@
 
 import logging
 
+from enum import Enum
+
 from cobib.config import CONFIG
 
 LOGGER = logging.getLogger(__name__)
+
+
+class Mode(Enum):
+    """The possible view modes."""
+    LIST = 'list'
+    SHOW = 'show'
+    SEARCH = 'search'
 
 
 class State:
@@ -20,8 +29,9 @@ class State:
         self.top_line = 0
         self.left_edge = 0
         self.current_line = 0
+        self.previous_line = -1
 
-        self.list_mode = -1
+        self.mode = Mode.LIST.value
         self.inactive_commands = []
         self.topstatus = ''
 
@@ -44,8 +54,9 @@ class State:
         self.top_line = state.top_line
         self.left_edge = state.left_edge
         self.current_line = state.current_line
+        self.previous_line = state.previous_line
 
-        self.list_mode = state.list_mode
+        self.mode = state.mode
         self.inactive_commands = state.inactive_commands
         self.topstatus = state.topstatus
 
