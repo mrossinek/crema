@@ -32,7 +32,7 @@ class Frame:
 
         # store TUI reference
         self.tui = tui
-        self.visible = max_height
+        self.height = max_height
         self.width = max_width
 
     def resize(self, new_height, new_width):
@@ -42,13 +42,13 @@ class Frame:
             new_height (int): the new height.
             new_width (int): the new width.
         """
-        self.visible = new_height
+        self.height = new_height
         self.width = new_width
         self.refresh()
 
     def refresh(self):
         """Utility function to quickly refresh the Frame's pad."""
-        self.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0, self.visible, self.width-1)
+        self.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0, self.height, self.width-1)
 
     def view(self, ansi_map=None):
         """Utility function to quickly view the Frame's buffer.
@@ -56,7 +56,7 @@ class Frame:
         Args:
             ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
         """
-        self.buffer.view(self.pad, self.visible, self.width-1, ansi_map=ansi_map)
+        self.buffer.view(self.pad, self.height, self.width-1, ansi_map=ansi_map)
 
     def scroll_y(self, update):
         """Scroll vertically.
@@ -65,8 +65,8 @@ class Frame:
             update (int or str): the offset specifying the scrolling height.
         """
         scrolloff = CONFIG.config['TUI'].getint('scroll_offset', 3)
-        overlap = scrolloff >= self.visible - scrolloff
-        scroll_lock = overlap and STATE.current_line - STATE.top_line == self.visible // 2
+        overlap = scrolloff >= self.height - scrolloff
+        scroll_lock = overlap and STATE.current_line - STATE.top_line == self.height // 2
         # jump to top
         if update == 'g':
             LOGGER.debug('Jump to top of viewport.')
@@ -75,7 +75,7 @@ class Frame:
         # jump to bottom
         elif update == 'G':
             LOGGER.debug('Jump to bottom of viewport.')
-            STATE.top_line = max(self.buffer.height - self.visible, 0)
+            STATE.top_line = max(self.buffer.height - self.height, 0)
             STATE.current_line = self.buffer.height-1
         # scroll up
         elif update < 0:
@@ -85,26 +85,26 @@ class Frame:
                 if scroll_lock or not overlap:
                     STATE.top_line += update
                 elif overlap and \
-                        STATE.current_line - STATE.top_line > self.visible // 2 and \
-                        next_line - STATE.top_line < self.visible // 2:
-                    STATE.top_line = next_line - self.visible // 2
+                        STATE.current_line - STATE.top_line > self.height // 2 and \
+                        next_line - STATE.top_line < self.height // 2:
+                    STATE.top_line = next_line - self.height // 2
             STATE.current_line = max(next_line, 0)
         # scroll down
         elif update > 0:
             LOGGER.debug('Scroll viewport down by %d lines.', update)
             next_line = STATE.current_line + update
-            if next_line >= STATE.top_line + self.visible - scrolloff and \
-                    self.buffer.height > STATE.top_line + self.visible:
+            if next_line >= STATE.top_line + self.height - scrolloff and \
+                    self.buffer.height > STATE.top_line + self.height:
                 if scroll_lock or not overlap:
                     STATE.top_line += update
                 elif overlap and \
-                        STATE.current_line - STATE.top_line < self.visible // 2 and \
-                        next_line - STATE.top_line > self.visible // 2:
-                    STATE.top_line = next_line - self.visible // 2
+                        STATE.current_line - STATE.top_line < self.height // 2 and \
+                        next_line - STATE.top_line > self.height // 2:
+                    STATE.top_line = next_line - self.height // 2
             if next_line < self.buffer.height:
                 STATE.current_line = next_line
             else:
-                STATE.top_line = self.buffer.height - self.visible
+                STATE.top_line = self.buffer.height - self.height
                 STATE.current_line = self.buffer.height - 1
 
     def scroll_x(self, update):
@@ -153,6 +153,7 @@ class Frame:
             label = self.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
         elif re.match(r'\d+ hit',
                       '-'.join(self.tui.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()):
+            # In the show mode, the same holds but we need to slightly change the label detection.
             while chr(self.pad.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
                 cur_y -= 1
             label = self.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
@@ -191,6 +192,6 @@ class Frame:
         self.tui.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.tui.statusbar(self.tui.topbar, self.tui.topstatus)
         # if cursor position is out-of-view (due to e.g. top-line reset in Show command), reset the
-        # top-line such that the current line becomes visible again
-        if STATE.current_line > STATE.top_line + self.visible:
-            STATE.top_line = min(STATE.current_line, self.buffer.height - self.visible)
+        # top-line such that the current line becomes height again
+        if STATE.current_line > STATE.top_line + self.height:
+            STATE.top_line = min(STATE.current_line, self.buffer.height - self.height)

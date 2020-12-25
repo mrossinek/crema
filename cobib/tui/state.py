@@ -17,12 +17,16 @@ class State:
     def __init__(self):
         """Initializes the State object."""
         LOGGER.debug('Initializing the State')
-        self.current_line = 0
         self.top_line = 0
         self.left_edge = 0
-        self.selection = set()
+        self.current_line = 0
+
         self.list_mode = -1
         self.inactive_commands = []
+        self.selection = set()
+
+        # these cannot be set yet, because the CONFIG has not been fully populated at the time of
+        # creation of the STATE singleton
         self.list_args = []
 
     def initialize(self):

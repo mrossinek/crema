@@ -147,6 +147,10 @@ class TUI:
         LOGGER.debug('Initializing key bindings.')
         TUI.bind_keys()
 
+        # Initialize STATE
+        LOGGER.debug('Initializing global State')
+        self.STATE = STATE  # pylint: disable=invalid-name
+        STATE.initialize()
         # load further configuration settings
         self.prompt_before_quit = CONFIG.config['TUI'].getboolean('prompt_before_quit', True)
 
@@ -163,14 +167,14 @@ class TUI:
         self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('bottom_statusbar') + 1))
         self.statusbar(self.botbar, self.infoline())
 
-        LOGGER.debug('Initializing viewport with Frame')
-        self.viewport = Frame(self, self.height-3, self.width)
-        LOGGER.debug('Initializing global State')
-        self.STATE = STATE  # pylint: disable=invalid-name
-        STATE.initialize()
+        # Initialize prompt line
         # The prompt is a pad to allow command/error prompts to exceed the terminal width.
         self.prompt = curses.newpad(1, self.width)
 
+        # Initialize main viewport
+        LOGGER.debug('Initializing viewport with Frame')
+        # NOTE: -3 accounts for the top and bottom statusline as well as the command prompt
+        self.viewport = Frame(self, self.height-3, self.width)
         # populate buffer with list of reference entries
         LOGGER.debug('Populating viewport buffer.')
         self.viewport.update_list()
