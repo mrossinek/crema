@@ -71,7 +71,6 @@ class DeleteCommand(Command):
             print(msg)
             LOGGER.info(msg)
 
-
     @staticmethod
     def tui(tui):
         """See base class."""
@@ -91,5 +90,5 @@ class DeleteCommand(Command):
         read_database(fresh=True)
         tui.update_list()
         # if cursor line is below buffer height, move it one line back up
-        if tui.current_line >= tui.viewport.buffer.height:
-            tui.current_line -= 1
+        if tui.viewport.current_line >= tui.viewport.buffer.height:
+            tui.viewport.current_line -= 1

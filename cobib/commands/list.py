@@ -172,11 +172,11 @@ class ListCommand(Command):
                         LOGGER.debug('Adding filter to prompt: "%s"', ' '.join(command[idx:idx+2]))
                         tui.list_args.extend(command[idx:idx+2])
                 # reset current line position to top
-                tui.current_line = 0
+                tui.viewport.current_line = 0
         # populate buffer with the list
         LOGGER.debug('Populating buffer with ListCommand results.')
-        tui.list_mode = -1
+        tui.viewport.list_mode = -1
         tui.inactive_commands = []
-        tui.viewport.buffer.view(tui.viewport.pad, tui.visible, tui.width-1)
+        tui.viewport.buffer.view(tui.viewport.pad, tui.viewport.visible, tui.viewport.width-1)
         # update database list
         tui.update_list()

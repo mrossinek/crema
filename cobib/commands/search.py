@@ -93,7 +93,7 @@ class SearchCommand(Command):
         command, results = tui.execute_command('search', out=tui.viewport.buffer)
         if tui.viewport.buffer.lines and results is not None:
             hits, labels = results
-            tui.list_mode, _ = tui.viewport.pad.getyx()
+            tui.viewport.list_mode, _ = tui.viewport.pad.getyx()
             tui.viewport.buffer.split()
             LOGGER.debug('Applying selection highlighting in search results.')
             for label in labels:
@@ -108,11 +108,12 @@ class SearchCommand(Command):
                                             CONFIG.get_ansi_color('selection')
                                             + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
-            tui.viewport.buffer.view(tui.viewport.pad, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
+            tui.viewport.buffer.view(tui.viewport.pad, tui.viewport.visible, tui.viewport.width-1,
+                                     ansi_map=tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
-            tui.top_line = 0
-            tui.current_line = 0
+            tui.viewport.top_line = 0
+            tui.viewport.current_line = 0
             # update top statusbar
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")

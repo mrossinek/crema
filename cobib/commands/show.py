@@ -62,14 +62,15 @@ class ShowCommand(Command):
             tui.viewport.buffer.replace(0, label,
                                         CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
-        tui.viewport.buffer.view(tui.viewport.pad, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
+        tui.viewport.buffer.view(tui.viewport.pad, tui.viewport.visible, tui.viewport.width-1,
+                                 ansi_map=tui.ANSI_MAP)
 
         # reset current cursor position
-        tui.top_line = 0
-        tui.current_line = 0
+        tui.viewport.top_line = 0
+        tui.viewport.current_line = 0
         # update top statusbar
         tui.topstatus = "CoBib v{} - {}".format(__version__, label)
         tui.statusbar(tui.topbar, tui.topstatus)
         # enter show menu
-        tui.list_mode = cur_y
+        tui.viewport.list_mode = cur_y
         tui.inactive_commands = ['Add', 'Filter', 'Search', 'Show', 'Sort']
