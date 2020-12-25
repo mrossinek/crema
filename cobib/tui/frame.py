@@ -35,6 +35,29 @@ class Frame:
         self.visible = max_height
         self.width = max_width
 
+    def resize(self, new_height, new_width):
+        """Resizes the Frame to the new dimensions.
+
+        Args:
+            new_height (int): the new height.
+            new_width (int): the new width.
+        """
+        self.visible = new_height
+        self.width = new_width
+        self.refresh()
+
+    def refresh(self):
+        """Utility function to quickly refresh the Frame's pad."""
+        self.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0, self.visible, self.width-1)
+
+    def view(self, ansi_map=None):
+        """Utility function to quickly view the Frame's buffer.
+
+        Args:
+            ansi_map (dict): optional, dictionary mapping ANSI codes to curses color pairs.
+        """
+        self.buffer.view(self.pad, self.visible, self.width-1, ansi_map=ansi_map)
+
     def scroll_y(self, update):
         """Scroll vertically.
 
@@ -112,7 +135,7 @@ class Frame:
         STATE.left_edge = 0
         # then, wrap the buffer
         self.buffer.wrap(self.width)
-        self.buffer.view(self.pad, self.visible, self.width-1)
+        self.view()
         # if cursor line is below buffer height, move it one line back up
         if self.buffer.height and STATE.current_line >= self.buffer.height:
             STATE.current_line -= 1
@@ -163,7 +186,7 @@ class Frame:
             self.buffer.replace(range(self.buffer.height), label + '  ',
                                 CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.pad, self.visible, self.width-1, ansi_map=self.tui.ANSI_MAP)
+        self.view(ansi_map=self.tui.ANSI_MAP)
         # update top statusbar
         self.tui.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.tui.statusbar(self.tui.topbar, self.tui.topstatus)

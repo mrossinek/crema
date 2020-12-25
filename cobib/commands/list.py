@@ -179,6 +179,6 @@ class ListCommand(Command):
         LOGGER.debug('Populating buffer with ListCommand results.')
         tui.STATE.list_mode = -1
         tui.STATE.inactive_commands = []
-        tui.viewport.buffer.view(tui.viewport.pad, tui.viewport.visible, tui.viewport.width-1)
+        tui.viewport.view()
         # update database list
         tui.viewport.update_list()

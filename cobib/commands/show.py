@@ -62,8 +62,7 @@ class ShowCommand(Command):
             tui.viewport.buffer.replace(0, label,
                                         CONFIG.get_ansi_color('selection') + label + '\x1b[0m')
         LOGGER.debug('Populating buffer with ShowCommand result.')
-        tui.viewport.buffer.view(tui.viewport.pad, tui.viewport.visible, tui.viewport.width-1,
-                                 ansi_map=tui.ANSI_MAP)
+        tui.viewport.view(ansi_map=tui.ANSI_MAP)
 
         # reset current cursor position
         tui.STATE.top_line = 0

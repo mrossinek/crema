@@ -196,7 +196,6 @@ class TUI:
         # update total dimension data
         self.height, self.width = self.stdscr.getmaxyx()
         LOGGER.debug('New stdscr dimension determined to be %dx%d', self.width, self.height)
-        self.viewport.visible = self.height-3
         # update top statusbar
         self.topbar.resize(1, self.width)
         self.statusbar(self.topbar, self.topstatus)
@@ -210,8 +209,7 @@ class TUI:
         self.prompt.resize(1, self.width)
         self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
         # update viewport
-        self.viewport.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0,
-                                  self.viewport.visible, self.width-1)
+        self.viewport.resize(self.height-3, self.width)
 
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
@@ -392,8 +390,7 @@ class TUI:
                         TUI.COLOR_NAMES.index('cursor_line') + 1))
 
             # Refresh the screen
-            self.viewport.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0,
-                                      self.viewport.visible, self.width-1)
+            self.viewport.refresh()
 
             # Wait for next input
             key = self.stdscr.getch()
@@ -426,8 +423,7 @@ class TUI:
             self.viewport.buffer.replace(cur_y, CONFIG.get_ansi_color('selection')
                                          + label + '\x1b[0m', label)
         # update buffer view
-        self.viewport.buffer.view(self.viewport.pad, self.viewport.visible, self.width-1,
-                                  ansi_map=self.ANSI_MAP)
+        self.viewport.view(ansi_map=self.ANSI_MAP)
 
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
