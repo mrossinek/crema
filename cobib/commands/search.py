@@ -102,8 +102,8 @@ class SearchCommand(Command):
                 # we match the label including its 'search_label' highlight to ensure that we really
                 # only match this specific occurrence of whatever the label may be
                 tui.viewport.buffer.replace(range(tui.viewport.buffer.height),
-                                            CONFIG.get_ansi_color('search_label')
-                                            + label + '\x1b[0m',
+                                            re.escape(CONFIG.get_ansi_color('search_label'))
+                                            + label + re.escape('\x1b[0m'),
                                             CONFIG.get_ansi_color('search_label') +
                                             CONFIG.get_ansi_color('selection')
                                             + label + '\x1b[0m\x1b[0m')

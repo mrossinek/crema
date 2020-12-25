@@ -47,6 +47,8 @@ class Frame:
         """Reverts the frame to the previous state."""
         self.buffer, state = self.history.pop()
         STATE.update(state)
+        self.buffer.replace(range(self.buffer.height), re.escape(CONFIG.get_ansi_color('selection'))
+                            + r'(.+)' + re.escape('\x1b[0m'), r'\1')
         # highlight current selection
         for label in self.tui.selection:
             # Note: the two spaces are explained in the `select()` method.

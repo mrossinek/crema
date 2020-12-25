@@ -2,6 +2,7 @@
 
 import curses
 import logging
+import re
 import shlex
 import sys
 from functools import partial
@@ -427,8 +428,8 @@ class TUI:
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
-            self.viewport.buffer.replace(cur_y, CONFIG.get_ansi_color('selection')
-                                         + label + '\x1b[0m', label)
+            self.viewport.buffer.replace(cur_y, re.escape(CONFIG.get_ansi_color('selection'))
+                                         + label + re.escape('\x1b[0m'), label)
         # update buffer view
         self.viewport.view(ansi_map=self.ANSI_MAP)
 
