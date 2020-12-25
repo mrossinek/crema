@@ -242,7 +242,7 @@ class TUI:
             else:
                 raise StopIteration
         LOGGER.debug('Quitting higher menu level. Falling back to list view.')
-        self.viewport.update_list()
+        self.viewport.revert()
 
     @staticmethod
     def colors():

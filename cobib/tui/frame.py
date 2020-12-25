@@ -1,5 +1,6 @@
 """CoBib's TUI viewport."""
 
+import copy
 import curses
 import logging
 import re
@@ -34,6 +35,19 @@ class Frame:
         self.tui = tui
         self.height = max_height
         self.width = max_width
+
+    def clear(self):
+        """Wrapper for buffer.clear to intercept for history storage."""
+        self.history.append((copy.deepcopy(self.buffer), copy.deepcopy(STATE)))
+        # almost 100 entries should be much more than enough
+        self.history = self.history[:99]
+        self.buffer.clear()
+
+    def revert(self):
+        """Reverts the frame to the previous state."""
+        self.buffer, state = self.history.pop()
+        STATE.update(state)
+        self.view()
 
     def resize(self, new_height, new_width):
         """Resizes the Frame to the new dimensions.

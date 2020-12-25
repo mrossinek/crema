@@ -110,7 +110,7 @@ class ListCommand(Command):
         """See base class."""
         LOGGER.debug('List command triggered from TUI.')
         LOGGER.debug('Clearing current buffer contents.')
-        tui.viewport.buffer.clear()
+        tui.viewport.clear()
         # update list prompt arguments
         if sort_mode:
             try:

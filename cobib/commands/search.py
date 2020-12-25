@@ -88,7 +88,7 @@ class SearchCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Search command triggered from TUI.')
-        tui.viewport.buffer.clear()
+        tui.viewport.clear()
         # handle input via prompt
         command, results = tui.execute_command('search', out=tui.viewport.buffer)
         if tui.viewport.buffer.lines and results is not None:

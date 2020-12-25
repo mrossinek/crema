@@ -35,5 +35,21 @@ class State:
         if CONFIG.config['TUI'].getboolean('reverse_order', True):
             self.list_args += ['-r']
 
+    def update(self, state):
+        """Update from other state.
+
+        Args:
+            state (State): another (deep-copied) state.
+        """
+        self.top_line = state.top_line
+        self.left_edge = state.left_edge
+        self.current_line = state.current_line
+
+        self.list_mode = state.list_mode
+        self.inactive_commands = state.inactive_commands
+        self.selection = state.selection
+
+        self.list_args = state.list_args
+
 
 STATE = State()

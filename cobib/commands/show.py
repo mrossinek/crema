@@ -54,7 +54,7 @@ class ShowCommand(Command):
         label, cur_y = tui.viewport.get_current_label()
         # populate buffer with entry data
         LOGGER.debug('Clearing current buffer contents.')
-        tui.viewport.buffer.clear()
+        tui.viewport.clear()
         ShowCommand().execute([label], out=tui.viewport.buffer)
         tui.viewport.buffer.split()
         if label in tui.STATE.selection:
