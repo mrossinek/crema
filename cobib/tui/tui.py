@@ -12,6 +12,7 @@ from cobib import __version__
 from cobib import commands
 from cobib.config import CONFIG
 from .buffer import TextBuffer, InputBuffer
+from .frame import Frame
 
 LOGGER = logging.getLogger(__name__)
 
@@ -172,8 +173,8 @@ class TUI:
         self.botbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('bottom_statusbar') + 1))
         self.statusbar(self.botbar, self.infoline())
 
-        # Initialize command prompt and viewport
-        self.viewport = curses.newpad(1, 1)
+        LOGGER.debug('Intializing viewport with Frame')
+        self.viewport = Frame()
         # The prompt is a pad to allow command/error prompts to exceed the terminal width.
         self.prompt = curses.newpad(1, self.width)
 
@@ -185,7 +186,6 @@ class TUI:
 
         # populate buffer with list of reference entries
         LOGGER.debug('Populating viewport buffer.')
-        self.buffer = TextBuffer()
         self.update_list()
 
         # start key event loop
@@ -223,7 +223,7 @@ class TUI:
         self.prompt.resize(1, self.width)
         self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
         # update viewport
-        self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
+        self.viewport.pad.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
 
     def quit(self):
         """Breaks the key event loop or quits one viewport level."""
@@ -391,8 +391,8 @@ class TUI:
 
             # highlight current line
             current_colors = []
-            for x_pos in range(0, self.viewport.getmaxyx()[1]):
-                x_ch = self.viewport.inch(self.current_line, x_pos)
+            for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
+                x_ch = self.viewport.pad.inch(self.current_line, x_pos)
                 current_colors.append(x_ch)
                 # x_ch is the character at the queried position. The bottom 8 bits are the character
                 # proper, and upper bits are the attributes.
@@ -400,19 +400,20 @@ class TUI:
                 # Thus, we can find the color attribute by striping the last 8 bits.
                 x_attr = x_ch >> 8
                 if x_attr <= TUI.COLOR_NAMES.index('cursor_line'):
-                    self.viewport.chgat(self.current_line, x_pos, 1,
-                                        curses.color_pair(TUI.COLOR_NAMES.index('cursor_line') + 1))
+                    self.viewport.pad.chgat(self.current_line, x_pos, 1, curses.color_pair(
+                        TUI.COLOR_NAMES.index('cursor_line') + 1))
 
             # Refresh the screen
-            self.viewport.refresh(self.top_line, self.left_edge, 1, 0, self.visible, self.width-1)
+            self.viewport.pad.refresh(self.top_line, self.left_edge, 1, 0, self.visible,
+                                      self.width-1)
 
             # Wait for next input
             key = self.stdscr.getch()
             LOGGER.debug('Key press registered: %s', str(key))
 
             # reset highlight of current line
-            for x_pos in range(0, self.viewport.getmaxyx()[1]):
-                self.viewport.chgat(self.current_line, x_pos, 1, current_colors[x_pos])
+            for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
+                self.viewport.pad.chgat(self.current_line, x_pos, 1, current_colors[x_pos])
 
     def scroll_y(self, update):
         """Scroll viewport vertically.
@@ -431,8 +432,8 @@ class TUI:
         # jump to bottom
         elif update == 'G':
             LOGGER.debug('Jump to bottom of viewport.')
-            self.top_line = max(self.buffer.height - self.visible, 0)
-            self.current_line = self.buffer.height-1
+            self.top_line = max(self.viewport.buffer.height - self.visible, 0)
+            self.current_line = self.viewport.buffer.height-1
         # scroll up
         elif update < 0:
             LOGGER.debug('Scroll viewport up by %d lines.', update)
@@ -450,18 +451,18 @@ class TUI:
             LOGGER.debug('Scroll viewport down by %d lines.', update)
             next_line = self.current_line + update
             if next_line >= self.top_line + self.visible - scrolloff and \
-                    self.buffer.height > self.top_line + self.visible:
+                    self.viewport.buffer.height > self.top_line + self.visible:
                 if scroll_lock or not overlap:
                     self.top_line += update
                 elif overlap and \
                         self.current_line - self.top_line < self.visible // 2 and \
                         next_line - self.top_line > self.visible // 2:
                     self.top_line = next_line - self.visible // 2
-            if next_line < self.buffer.height:
+            if next_line < self.viewport.buffer.height:
                 self.current_line = next_line
             else:
-                self.top_line = self.buffer.height - self.visible
-                self.current_line = self.buffer.height - 1
+                self.top_line = self.viewport.buffer.height - self.visible
+                self.current_line = self.viewport.buffer.height - 1
 
     def scroll_x(self, update):
         """Scroll viewport horizontally.
@@ -476,12 +477,12 @@ class TUI:
         # jump to end
         elif update == '$':
             LOGGER.debug('Jump to end of viewport.')
-            self.left_edge = self.buffer.width - self.width
+            self.left_edge = self.viewport.buffer.width - self.width
         else:
             LOGGER.debug('Scroll viewport horizontally by %d columns.', update)
             next_col = self.left_edge + update
             # limit column such that no empty columns can appear on left or right
-            if 0 <= next_col <= self.buffer.width - self.width:
+            if 0 <= next_col <= self.viewport.buffer.width - self.width:
                 self.left_edge = next_col
 
     def wrap(self):
@@ -490,10 +491,10 @@ class TUI:
         # first, ensure left_edge is set to 0
         self.left_edge = 0
         # then, wrap the buffer
-        self.buffer.wrap(self.width)
-        self.buffer.view(self.viewport, self.visible, self.width-1)
+        self.viewport.buffer.wrap(self.width)
+        self.viewport.buffer.view(self.viewport.pad, self.visible, self.width-1)
         # if cursor line is below buffer height, move it one line back up
-        if self.buffer.height and self.current_line >= self.buffer.height:
+        if self.viewport.buffer.height and self.current_line >= self.viewport.buffer.height:
             self.current_line -= 1
 
     def select(self):
@@ -511,15 +512,16 @@ class TUI:
             # We do not need this outside of the list view because then the line indexed by `cur_y`
             # will surely only include the one label which we actually want to operate on.
             offset = '  ' if self.list_mode == -1 else ''
-            self.buffer.replace(cur_y, label + offset,
-                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m' + offset)
+            self.viewport.buffer.replace(cur_y, label + offset, CONFIG.get_ansi_color('selection')
+                                         + label + '\x1b[0m' + offset)
         else:
             LOGGER.info("Removing '%s' from the selection.", label)
             self.selection.remove(label)
-            self.buffer.replace(cur_y, CONFIG.get_ansi_color('selection') + label + '\x1b[0m',
-                                label)
+            self.viewport.buffer.replace(cur_y, CONFIG.get_ansi_color('selection')
+                                         + label + '\x1b[0m', label)
         # update buffer view
-        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map=self.ANSI_MAP)
+        self.viewport.buffer.view(self.viewport.pad, self.visible, self.width-1,
+                                  ansi_map=self.ANSI_MAP)
 
     def prompt_print(self, text):
         """Handle printing text to the prompt line.
@@ -690,19 +692,19 @@ class TUI:
     def get_current_label(self):
         """Returns the label and y position of the currently selected entry."""
         LOGGER.debug('Obtaining current label "under" cursor.')
-        cur_y, _ = self.viewport.getyx()
+        cur_y, _ = self.viewport.pad.getyx()
         # Two cases are possible: the list and the show mode
         if self.list_mode == -1:
             # In the list mode, the label can be found in the current line
             # or in one of the previous lines if we are on a wrapped line
-            while chr(self.viewport.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
+            while chr(self.viewport.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
                 cur_y -= 1
-            label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
+            label = self.viewport.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
         elif re.match(r'\d+ hit',
                       '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()):
-            while chr(self.viewport.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
+            while chr(self.viewport.pad.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
                 cur_y -= 1
-            label = self.viewport.instr(cur_y, 0).decode('utf-8').split(' ')[0]
+            label = self.viewport.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
         else:
             # In any other mode, the label can be found in the top statusbar
             label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
@@ -714,8 +716,8 @@ class TUI:
     def update_list(self):
         """Updates the default list view."""
         LOGGER.debug('Re-populating the viewport with the list command.')
-        self.buffer.clear()
-        labels = commands.ListCommand().execute(self.list_args, out=self.buffer)
+        self.viewport.buffer.clear()
+        labels = commands.ListCommand().execute(self.list_args, out=self.viewport.buffer)
         labels = labels or []  # convert to empty list if labels is None
         # populate buffer with the list
         if self.list_mode >= 0:
@@ -730,14 +732,15 @@ class TUI:
             # Note: the two spaces are explained in the `select()` method.
             # Also: this step may become a performance bottleneck because we replace inside the
             # whole buffer for each selected label!
-            self.buffer.replace(range(self.buffer.height), label + '  ',
-                                CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
+            self.viewport.buffer.replace(range(self.viewport.buffer.height), label + '  ',
+                                         CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
         # display buffer in viewport
-        self.buffer.view(self.viewport, self.visible, self.width-1, ansi_map=self.ANSI_MAP)
+        self.viewport.buffer.view(self.viewport.pad, self.visible, self.width-1,
+                                  ansi_map=self.ANSI_MAP)
         # update top statusbar
         self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
         self.statusbar(self.topbar, self.topstatus)
         # if cursor position is out-of-view (due to e.g. top-line reset in Show command), reset the
         # top-line such that the current line becomes visible again
         if self.current_line > self.top_line + self.visible:
-            self.top_line = min(self.current_line, self.buffer.height - self.visible)
+            self.top_line = min(self.current_line, self.viewport.buffer.height - self.visible)

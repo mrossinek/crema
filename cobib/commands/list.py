@@ -110,7 +110,7 @@ class ListCommand(Command):
         """See base class."""
         LOGGER.debug('List command triggered from TUI.')
         LOGGER.debug('Clearing current buffer contents.')
-        tui.buffer.clear()
+        tui.viewport.buffer.clear()
         # update list prompt arguments
         if sort_mode:
             try:
@@ -122,7 +122,7 @@ class ListCommand(Command):
                 pass
             tui.list_args += ['-s']
         # handle input via prompt
-        command, _ = tui.execute_command('list ' + ' '.join(tui.list_args), out=tui.buffer)
+        command, _ = tui.execute_command('list ' + ' '.join(tui.list_args), out=tui.viewport.buffer)
         # after the command has been executed n the prompt handler, the `command` variable will
         # contain the contents of the prompt
         LOGGER.debug('Post-process ListCommand arguments for consistent prompt.')
@@ -177,6 +177,6 @@ class ListCommand(Command):
         LOGGER.debug('Populating buffer with ListCommand results.')
         tui.list_mode = -1
         tui.inactive_commands = []
-        tui.buffer.view(tui.viewport, tui.visible, tui.width-1)
+        tui.viewport.buffer.view(tui.viewport.pad, tui.visible, tui.width-1)
         # update database list
         tui.update_list()

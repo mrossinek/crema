@@ -88,25 +88,27 @@ class SearchCommand(Command):
     def tui(tui):
         """See base class."""
         LOGGER.debug('Search command triggered from TUI.')
-        tui.buffer.clear()
+        tui.viewport.buffer.clear()
         # handle input via prompt
-        command, results = tui.execute_command('search', out=tui.buffer)
-        if tui.buffer.lines and results is not None:
+        command, results = tui.execute_command('search', out=tui.viewport.buffer)
+        if tui.viewport.buffer.lines and results is not None:
             hits, labels = results
-            tui.list_mode, _ = tui.viewport.getyx()
-            tui.buffer.split()
+            tui.list_mode, _ = tui.viewport.pad.getyx()
+            tui.viewport.buffer.split()
             LOGGER.debug('Applying selection highlighting in search results.')
             for label in labels:
                 if label not in tui.selection:
                     continue
                 # we match the label including its 'search_label' highlight to ensure that we really
                 # only match this specific occurrence of whatever the label may be
-                tui.buffer.replace(range(tui.buffer.height),
-                                   CONFIG.get_ansi_color('search_label') + label + '\x1b[0m',
-                                   CONFIG.get_ansi_color('search_label') +
-                                   CONFIG.get_ansi_color('selection') + label + '\x1b[0m\x1b[0m')
+                tui.viewport.buffer.replace(range(tui.viewport.buffer.height),
+                                            CONFIG.get_ansi_color('search_label')
+                                            + label + '\x1b[0m',
+                                            CONFIG.get_ansi_color('search_label') +
+                                            CONFIG.get_ansi_color('selection')
+                                            + label + '\x1b[0m\x1b[0m')
             LOGGER.debug('Populating viewport with search results.')
-            tui.buffer.view(tui.viewport, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
+            tui.viewport.buffer.view(tui.viewport.pad, tui.visible, tui.width-1, ansi_map=tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
             tui.top_line = 0
