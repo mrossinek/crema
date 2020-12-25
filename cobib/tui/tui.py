@@ -2,13 +2,11 @@
 
 import curses
 import logging
-import re
 import shlex
 import sys
 from functools import partial
 from signal import signal, SIGWINCH
 
-from cobib import __version__
 from cobib import commands
 from cobib.config import CONFIG
 from .buffer import TextBuffer, InputBuffer
@@ -154,6 +152,7 @@ class TUI:
 
         # Initialize top status bar
         LOGGER.debug('Populating top status bar.')
+        self.topstatus = ''
         self.topbar = curses.newwin(1, self.width, 0, 0)
         self.topbar.bkgd(' ', curses.color_pair(TUI.COLOR_NAMES.index('top_statusbar') + 1))
 
@@ -174,7 +173,7 @@ class TUI:
 
         # populate buffer with list of reference entries
         LOGGER.debug('Populating viewport buffer.')
-        self.update_list()
+        self.viewport.update_list()
 
         # start key event loop
         LOGGER.debug('Starting key event loop.')
@@ -211,7 +210,7 @@ class TUI:
         self.prompt.resize(1, self.width)
         self.prompt.refresh(0, 0, self.height-1, 0, self.height, self.width-1)
         # update viewport
-        self.viewport.pad.refresh(self.viewport.top_line, self.viewport.left_edge, 1, 0,
+        self.viewport.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0,
                                   self.viewport.visible, self.width-1)
 
     def quit(self):
@@ -241,7 +240,7 @@ class TUI:
             else:
                 raise StopIteration
         LOGGER.debug('Quitting higher menu level. Falling back to list view.')
-        self.update_list()
+        self.viewport.update_list()
 
     @staticmethod
     def colors():
@@ -381,7 +380,7 @@ class TUI:
             # highlight current line
             current_colors = []
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
-                x_ch = self.viewport.pad.inch(self.viewport.current_line, x_pos)
+                x_ch = self.viewport.pad.inch(STATE.current_line, x_pos)
                 current_colors.append(x_ch)
                 # x_ch is the character at the queried position. The bottom 8 bits are the character
                 # proper, and upper bits are the attributes.
@@ -389,11 +388,11 @@ class TUI:
                 # Thus, we can find the color attribute by striping the last 8 bits.
                 x_attr = x_ch >> 8
                 if x_attr <= TUI.COLOR_NAMES.index('cursor_line'):
-                    self.viewport.pad.chgat(self.viewport.current_line, x_pos, 1, curses.color_pair(
+                    self.viewport.pad.chgat(STATE.current_line, x_pos, 1, curses.color_pair(
                         TUI.COLOR_NAMES.index('cursor_line') + 1))
 
             # Refresh the screen
-            self.viewport.pad.refresh(self.viewport.top_line, self.viewport.left_edge, 1, 0,
+            self.viewport.pad.refresh(STATE.top_line, STATE.left_edge, 1, 0,
                                       self.viewport.visible, self.width-1)
 
             # Wait for next input
@@ -402,13 +401,13 @@ class TUI:
 
             # reset highlight of current line
             for x_pos in range(0, self.viewport.pad.getmaxyx()[1]):
-                self.viewport.pad.chgat(self.viewport.current_line, x_pos, 1, current_colors[x_pos])
+                self.viewport.pad.chgat(STATE.current_line, x_pos, 1, current_colors[x_pos])
 
     def select(self):
         """Toggles selection of the current label."""
         LOGGER.debug('Select command triggered.')
         # get current label
-        label, cur_y = self.get_current_label()
+        label, cur_y = self.viewport.get_current_label()
         # toggle selection
         if label not in STATE.selection:
             LOGGER.info("Adding '%s' to the selection.", label)
@@ -578,7 +577,7 @@ class TUI:
                 else:
                     self.prompt_print(sys.stderr.lines)
                 # command exited with an error
-                self.update_list()
+                self.viewport.update_list()
             elif sys.stdout.lines:
                 LOGGER.info('A message to stdout from "%s" was intercepted.', ' '.join(command))
                 sys.stdout.split()
@@ -595,60 +594,3 @@ class TUI:
             sys.stdin = original_stdin
         # return command to enable additional handling by function caller
         return (command, result)
-
-    def get_current_label(self):
-        """Returns the label and y position of the currently selected entry."""
-        LOGGER.debug('Obtaining current label "under" cursor.')
-        cur_y, _ = self.viewport.pad.getyx()
-        # Two cases are possible: the list and the show mode
-        if STATE.list_mode == -1:
-            # In the list mode, the label can be found in the current line
-            # or in one of the previous lines if we are on a wrapped line
-            while chr(self.viewport.pad.inch(cur_y, 0)) == TextBuffer.INDENT[0]:
-                cur_y -= 1
-            label = self.viewport.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
-        elif re.match(r'\d+ hit',
-                      '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()):
-            while chr(self.viewport.pad.inch(cur_y, 0)) in ('[', TextBuffer.INDENT[0]):
-                cur_y -= 1
-            label = self.viewport.pad.instr(cur_y, 0).decode('utf-8').split(' ')[0]
-        else:
-            # In any other mode, the label can be found in the top statusbar
-            label = '-'.join(self.topbar.instr(0, 0).decode('utf-8').split('-')[1:]).strip()
-            # We also set cur_y to 0 for the select command to find it
-            cur_y = 0
-        LOGGER.debug('Current label at "%s" is "%s".', str(cur_y), label)
-        return label, cur_y
-
-    def update_list(self):
-        """Updates the default list view."""
-        LOGGER.debug('Re-populating the viewport with the list command.')
-        self.viewport.buffer.clear()
-        labels = commands.ListCommand().execute(STATE.list_args, out=self.viewport.buffer)
-        labels = labels or []  # convert to empty list if labels is None
-        # populate buffer with the list
-        if STATE.list_mode >= 0:
-            self.viewport.current_line = STATE.list_mode
-            STATE.list_mode = -1
-        # reset viewport
-        self.viewport.top_line = 0
-        self.viewport.left_edge = 0
-        STATE.inactive_commands = []
-        # highlight current selection
-        for label in STATE.selection:
-            # Note: the two spaces are explained in the `select()` method.
-            # Also: this step may become a performance bottleneck because we replace inside the
-            # whole buffer for each selected label!
-            self.viewport.buffer.replace(range(self.viewport.buffer.height), label + '  ',
-                                         CONFIG.get_ansi_color('selection') + label + '\x1b[0m  ')
-        # display buffer in viewport
-        self.viewport.buffer.view(self.viewport.pad, self.viewport.visible, self.width-1,
-                                  ansi_map=self.ANSI_MAP)
-        # update top statusbar
-        self.topstatus = "CoBib v{} - {} Entries".format(__version__, len(labels))
-        self.statusbar(self.topbar, self.topstatus)
-        # if cursor position is out-of-view (due to e.g. top-line reset in Show command), reset the
-        # top-line such that the current line becomes visible again
-        if self.viewport.current_line > self.viewport.top_line + self.viewport.visible:
-            self.viewport.top_line = min(self.viewport.current_line,
-                                         self.viewport.buffer.height - self.viewport.visible)

@@ -18,6 +18,8 @@ class State:
         """Initializes the State object."""
         LOGGER.debug('Initializing the State')
         self.current_line = 0
+        self.top_line = 0
+        self.left_edge = 0
         self.selection = set()
         self.list_mode = -1
         self.inactive_commands = []

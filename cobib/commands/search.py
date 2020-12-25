@@ -112,8 +112,8 @@ class SearchCommand(Command):
                                      ansi_map=tui.ANSI_MAP)
             # reset current cursor position
             LOGGER.debug('Resetting cursor position to top.')
-            tui.viewport.top_line = 0
-            tui.viewport.current_line = 0
+            tui.STATE.top_line = 0
+            tui.STATE.current_line = 0
             # update top statusbar
             tui.topstatus = "CoBib v{} - {} hit{}".format(__version__, hits,
                                                           "s" if hits > 1 else "")
