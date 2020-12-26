@@ -124,4 +124,4 @@ class SearchCommand(Command):
             msg = f"No search hits for '{shlex.join(command[1:])}'!"
             LOGGER.info(msg)
             tui.prompt_print(msg)
-            tui.update_list()
+            tui.viewport.update_list()
