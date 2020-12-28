@@ -9,6 +9,7 @@ from .list import ListCommand
 from .open import OpenCommand
 from .search import SearchCommand
 from .show import ShowCommand
+from .undo import UndoCommand
 
 
 __all__ = [
@@ -21,4 +22,5 @@ __all__ = [
     "OpenCommand",
     "SearchCommand",
     "ShowCommand",
+    "UndoCommand",
     ]
