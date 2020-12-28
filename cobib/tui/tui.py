@@ -63,6 +63,7 @@ class TUI:
         'Select': lambda self: self.select(),
         'Show': commands.ShowCommand.tui,
         'Sort': partial(commands.ListCommand.tui, sort_mode=True),
+        'Undo': commands.UndoCommand.tui,
         'Wrap': lambda self: self.viewport.wrap(),
         'x': lambda self, update: self.viewport.scroll_x(update),
         'y': lambda self, update: self.viewport.scroll_y(update),
@@ -82,6 +83,7 @@ class TUI:
         "Select": "**not** implemented yet.",
         "Show": "Shows the details of an entry.",
         "Sort": "Prompts for the field to sort against (-r to reverse).",
+        "Undo": "Undoes the last change. Requires git-tracking!",
         "Wrap": "Wraps the text displayed in the window.",
     }
 
@@ -116,6 +118,7 @@ class TUI:
         ord('o'): 'Open',
         ord('q'): 'Quit',
         ord('s'): 'Sort',
+        ord('u'): 'Undo',
         ord('v'): 'Select',
         ord('w'): 'Wrap',
         ord('x'): 'Export',
