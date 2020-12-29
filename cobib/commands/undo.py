@@ -21,8 +21,8 @@ class UndoCommand(Command):
     def execute(self, args, out=sys.stdout):
         """Undo last change.
 
-        Undoes the last change to the database file. By default, only auto-commited changes by CoBib
-        will be undone. Use `--force` to undo other changes, too.
+        Undoes the last change to the database file. By default, only auto-committed changes by
+        CoBib will be undone. Use `--force` to undo other changes, too.
 
         Args: See base class.
         """
@@ -47,7 +47,7 @@ class UndoCommand(Command):
         LOGGER.debug('Starting Undo command.')
         parser = ArgumentParser(prog="undo", description="Undo subcommand parser.")
         parser.add_argument("-f", "--force", action='store_true',
-                            help="allow undoing non auto-commited changes")
+                            help="allow undoing non auto-committed changes")
 
         try:
             largs = parser.parse_args(args)
@@ -64,9 +64,9 @@ class UndoCommand(Command):
             LOGGER.debug('Processing commit %s', commit)
             sha, *message = commit.split()
             if message[0] == 'Revert':
-                # revertion commits are produced by the `Undo` command and we don't want to undo
+                # reversion commits are produced by the `Undo` command and we don't want to undo
                 # and undo (that's what `Redo` is for)
-                LOGGER.debug('Revertion commits are not undone.')
+                LOGGER.debug('Reversion commits are not undone.')
                 msg = subprocess.Popen([
                     "git", "--no-pager", "-C", f"{root}", "log", "--pretty=%B", "--max-count",
                     "1", f"{sha}"
@@ -79,9 +79,9 @@ class UndoCommand(Command):
                 LOGGER.info('Skipping %s as it was already reverted', sha)
                 continue
             if largs.force or (message[0] == 'Auto-commit:' and message[-1] != 'InitCommand'):
-                # we undo a commit iff:
+                # we undo a commit if and only if:
                 #  - the `force` argument is specified OR
-                #  - the commit is an `auto-commited` change which is NOT from `InitCommand`
+                #  - the commit is an `auto-committed` change which is NOT from `InitCommand`
                 LOGGER.debug('Attempting to undo %s.', sha)
                 undo = subprocess.Popen([
                     "git", "-C", f"{root}", "revert", "--no-gpg-sign", "--no-edit", f"{sha}"
