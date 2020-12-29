@@ -260,6 +260,14 @@ Opens the current label in an external editor.
 .BR d " " delete
 Deletes the current (or \fIselected\fR) label(s).
 .TP
+.BR u " " undo
+Undoes the last auto-committed change to the database file.
+This requires the git-integration (since v2.6.0) to be enabled!
+.TP
+.BR r " " redo
+Reapplies the last undone change.
+This requires the git-integration (since v2.6.0) to be enabled!
+.TP
 .BR / " " search
 Opens a search prompt and views the results in the viewing buffer.
 .TP
