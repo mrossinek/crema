@@ -323,10 +323,8 @@ class TUI:
     @staticmethod
     def infoline():
         """Returns a list of the available key bindings."""
-        cmds = ["Quit", "Help", "", "Show", "Open", "Wrap", "", "Add", "Edit", "Delete", "",
-                "Search", "Filter", "Sort", "Select", "", "Export"]
         infoline = ''
-        for cmd in cmds:
+        for cmd in TUI.HELP_DICT:
             if cmd:
                 # get associated key for this command
                 for key, command in TUI.KEYDICT.items():
@@ -345,13 +343,10 @@ class TUI:
         short descriptions of the commands.
         """
         LOGGER.debug('Help command triggered.')
-        # sorted commands to place in help window
-        cmds = ["Quit", "Help", "Show", "Open", "Wrap", "Add", "Edit", "Delete",
-                "Search", "Filter", "Sort", "Select", "Export"]
         # populate text buffer with help text
         help_text = TextBuffer()
         LOGGER.debug('Generating help text.')
-        for cmd in cmds:
+        for cmd, desc in TUI.HELP_DICT.items():
             key = ' '
             for key, command in TUI.KEYDICT.items():
                 if cmd == command:
@@ -359,7 +354,7 @@ class TUI:
                     key = 'ENTER' if key in (10, 13) else chr(key)
                     break
             # write: [key] Command: Description
-            help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', TUI.HELP_DICT[cmd]))
+            help_text.write("{:^8} {:<8} {}".format('['+key+']', cmd+':', desc))
         # add header section
         help_text.lines.insert(0, "{0:^{1}}".format("CoBib TUI Help", help_text.width))
         help_text.lines.insert(1, "{:^8} {:<8} {}".format('Key', 'Command', 'Description'))
