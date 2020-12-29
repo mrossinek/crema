@@ -59,33 +59,29 @@ class UndoCommand(Command):
         lines = subprocess.check_output([
             "git", "--no-pager", "-C", f"{root}", "log", "--oneline", "--no-decorate", "--no-abbrev"
         ])
-        reverted_shas = set()
+        undone_shas = set()
         for commit in lines.decode().strip().split('\n'):
             LOGGER.debug('Processing commit %s', commit)
             sha, *message = commit.split()
-            if message[0] == 'Revert':
-                # reversion commits are produced by the `Undo` command and we don't want to undo
-                # and undo (that's what `Redo` is for)
-                LOGGER.debug('Reversion commits are not undone.')
-                msg = subprocess.Popen([
-                    "git", "--no-pager", "-C", f"{root}", "log", "--pretty=%B", "--max-count",
-                    "1", f"{sha}"
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                reverted_shas.add(
-                    msg.stdout.read().decode().strip().split('\n')[-1].strip('.').split()[-1]
-                )
+            if message[0] == 'Undo':
+                # Store already undone commit sha
+                LOGGER.debug('Storing undone commit sha: %s', sha)
+                undone_shas.add(message[-1])
                 continue
-            if sha in reverted_shas:
-                LOGGER.info('Skipping %s as it was already reverted', sha)
+            if sha in undone_shas:
+                LOGGER.info('Skipping %s as it was already undone', sha)
                 continue
             if largs.force or (message[0] == 'Auto-commit:' and message[-1] != 'InitCommand'):
                 # we undo a commit if and only if:
                 #  - the `force` argument is specified OR
                 #  - the commit is an `auto-committed` change which is NOT from `InitCommand`
                 LOGGER.debug('Attempting to undo %s.', sha)
-                undo = subprocess.Popen([
-                    "git", "-C", f"{root}", "revert", "--no-gpg-sign", "--no-edit", f"{sha}"
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                commands = [
+                    f"git -C {root} revert --no-commit {sha}",
+                    f"git -C {root} commit --no-gpg-sign --quiet --message 'Undo {sha}'"
+                ]
+                undo = subprocess.Popen('; '.join(commands), shell=True,
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 undo.communicate()
                 if undo.returncode != 0:
                     LOGGER.error('Undo was unsuccessful. Please consult the logs and git history of'

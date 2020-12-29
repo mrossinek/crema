@@ -57,15 +57,22 @@ class RedoCommand(Command):
         lines = subprocess.check_output([
             "git", "--no-pager", "-C", f"{root}", "log", "--oneline", "--no-decorate", "--no-abbrev"
         ])
+        redone_shas = set()
         for commit in lines.decode().strip().split('\n'):
             LOGGER.debug('Processing commit %s', commit)
             sha, *message = commit.split()
-            if message[0] != 'Revert':
+            if message[0] == 'Redo':
+                # Store already redone commit sha
+                LOGGER.debug('Storing undone commit sha: %s', sha)
+                redone_shas.add(message[-1])
+                continue
+            if sha in redone_shas:
+                LOGGER.info('Skipping %s as it was already redone', sha)
                 continue
             LOGGER.debug('Attempting to redo %s.', sha)
             commands = [
                 f"git -C {root} revert --no-commit {sha}",
-                f"git -C {root} commit --no-gpg-sign --quiet --message {' '.join(message[1:])}"
+                f"git -C {root} commit --no-gpg-sign --quiet --message 'Redo {sha}'"
             ]
             redo = subprocess.Popen('; '.join(commands), shell=True,
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
