@@ -1,4 +1,4 @@
-.TH COBIB 1 2020-12-08 v2.5.0
+.TH COBIB 1 2020-12-29 v2.5.0
 .SH NAME
 CoBib \- Console-based Bibliography Management
 .SH SYNOPSIS
@@ -85,6 +85,23 @@ Deletes the entry with the given \fIlabel\fR.
 .B cobib edit \fI<label>\fR
 Opens the entry with the given \fIlabel\fR in the \fI$EDITOR\fR.
 The entry is copied verbatim in \fIYAML\fR format from and to the database file.
+.TP
+.B cobib undo \fI<args>\fR
+If you enabled the git-integration of CoBib (available since v2.6.0) you can
+undo the changes done to your database file by commands such as add, edit and
+delete. See also \fIDATABASE/git\fR in the \fBCONFIGURATION\fR section for more
+information.
+.PP
+.in +8n
+.BR \-f ", " \-\-force
+.in +4n
+Overwrites the check for an auto-committed change. Thus, the undo command will
+now undo the last commit with a message that does not start with "Undo".
+.TP
+.B cobib redo
+If you enabled the git-integration of CoBib (available since v2.6.0) you can
+reapply the last undone changes (see above). See also \fIDATABASE/git\fR in the
+\fBCONFIGURATION\fR section for more information.
 .TP
 .B cobib open \fI<label>\fR
 Opens any associated \fIfile\fR of the entry with the given \fIlabel\fR.
