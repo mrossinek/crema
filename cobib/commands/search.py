@@ -35,7 +35,7 @@ class SearchCommand(Command):
                             help="number of context lines to provide for each match")
         parser.add_argument("-i", "--ignore-case", action="store_true",
                             help="ignore case for searching")
-        parser.add_argument('filter', nargs='+',
+        parser.add_argument('filter', nargs='*',
                             help="You can specify filters as used by the `list` command in order "
                             "to select a subset of labels to be modified. To ensure this works as "
                             "expected you should add the pseudo-argument '--' before the list of "

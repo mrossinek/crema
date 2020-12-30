@@ -312,24 +312,30 @@ def test_delete(database_setup, labels):
         assert_git_commit_message('delete', {'labels': labels})
 
 
-@pytest.mark.parametrize(['arguments'], [
-        [['tags:test', '-s', '--', 'einstein']],
-        [['tags:test', '--', '++ID', 'einstein']],
+@pytest.mark.parametrize(['modification', 'filters', 'selection'], [
+        ['tags:test', ['einstein'], True],
+        ['tags:test', ['++ID', 'einstein'], False],
     ])
-def test_modify(database_setup, arguments):
+def test_modify(database_setup, modification, filters, selection, append=False):
     """Test modify command."""
     git = database_setup
     # NOTE: again, we depend on AddCommand to work.
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     read_database(fresh=True)
     # modify some data
-    commands.ModifyCommand().execute(arguments)
+    args = [modification, '--'] + filters
+    if selection:
+        args = ['-s'] + args
+    if append:
+        args = ['-a'] + args
+    commands.ModifyCommand().execute(args)
     assert CONFIG.config['BIB_DATA']['einstein'].data['tags'] == 'test'
     if git:
         # assert the git commit message
-        assert_git_commit_message('modify', {'selection': '-s' in arguments,
-                                             'modification': arguments[0].split(':'),
-                                             'list_arg': arguments[arguments.index('--')+1:]})
+        assert_git_commit_message('modify', {'append': append,
+                                             'selection': selection,
+                                             'modification': modification.split(':'),
+                                             'filter': filters})
 
 
 # TODO: figure out some very crude and basic way of testing this

@@ -37,7 +37,7 @@ class ExportCommand(Command):
         parser.add_argument("-s", "--selection", action="store_true",
                             help="When specified, the `filter` argument will be interpreted as "
                             "a list of entry labels rather than arguments for the `list` command.")
-        parser.add_argument('filter', nargs='+',
+        parser.add_argument('filter', nargs='*',
                             help="You can specify filters as used by the `list` command in order "
                             "to select a subset of labels to be modified. To ensure this works as "
                             "expected you should add the pseudo-argument '--' before the list of "
