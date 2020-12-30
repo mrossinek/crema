@@ -44,8 +44,10 @@ class ModifyCommand(Command):
                             "which should be placed in that field. Be sure to escape this "
                             "field-value pair properly, especially if the value contains spaces."
                             )
+        parser.add_argument("-a", "--append", action="store_true",
+                            help="Appends to the modified field rather than overwriting it.")
         parser.add_argument("-s", "--selection", action="store_true",
-                            help="interprets `list_arg` as the list of selected entries.")
+                            help="Interprets `list_arg` as the list of selected entries.")
         parser.add_argument('list_arg', nargs='+',
                             help="Any arguments for the List subcommand."
                             "Use this to add filters to specify a subset of modified entries."
@@ -75,6 +77,12 @@ class ModifyCommand(Command):
             labels = ListCommand().execute(largs.list_arg, out=out)
 
         field, value = largs.modification
+
+        if largs.append:
+            msg = 'The append-mode of the `modify` command has not been implemented yet.'
+            print(msg)
+            LOGGER.warning(msg)
+            sys.exit(1)
 
         for label in labels:
             try:
