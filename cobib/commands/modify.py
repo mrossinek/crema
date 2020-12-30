@@ -46,7 +46,7 @@ class ModifyCommand(Command):
                             )
         parser.add_argument("-s", "--selection", action="store_true",
                             help="interprets `list_arg` as the list of selected entries.")
-        parser.add_argument('list_arg', nargs='*',
+        parser.add_argument('list_arg', nargs='+',
                             help="Any arguments for the List subcommand."
                             "Use this to add filters to specify a subset of modified entries."
                             "You can should a '--' before the List arguments to ensure separation."
@@ -100,7 +100,9 @@ class ModifyCommand(Command):
                         if not entry_to_be_replaced:
                             bib.write(line)
 
-                LOGGER.info('Modified "%s".', label)
+                msg = f"'{label}' was modified."
+                print(msg)
+                LOGGER.info(msg)
             except KeyError:
                 print("Error: No entry with the label '{}' could be found.".format(label))
 
