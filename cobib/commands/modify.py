@@ -47,16 +47,13 @@ class ModifyCommand(Command):
         parser.add_argument("-a", "--append", action="store_true",
                             help="Appends to the modified field rather than overwriting it.")
         parser.add_argument("-s", "--selection", action="store_true",
-                            help="Interprets `list_arg` as the list of selected entries.")
-        parser.add_argument('list_arg', nargs='+',
-                            help="Any arguments for the List subcommand."
-                            "Use this to add filters to specify a subset of modified entries."
-                            "You can should a '--' before the List arguments to ensure separation."
-                            "See also `list --help` for more information on the List arguments."
-                            "Note: when a selection has been made inside the TUI, this list is "
-                            "interpreted as the list of entry labels to be modified. This also "
-                            "requires the --selection argument to be set which you can exploit "
-                            "on the command-line to achieve a similar effect.")
+                            help="When specified, the `filter` argument will be interpreted as "
+                            "a list of entry labels rather than arguments for the `list` command.")
+        parser.add_argument('filter', nargs='+',
+                            help="You can specify filters as used by the `list` command in order "
+                            "to select a subset of labels to be modified. To ensure this works as "
+                            "expected you should add the pseudo-argument '--' before the list of "
+                            "filters. See also `list --help` for more information.")
 
         if not args:
             parser.print_usage(sys.stderr)
@@ -70,11 +67,11 @@ class ModifyCommand(Command):
 
         out = open(os.devnull, 'w')
         if largs.selection:
-            LOGGER.info('Selection given. Interpreting `list_arg` as a list of labels')
-            labels = largs.list_arg
+            LOGGER.info('Selection given. Interpreting `filter` as a list of labels')
+            labels = largs.filter
         else:
             LOGGER.debug('Gathering filtered list of entries to be modified.')
-            labels = ListCommand().execute(largs.list_arg, out=out)
+            labels = ListCommand().execute(largs.filter, out=out)
 
         field, value = largs.modification
 
