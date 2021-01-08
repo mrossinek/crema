@@ -103,16 +103,28 @@ class Config(dict):
 
     def defaults(self):
         """TODO"""
+        try:
+            del self.database
+        except AttributeError:
+            pass
         self.database.file = os.path.expanduser('~/.local/share/cobib/literature.yaml')
         self.database.git = False
         self.database.open = 'xdg-open' if sys.platform.lower() == 'linux' else 'open'
         self.database.grep = 'grep'
         self.database.search_ignore_case = False
 
+        try:
+            del self.format
+        except AttributeError:
+            pass
         self.format.month = int
         self.format.ignore_non_standard_types = False
         self.format.default_entry_type = 'article'
 
+        try:
+            del self.tui
+        except AttributeError:
+            pass
         self.tui.default_list_args = '-l'
         self.tui.prompt_before_quit = True
         self.tui.reverse_order = True

@@ -315,11 +315,8 @@ class TUI:
         for cmd in TUI.HELP_DICT:
             if cmd:
                 # get associated key for this command
-                for key, command in TUI.KEYDICT.items():
-                    if cmd == command:
-                        key = 'ENTER' if key in (10, 13) else chr(key)
-                        infoline += " {}:{}".format(key, cmd)
-                        break
+                key = config.tui.key_bindings[cmd.lower()]
+                infoline += " {}:{}".format(key, cmd)
             else:
                 infoline += "  "
         return infoline.strip()
