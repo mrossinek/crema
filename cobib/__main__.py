@@ -9,7 +9,7 @@ import sys
 
 from cobib import commands, zsh_helper
 from cobib import __version__
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 from cobib.logging import log_to_stream, log_to_file
 from cobib.tui import tui
@@ -59,9 +59,9 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         LOGGER.info('Logging level set to DEBUG.')
 
-    CONFIG.set_config(args.config)
+    config.load(args.config)
     try:
-        CONFIG.validate()
+        config.validate()
     except RuntimeError as exc:
         LOGGER.error(exc)
         sys.exit(1)

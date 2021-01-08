@@ -3,7 +3,7 @@
 import inspect
 
 from cobib import commands
-from cobib.config import CONFIG
+from cobib.config import config
 from cobib.database import read_database
 
 
@@ -30,9 +30,9 @@ def list_tags(args=None):
     """
     if not args:
         args = {}
-    CONFIG.set_config(args.get('config', None))
+    config.load(args.get('config', None))
     read_database()
-    tags = list(CONFIG.config['BIB_DATA'].keys())
+    tags = list(config.bib_data.keys())
     return tags
 
 
@@ -47,9 +47,9 @@ def list_filters(args=None):
     """
     if not args:
         args = {}
-    CONFIG.set_config(args.get('config', None))
+    config.load(args.get('config', None))
     read_database()
     filters = set()
-    for entry in CONFIG.config['BIB_DATA'].values():
+    for entry in config.bib_data.values():
         filters.update(entry.data.keys())
     return filters
