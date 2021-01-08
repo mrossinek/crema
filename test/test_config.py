@@ -21,6 +21,8 @@ def test_base_config(setup):
     config.validate()
 
 
+# TODO test config.load method
+
 @pytest.mark.parametrize(['section'], [
         ['DATABASE'],
         ['FORMAT'],
