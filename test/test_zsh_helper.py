@@ -17,13 +17,13 @@ def test_list_commands():
 def test_list_tags():
     """Test listing tags."""
     root = os.path.abspath(os.path.dirname(__file__))
-    tags = zsh_helper.list_tags({'config': Path(root + '/../cobib/docs/debug.ini')})
+    tags = zsh_helper.list_tags({'config': Path(root + '/../cobib/docs/debug.py')})
     assert tags == ['einstein', 'latexcompanion', 'knuthwebsite']
 
 
 def test_list_filters():
     """Test listing filters."""
     root = os.path.abspath(os.path.dirname(__file__))
-    filters = zsh_helper.list_filters({'config': Path(root + '/../cobib/docs/debug.ini')})
+    filters = zsh_helper.list_filters({'config': Path(root + '/../cobib/docs/debug.py')})
     assert filters == {'publisher', 'ENTRYTYPE', 'address', 'ID', 'journal', 'doi', 'year', 'title',
                        'author', 'pages', 'number', 'volume', 'url'}
