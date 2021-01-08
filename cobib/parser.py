@@ -142,7 +142,7 @@ class Entry:
             month = int(month)
         except ValueError:
             pass
-        if type(month).__name__ != type_:
+        if not isinstance(month, type_):
             LOGGER.debug('Converting month type for %s', self.label)
             months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
