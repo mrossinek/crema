@@ -9,6 +9,7 @@ argparse
 args
 arxiv
 attr
+automagically
 biblatex
 bibtex
 bibtexparser
@@ -18,10 +19,12 @@ cobib
 config
 configparser
 configpath
+deepcopied
 defaultdict
 doi
 ini
 init
+initializer
 initscr
 io
 isbn

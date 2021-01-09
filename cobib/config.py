@@ -26,70 +26,15 @@ XDG_CONFIG_FILE = '~/.config/cobib/config.py'
 class Config(dict):
     """CoBib's configuration object.
 
+    The configuration has undergone a major revision during v3.0 when it was redesigned from loading
+    a `INI` file with the `configparser` module to become a standalone Python object.
+    This class wraps the `dict` type and exposes the dictionary keys as attributes to ease access
+    (for both, getting and setting).
+    Furthermore, nested attributes can be set directly without having to ensure that the parent
+    attribute is already present.
+
     Source: https://stackoverflow.com/a/3031270
     """
-
-    MARKER = object()
-
-    # pylint: disable=super-init-not-called
-    def __init__(self, value=None):
-        if value is None:
-            pass
-        elif isinstance(value, dict):
-            for key in value:
-                self.__setitem__(key, value[key])
-        else:
-            raise TypeError('expected dict')
-
-    def __setitem__(self, key, value):
-        if isinstance(value, dict) and not isinstance(value, Config):
-            value = Config(value)
-        super().__setitem__(key, value)
-
-    def __getitem__(self, key):
-        found = self.get(key, Config.MARKER)
-        if found is Config.MARKER:
-            found = Config()
-            super().__setitem__(key, found)
-        return found
-
-    __setattr__, __getattr__ = __setitem__, __getitem__
-
-    @staticmethod
-    def load(configpath=None):
-        """TODO"""
-        if configpath is not None:
-            if isinstance(configpath, io.TextIOWrapper):
-                configpath = configpath.name
-            LOGGER.info('Loading configuration from %s', configpath)
-        elif os.path.exists(os.path.expanduser(XDG_CONFIG_FILE)):
-            LOGGER.info('Loading configuration from default location: %s',
-                        os.path.expanduser(XDG_CONFIG_FILE))
-            configpath = os.path.expanduser(XDG_CONFIG_FILE)
-        else:
-            return
-        spec = importlib.util.spec_from_file_location("config", configpath)
-        cfg = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(cfg)
-
-    def update(self, **kwargs):
-        for key, value in kwargs.items():
-            self[key] = copy.deepcopy(value)
-
-    def get_ansi_color(self, name):
-        """Returns an ANSI color code for the named color.
-
-        Args:
-            name (str): a named color as specified in the configuration *excluding* the `_fg` or
-                        `_bg` suffix.
-
-        Returns:
-            A string representing the foreground and background ANSI color code.
-        """
-        fg_color = 30 + ANSI_COLORS.index(self.tui.colors.get(name + '_fg'))
-        bg_color = 40 + ANSI_COLORS.index(self.tui.colors.get(name + '_bg'))
-
-        return f'\x1b[{fg_color};{bg_color}m'
 
     DEFAULTS = {
         'database': {
@@ -151,25 +96,87 @@ class Config(dict):
         },
     }
 
-    def defaults(self):
-        """TODO"""
-        try:
-            del self.database
-        except AttributeError:
-            pass
-        self.database.update(**self.DEFAULTS['database'])
+    # pylint: disable=super-init-not-called
+    def __init__(self, value=None):
+        """Initializer of the recursive, attribute-access, dict-like configuration object.
 
-        try:
-            del self.format
-        except AttributeError:
-            pass
-        self.format.update(**self.DEFAULTS['format'])
+        The initializer does nothing when `None` is given.
+        When a dict is given, all values are set as attributes.
 
-        try:
-            del self.tui
-        except AttributeError:
+        Args:
+            value (dict, optional): a dictionary of settings.
+        """
+        if value is None:
             pass
-        self.tui.update(**self.DEFAULTS['tui'])
+        elif isinstance(value, dict):
+            for key, val in value.items():
+                self.__setitem__(key, val)
+        else:
+            raise TypeError('expected dict')
+
+    def __setitem__(self, key, value):
+        """Sets a key, value pair in the object's dictionary.
+
+        Args:
+            key (str): the attributes' name.
+            value (Any): the attributes' value.
+        """
+        if isinstance(value, dict) and not isinstance(value, Config):
+            value = Config(value)
+        super().__setitem__(key, value)
+
+    # A helper object for detecting the nested recursion-threshold.
+    MARKER = object()
+
+    def __getitem__(self, key):
+        """Gets a key from the configuration object's dictionary.
+
+        If the key is not present yet, it is automagically initialized with an empty configuration
+        object to allow recursive attribute-setting.
+
+        Args:
+            key (str): the queried attributes' name.
+        """
+        found = self.get(key, Config.MARKER)
+        if found is Config.MARKER:
+            found = Config()
+            super().__setitem__(key, found)
+        return found
+
+    # Enable attribute-like access of the dictionary items
+    __setattr__, __getattr__ = __setitem__, __getitem__
+
+    def update(self, **kwargs):
+        """Updates the configuration with a dictionary of settings.
+
+        This ensures values are deepcopied, too.
+        """
+        for key, value in kwargs.items():
+            self[key] = copy.deepcopy(value)
+
+    @staticmethod
+    def load(configpath=None):
+        """Loads another configuration object at runtime.
+
+        WARNING: The new Python-like configuration allows essentially arbitrary Python code so it is
+        the user's responsibility to treat this with care!
+
+        Args:
+            configpath (str, io.TextIOWrapper): the path to the configuration.
+        """
+        if configpath is not None:
+            if isinstance(configpath, io.TextIOWrapper):
+                configpath = configpath.name
+            LOGGER.info('Loading configuration from %s', configpath)
+        elif os.path.exists(os.path.expanduser(XDG_CONFIG_FILE)):
+            LOGGER.info('Loading configuration from default location: %s',
+                        os.path.expanduser(XDG_CONFIG_FILE))
+            configpath = os.path.expanduser(XDG_CONFIG_FILE)
+        else:
+            return
+        spec = importlib.util.spec_from_file_location("config", configpath)
+        cfg = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cfg)
 
     def validate(self):
         """Validates the configuration at runtime."""
@@ -243,6 +250,27 @@ class Config(dict):
         """
         if not expression:
             raise RuntimeError(error)
+
+    def defaults(self):
+        """Resets the configuration to the default settings."""
+        self.database.update(**self.DEFAULTS['database'])
+        self.format.update(**self.DEFAULTS['format'])
+        self.tui.update(**self.DEFAULTS['tui'])
+
+    def get_ansi_color(self, name):
+        """Returns an ANSI color code for the named color.
+
+        Args:
+            name (str): a named color as specified in the configuration *excluding* the `_fg` or
+                        `_bg` suffix.
+
+        Returns:
+            A string representing the foreground and background ANSI color code.
+        """
+        fg_color = 30 + ANSI_COLORS.index(self.tui.colors.get(name + '_fg'))
+        bg_color = 40 + ANSI_COLORS.index(self.tui.colors.get(name + '_bg'))
+
+        return f'\x1b[{fg_color};{bg_color}m'
 
 
 config = Config()
