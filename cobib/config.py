@@ -219,6 +219,7 @@ class Config(dict):
                      "config.tui.scroll_offset should be an integer.")
 
         # TUI.COLORS section
+        LOGGER.debug('Validating the TUI.COLORS configuration section.')
         self._assert(self.tui.colors, "Missing config.tui.colors section!")
         for name in self.DEFAULTS['tui']['colors'].keys():
             self._assert(name in self.tui.colors.keys(),
@@ -233,6 +234,7 @@ class Config(dict):
                          f"Unknown color specification: {color}")
 
         # TUI.KEY_BINDINGS section
+        LOGGER.debug('Validating the TUI.KEY_BINDINGS configuration section.')
         self._assert(self.tui.key_bindings, "Missing config.tui.key_bindings section!")
         for command in self.DEFAULTS['tui']['key_bindings'].keys():
             self._assert(command in self.tui.key_bindings.keys(),

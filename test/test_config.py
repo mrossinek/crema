@@ -46,6 +46,7 @@ def test_missing_section(setup, sections):
 
 @pytest.mark.parametrize(['sections', 'field'], [
         [['database'], 'file'],
+        [['database'], 'git'],
         [['database'], 'open'],
         [['database'], 'grep'],
         [['database'], 'search_ignore_case'],
