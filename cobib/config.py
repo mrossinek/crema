@@ -1,5 +1,6 @@
 """CoBib configuration module."""
 
+import copy
 import importlib.util
 import io
 import logging
@@ -71,20 +72,9 @@ class Config(dict):
         cfg = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cfg)
 
-    def validate(self):
-        """Validates the configuration at runtime."""
-        LOGGER.info('Validating the runtime configuration.')
-        # TODO
-
-    @staticmethod
-    def _assert(expression, error):
-        """Asserts the expression is True.
-
-        Raises:
-            RuntimeError with the specified error string.
-        """
-        if not expression:
-            raise RuntimeError(error)
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            self[key] = copy.deepcopy(value)
 
     def get_ansi_color(self, name):
         """Returns an ANSI color code for the named color.
@@ -101,71 +91,158 @@ class Config(dict):
 
         return f'\x1b[{fg_color};{bg_color}m'
 
+    DEFAULTS = {
+        'database': {
+            'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
+            'git': False,
+            'open': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
+            'grep': 'grep',
+            'search_ignore_case': False,
+        },
+        'format': {
+            'month': int,
+            'ignore_non_standard_types': False,
+            'default_entry_type': 'article',
+        },
+        'tui': {
+            'default_list_args': '-l',
+            'prompt_before_quit': True,
+            'reverse_order': True,
+            'scroll_offset': 3,
+            'colors': {
+                'cursor_line_fg': 'white',
+                'cursor_line_bg': 'cyan',
+                'top_statusbar_fg': 'black',
+                'top_statusbar_bg': 'yellow',
+                'bottom_statusbar_fg': 'black',
+                'bottom_statusbar_bg': 'yellow',
+                'search_label_fg': 'blue',
+                'search_label_bg': 'black',
+                'search_query_fg': 'red',
+                'search_query_bg': 'black',
+                'popup_help_fg': 'white',
+                'popup_help_bg': 'green',
+                'popup_stdout_fg': 'white',
+                'popup_stdout_bg': 'blue',
+                'popup_stderr_fg': 'white',
+                'popup_stderr_bg': 'red',
+                'selection_fg': 'white',
+                'selection_bg': 'magenta',
+            },
+            'key_bindings': {
+                'prompt': ':',
+                'search': '/',
+                'help': '?',
+                'add': 'a',
+                'delete': 'd',
+                'edit': 'e',
+                'filter': 'f',
+                'modify': 'm',
+                'open': 'o',
+                'quit': 'q',
+                'redo': 'r',
+                'sort': 's',
+                'undo': 'u',
+                'select': 'v',
+                'wrap': 'w',
+                'export': 'x',
+                'show': 'ENTER',
+            },
+        },
+    }
+
     def defaults(self):
         """TODO"""
         try:
             del self.database
         except AttributeError:
             pass
-        self.database.file = os.path.expanduser('~/.local/share/cobib/literature.yaml')
-        self.database.git = False
-        self.database.open = 'xdg-open' if sys.platform.lower() == 'linux' else 'open'
-        self.database.grep = 'grep'
-        self.database.search_ignore_case = False
+        self.database.update(**self.DEFAULTS['database'])
 
         try:
             del self.format
         except AttributeError:
             pass
-        self.format.month = int
-        self.format.ignore_non_standard_types = False
-        self.format.default_entry_type = 'article'
+        self.format.update(**self.DEFAULTS['format'])
 
         try:
             del self.tui
         except AttributeError:
             pass
-        self.tui.default_list_args = '-l'
-        self.tui.prompt_before_quit = True
-        self.tui.reverse_order = True
-        self.tui.scroll_offset = 3
+        self.tui.update(**self.DEFAULTS['tui'])
 
-        self.tui.colors.cursor_line_fg = 'white'
-        self.tui.colors.cursor_line_bg = 'cyan'
-        self.tui.colors.top_statusbar_fg = 'black'
-        self.tui.colors.top_statusbar_bg = 'yellow'
-        self.tui.colors.bottom_statusbar_fg = 'black'
-        self.tui.colors.bottom_statusbar_bg = 'yellow'
-        self.tui.colors.search_label_fg = 'blue'
-        self.tui.colors.search_label_bg = 'black'
-        self.tui.colors.search_query_fg = 'red'
-        self.tui.colors.search_query_bg = 'black'
-        self.tui.colors.popup_help_fg = 'white'
-        self.tui.colors.popup_help_bg = 'green'
-        self.tui.colors.popup_stdout_fg = 'white'
-        self.tui.colors.popup_stdout_bg = 'blue'
-        self.tui.colors.popup_stderr_fg = 'white'
-        self.tui.colors.popup_stderr_bg = 'red'
-        self.tui.colors.selection_fg = 'white'
-        self.tui.colors.selection_bg = 'magenta'
+    def validate(self):
+        """Validates the configuration at runtime."""
+        LOGGER.info('Validating the runtime configuration.')
 
-        self.tui.key_bindings.prompt = ':'
-        self.tui.key_bindings.search = '/'
-        self.tui.key_bindings.help = '?'
-        self.tui.key_bindings.add = 'a'
-        self.tui.key_bindings.delete = 'd'
-        self.tui.key_bindings.edit = 'e'
-        self.tui.key_bindings.filter = 'f'
-        self.tui.key_bindings.modify = 'm'
-        self.tui.key_bindings.open = 'o'
-        self.tui.key_bindings.quit = 'q'
-        self.tui.key_bindings.redo = 'r'
-        self.tui.key_bindings.sort = 's'
-        self.tui.key_bindings.undo = 'u'
-        self.tui.key_bindings.select = 'v'
-        self.tui.key_bindings.wrap = 'w'
-        self.tui.key_bindings.export = 'x'
-        self.tui.key_bindings.show = 'ENTER'
+        # DATABASE section
+        LOGGER.debug('Validating the DATABASE configuration section.')
+        self._assert(self.database, "Missing config.database section!")
+        self._assert(isinstance(self.database.file, str),
+                     "config.database.file should be a string.")
+        self._assert(isinstance(self.database.git, bool),
+                     "config.database.git should be a boolean.")
+        self._assert(isinstance(self.database.open, str),
+                     "config.database.open should be a string.")
+        self._assert(isinstance(self.database.grep, str),
+                     "config.database.grep should be a string.")
+        self._assert(isinstance(self.database.search_ignore_case, bool),
+                     "config.database.search_ignore_case should be a boolean.")
+
+        # FORMAT section
+        LOGGER.debug('Validating the FORMAT configuration section.')
+        self._assert(self.format, "Missing config.format section!")
+        self._assert(self.format.month in (int, str),
+                     "config.format.month should be either the `int` or `str` Python type.")
+        self._assert(isinstance(self.format.ignore_non_standard_types, bool),
+                     "config.format.ignore_non_standard_types should be a boolean.")
+        self._assert(isinstance(self.format.default_entry_type, str),
+                     "config.format.default_entry_type should be a string.")
+
+        # TUI section
+        LOGGER.debug('Validating the TUI configuration section.')
+        self._assert(self.tui, "Missing config.tui section!")
+        self._assert(isinstance(self.tui.default_list_args, str),
+                     "config.tui.default_list_args should be a string.")
+        self._assert(isinstance(self.tui.prompt_before_quit, bool),
+                     "config.tui.prompt_before_quit should be a boolean.")
+        self._assert(isinstance(self.tui.reverse_order, bool),
+                     "config.tui.reverse_order should be a boolean.")
+        self._assert(isinstance(self.tui.scroll_offset, int),
+                     "config.tui.scroll_offset should be an integer.")
+
+        # TUI.COLORS section
+        self._assert(self.tui.colors, "Missing config.tui.colors section!")
+        for name in self.DEFAULTS['tui']['colors'].keys():
+            self._assert(name in self.tui.colors.keys(),
+                         f"Missing config.tui.colors.{name} specification!")
+
+        for name, color in self.tui.colors.items():
+            if name not in self.DEFAULTS['tui']['colors'].keys() and name not in ANSI_COLORS:
+                LOGGER.warning('Ignoring unkonwn TUI color: %s.', name)
+            self._assert(color in ANSI_COLORS or
+                         (len(color.strip('#')) == 6 and
+                          tuple(int(color.strip('#')[i:i+2], 16) for i in (0, 2, 4))),
+                         f"Unknown color specification: {color}")
+
+        # TUI.KEY_BINDINGS section
+        self._assert(self.tui.key_bindings, "Missing config.tui.key_bindings section!")
+        for command in self.DEFAULTS['tui']['key_bindings'].keys():
+            self._assert(command in self.tui.key_bindings.keys(),
+                         f"Missing config.tui.key_bindings.{command} key binding!")
+        for command, key in self.DEFAULTS['tui']['key_bindings'].items():
+            self._assert(isinstance(key, str),
+                         f"config.tui.key_bindings.{command} should be a string.")
+
+    @staticmethod
+    def _assert(expression, error):
+        """Asserts the expression is True.
+
+        Raises:
+            RuntimeError with the specified error string.
+        """
+        if not expression:
+            raise RuntimeError(error)
 
 
 config = Config()

@@ -14,6 +14,8 @@ def setup():
     # ensure configuration is empty
     root = os.path.abspath(os.path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
+    yield setup
+    config.defaults()
 
 
 def test_base_config(setup):
@@ -23,60 +25,82 @@ def test_base_config(setup):
 
 # TODO test config.load method
 
-@pytest.mark.parametrize(['section'], [
-        ['DATABASE'],
-        ['FORMAT'],
-        ['TUI'],
-        ['KEY_BINDINGS'],
-        ['COLORS'],
+
+@pytest.mark.parametrize(['sections'], [
+        [['database']],
+        [['format']],
+        [['tui']],
+        [['tui', 'key_bindings']],
+        [['tui', 'colors']],
     ])
-def test_missing_section(setup, section):
+def test_missing_section(setup, sections):
     """Test raised RuntimeError for missing configuration section."""
-    pytest.skip('TODO: pending `config.validate()` implementation')
     with pytest.raises(RuntimeError) as exc_info:
-        del config[section]
+        section = config
+        for sec in sections[:-1]:
+            section = config[sec]
+        del section[sections[-1]]
         config.validate()
-    assert section in str(exc_info.value)
+    assert f"Missing config.{'.'.join(sections)} section" in str(exc_info.value)
 
 
-@pytest.mark.parametrize(['section', 'field'], [
-        ['DATABASE', 'file'],
-        ['DATABASE', 'open'],
-        ['DATABASE', 'grep'],
-        ['DATABASE', 'search_ignore_case'],
-        ['FORMAT', 'month'],
-        ['FORMAT', 'ignore_non_standard_types'],
-        ['FORMAT', 'default_entry_type'],
-        ['TUI', 'default_list_args'],
-        ['TUI', 'prompt_before_quit'],
-        ['TUI', 'reverse_order'],
-        ['TUI', 'scroll_offset'],
-        ['COLORS', 'cursor_line_fg'],
-        ['COLORS', 'cursor_line_bg'],
-        ['COLORS', 'top_statusbar_fg'],
-        ['COLORS', 'top_statusbar_bg'],
-        ['COLORS', 'bottom_statusbar_fg'],
-        ['COLORS', 'bottom_statusbar_bg'],
-        ['COLORS', 'search_label_fg'],
-        ['COLORS', 'search_label_bg'],
-        ['COLORS', 'search_query_fg'],
-        ['COLORS', 'search_query_bg'],
-        ['COLORS', 'popup_help_fg'],
-        ['COLORS', 'popup_help_bg'],
-        ['COLORS', 'popup_stdout_fg'],
-        ['COLORS', 'popup_stdout_bg'],
-        ['COLORS', 'popup_stderr_fg'],
-        ['COLORS', 'popup_stderr_bg'],
-        ['COLORS', 'selection_fg'],
-        ['COLORS', 'selection_bg'],
+@pytest.mark.parametrize(['sections', 'field'], [
+        [['database'], 'file'],
+        [['database'], 'open'],
+        [['database'], 'grep'],
+        [['database'], 'search_ignore_case'],
+        [['format'], 'month'],
+        [['format'], 'ignore_non_standard_types'],
+        [['format'], 'default_entry_type'],
+        [['tui'], 'default_list_args'],
+        [['tui'], 'prompt_before_quit'],
+        [['tui'], 'reverse_order'],
+        [['tui'], 'scroll_offset'],
+        [['tui', 'colors'], 'cursor_line_fg'],
+        [['tui', 'colors'], 'cursor_line_bg'],
+        [['tui', 'colors'], 'top_statusbar_fg'],
+        [['tui', 'colors'], 'top_statusbar_bg'],
+        [['tui', 'colors'], 'bottom_statusbar_fg'],
+        [['tui', 'colors'], 'bottom_statusbar_bg'],
+        [['tui', 'colors'], 'search_label_fg'],
+        [['tui', 'colors'], 'search_label_bg'],
+        [['tui', 'colors'], 'search_query_fg'],
+        [['tui', 'colors'], 'search_query_bg'],
+        [['tui', 'colors'], 'popup_help_fg'],
+        [['tui', 'colors'], 'popup_help_bg'],
+        [['tui', 'colors'], 'popup_stdout_fg'],
+        [['tui', 'colors'], 'popup_stdout_bg'],
+        [['tui', 'colors'], 'popup_stderr_fg'],
+        [['tui', 'colors'], 'popup_stderr_bg'],
+        [['tui', 'colors'], 'selection_fg'],
+        [['tui', 'colors'], 'selection_bg'],
+        [['tui', 'key_bindings'], 'prompt'],
+        [['tui', 'key_bindings'], 'search'],
+        [['tui', 'key_bindings'], 'help'],
+        [['tui', 'key_bindings'], 'add'],
+        [['tui', 'key_bindings'], 'delete'],
+        [['tui', 'key_bindings'], 'edit'],
+        [['tui', 'key_bindings'], 'filter'],
+        [['tui', 'key_bindings'], 'modify'],
+        [['tui', 'key_bindings'], 'open'],
+        [['tui', 'key_bindings'], 'quit'],
+        [['tui', 'key_bindings'], 'redo'],
+        [['tui', 'key_bindings'], 'sort'],
+        [['tui', 'key_bindings'], 'undo'],
+        [['tui', 'key_bindings'], 'select'],
+        [['tui', 'key_bindings'], 'wrap'],
+        [['tui', 'key_bindings'], 'export'],
+        [['tui', 'key_bindings'], 'show'],
     ])
-def test_database_section(setup, section, field):
+def test_missing_config_fields(setup, sections, field):
     """Test raised RuntimeError for missing config fields."""
-    pytest.skip('TODO: pending `config.validate()` implementation')
     with pytest.raises(RuntimeError) as exc_info:
-        del config[section][field]
+        section = config
+        for sec in sections[:-1]:
+            section = config[sec]
+        del section[sections[-1]][field]
         config.validate()
-    assert f'{section}/{field}' in str(exc_info.value)
+    assert f"config.{'.'.join(sections)}.{field}" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(['color'], [
@@ -101,8 +125,7 @@ def test_database_section(setup, section, field):
     ])
 def test_valid_tui_colors(setup, color):
     """Test curses color specification validation."""
-    pytest.skip('TODO: pending `config.validate()` implementation')
     with pytest.raises(RuntimeError) as exc_info:
-        config.tui['COLORS'][color] = 'test'
+        config.tui.colors[color] = 'test'
         config.validate()
     assert str(exc_info.value) == 'Unknown color specification: test'
