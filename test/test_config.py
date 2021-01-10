@@ -8,10 +8,41 @@ import pytest
 from cobib.config import config
 
 
+def test_load_config():
+    """Test loading another config file."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    config.load(Path(root + '/../cobib/docs/debug.py'))
+    assert config.database.file == './test/example_literature.yaml'
+
+
+# TODO: remove legacy configuration support on 1.1.2022
+def test_load_legacy_config():
+    """Test loading a legacy config file."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    print(root)
+    config.load_legacy_config(Path(root + '/legacy_config.ini'))
+    # first, it must pass the validation test
+    config.validate()
+    # then we also check that all settings have been changed somehow
+    assert config.database.file == 'string'
+    assert config.database.git is True
+    assert config.database.grep == 'string'
+    assert config.database.open == 'string'
+    assert config.database.search_ignore_case is True
+    assert config.format.month == str
+    assert config.format.ignore_non_standard_types is True
+    assert config.format.default_entry_type == 'string'
+    assert config.tui.default_list_args == 'string'
+    assert config.tui.prompt_before_quit is False
+    assert config.tui.reverse_order is False
+    assert config.tui.scroll_offset == 5
+    assert config.tui.colors.cursor_line_fg == 'black'
+    assert config.tui.key_bindings.prompt == 'p'
+
+
 @pytest.fixture
 def setup():
     """Setup."""
-    # ensure configuration is empty
     root = os.path.abspath(os.path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
     yield setup
@@ -21,9 +52,6 @@ def setup():
 def test_base_config(setup):
     """Test the initial configuration passes all validation checks."""
     config.validate()
-
-
-# TODO test config.load method
 
 
 @pytest.mark.parametrize(['sections'], [
