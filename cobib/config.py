@@ -1,5 +1,6 @@
 """CoBib configuration module."""
 
+import configparser
 import copy
 import importlib.util
 import io
@@ -21,6 +22,8 @@ ANSI_COLORS = [
 ]
 
 XDG_CONFIG_FILE = '~/.config/cobib/config.py'
+# TODO: remove legacy configuration support on 1.1.2022
+LEGACY_XDG_CONFIG_FILE = '~/.config/cobib/config.ini'
 
 
 class Config(dict):
@@ -172,11 +175,102 @@ class Config(dict):
             LOGGER.info('Loading configuration from default location: %s',
                         os.path.expanduser(XDG_CONFIG_FILE))
             configpath = os.path.expanduser(XDG_CONFIG_FILE)
+        elif os.path.exists(os.path.expanduser(LEGACY_XDG_CONFIG_FILE)):
+            LOGGER.info('Loading configuration from default location: %s',
+                        os.path.expanduser(LEGACY_XDG_CONFIG_FILE))
+            configpath = os.path.expanduser(LEGACY_XDG_CONFIG_FILE)
         else:
             return
         spec = importlib.util.spec_from_file_location("config", configpath)
-        cfg = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(cfg)
+        if spec is None:
+            LOGGER.warning('The config at %s could not be interpreted as a Python module.',
+                           configpath)
+            # attempt to load legacy INI configuration
+            Config.load_legacy_config(configpath)
+        else:
+            cfg = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(cfg)
+
+    @staticmethod
+    def load_legacy_config(configpath):
+        # pylint: disable=too-many-branches,too-many-nested-blocks
+        """Loads a legacy `INI`-style configuration file.
+
+        WARNING: This functionality will be removed on 1.1.2022! Users will be warned when using
+        this configuration method.
+
+        Args:
+            configpath (str): the path to the configuration.
+        """
+        ini_conf = configparser.ConfigParser()
+        ini_conf.optionxform = str  # makes option names case-sensitive!
+        ini_conf.read(configpath)
+
+        # We need to manually iterate all sections and fields because some settings need to be moved
+        # and/or need to be converted to the correct Python types
+        for section in ini_conf.sections():
+            if section == 'DATABASE':
+                for field, value in dict(ini_conf[section]).items():
+                    if field in ['file', 'open', 'grep']:
+                        config.database[field] = value
+                    elif field in ['git', 'search_ignore_case']:
+                        try:
+                            config.database[field] = ini_conf[section].getboolean(field)
+                        except ValueError as exc:
+                            LOGGER.error(exc)
+                            LOGGER.warning('Ignoring unknown option for %s/%s = %s',
+                                           section, field, value)
+                    else:
+                        LOGGER.warning('Ignoring unknown setting %s', f'{section}/{field}')
+            elif section == 'FORMAT':
+                for field, value in dict(ini_conf[section]).items():
+                    if field in ['default_entry_type']:
+                        config.format[field] = value
+                    elif field in ['ignore_non_standard_types']:
+                        try:
+                            config.format[field] = ini_conf[section].getboolean(field)
+                        except ValueError as exc:
+                            LOGGER.error(exc)
+                            LOGGER.warning('Ignoring unknown option for %s/%s = %s',
+                                           section, field, value)
+                    elif field == 'month':
+                        if value == 'int':
+                            config.format.month = int
+                        elif value == 'str':
+                            config.format.month = str
+                        else:
+                            LOGGER.warning('Ignoring unknown option for %s/%s = %s',
+                                           section, field, value)
+                    else:
+                        LOGGER.warning('Ignoring unknown setting %s', f'{section}/{field}')
+            elif section == 'TUI':
+                for field, value in dict(ini_conf[section]).items():
+                    if field in ['default_list_args']:
+                        config.tui[field] = value
+                    elif field in ['prompt_before_quit', 'reverse_order']:
+                        try:
+                            config.tui[field] = ini_conf[section].getboolean(field)
+                        except ValueError as exc:
+                            LOGGER.error(exc)
+                            LOGGER.warning('Ignoring unknown option for %s/%s = %s',
+                                           section, field, value)
+                    elif field in ['scroll_offset']:
+                        try:
+                            config.tui[field] = ini_conf[section].getint(field)
+                        except ValueError as exc:
+                            LOGGER.error(exc)
+                            LOGGER.warning('Ignoring unknown option for %s/%s = %s',
+                                           section, field, value)
+                    else:
+                        LOGGER.warning('Ignoring unknown setting %s', f'{section}/{field}')
+            elif section == 'COLORS':
+                for field, value in dict(ini_conf[section]).items():
+                    config.tui.colors[field] = value
+            elif section == 'KEY_BINDINGS':
+                for field, value in dict(ini_conf[section]).items():
+                    config.tui.key_bindings[field.lower()] = value
+            else:
+                LOGGER.warning('Ignoring unknown config section %s', section)
 
     def validate(self):
         """Validates the configuration at runtime."""
