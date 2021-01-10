@@ -24,11 +24,11 @@ def test_load_legacy_config():
     # first, it must pass the validation test
     config.validate()
     # then we also check that all settings have been changed somehow
+    assert config.commands.open.command == 'string'
+    assert config.commands.search.grep == 'string'
+    assert config.commands.search.ignore_case is True
     assert config.database.file == 'string'
     assert config.database.git is True
-    assert config.database.grep == 'string'
-    assert config.database.open == 'string'
-    assert config.database.search_ignore_case is True
     assert config.format.month == str
     assert config.format.ignore_non_standard_types is True
     assert config.format.default_entry_type == 'string'
@@ -73,11 +73,11 @@ def test_missing_section(setup, sections):
 
 
 @pytest.mark.parametrize(['sections', 'field'], [
+        [['commands', 'open'], 'command'],
+        [['commands', 'search'], 'grep'],
+        [['commands', 'search'], 'ignore_case'],
         [['database'], 'file'],
         [['database'], 'git'],
-        [['database'], 'open'],
-        [['database'], 'grep'],
-        [['database'], 'search_ignore_case'],
         [['format'], 'month'],
         [['format'], 'ignore_non_standard_types'],
         [['format'], 'default_entry_type'],

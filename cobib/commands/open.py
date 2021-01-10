@@ -125,7 +125,7 @@ class OpenCommand(Command):
     @staticmethod
     def _open_url(url):
         """Opens a URL."""
-        opener = config.database.open
+        opener = config.commands.open.command
         try:
             url = url.geturl() if url.scheme else os.path.abspath(url.geturl())
             LOGGER.debug('Opening "%s" with %s.', url, opener)

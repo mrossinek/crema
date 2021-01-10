@@ -40,12 +40,18 @@ class Config(dict):
     """
 
     DEFAULTS = {
+        'commands': {
+            'open': {
+                'command': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
+            },
+            'search': {
+                'grep': 'grep',
+                'ignore_case': False
+            },
+        },
         'database': {
             'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
             'git': False,
-            'open': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
-            'grep': 'grep',
-            'search_ignore_case': False,
         },
         'format': {
             'month': int,
@@ -234,15 +240,21 @@ class Config(dict):
         for section in ini_conf.sections():
             if section == 'DATABASE':
                 for field, value in dict(ini_conf[section]).items():
-                    if field in ['file', 'open', 'grep']:
+                    if field in ['file']:
                         config.database[field] = value
-                    elif field in ['git', 'search_ignore_case']:
+                    elif field in ['git']:
                         try:
                             config.database[field] = ini_conf[section].getboolean(field)
                         except ValueError as exc:
                             LOGGER.error(exc)
                             LOGGER.warning('Ignoring unknown option for %s/%s = %s',
                                            section, field, value)
+                    elif field == 'open':
+                        config.commands.open.command = value
+                    elif field == 'grep':
+                        config.commands.search.grep = value
+                    elif field == 'search_ignore_case':
+                        config.commands.search.ignore_case = ini_conf[section].getboolean(field)
                     else:
                         LOGGER.warning('Ignoring unknown setting %s', f'{section}/{field}')
             elif section == 'FORMAT':
@@ -299,6 +311,19 @@ class Config(dict):
         """Validates the configuration at runtime."""
         LOGGER.info('Validating the runtime configuration.')
 
+        # COMMANDS section
+        LOGGER.debug('Validating the COMMANDS configuration section.')
+        # COMMANDS.OPEN section
+        LOGGER.debug('Validating the COMMANDS.OPEN configuration section.')
+        self._assert(isinstance(self.commands.open.command, str),
+                     "config.commands.open.command should be a string.")
+        # COMMANDS.SEARCH section
+        LOGGER.debug('Validating the COMMANDS.SEARCH configuration section.')
+        self._assert(isinstance(self.commands.search.grep, str),
+                     "config.commands.search.grep should be a string.")
+        self._assert(isinstance(self.commands.search.ignore_case, bool),
+                     "config.commands.search.ignore_case should be a boolean.")
+
         # DATABASE section
         LOGGER.debug('Validating the DATABASE configuration section.')
         self._assert(self.database, "Missing config.database section!")
@@ -306,12 +331,6 @@ class Config(dict):
                      "config.database.file should be a string.")
         self._assert(isinstance(self.database.git, bool),
                      "config.database.git should be a boolean.")
-        self._assert(isinstance(self.database.open, str),
-                     "config.database.open should be a string.")
-        self._assert(isinstance(self.database.grep, str),
-                     "config.database.grep should be a string.")
-        self._assert(isinstance(self.database.search_ignore_case, bool),
-                     "config.database.search_ignore_case should be a boolean.")
 
         # FORMAT section
         LOGGER.debug('Validating the FORMAT configuration section.')
@@ -372,9 +391,8 @@ class Config(dict):
 
     def defaults(self):
         """Resets the configuration to the default settings."""
-        self.database.update(**self.DEFAULTS['database'])
-        self.format.update(**self.DEFAULTS['format'])
-        self.tui.update(**self.DEFAULTS['tui'])
+        for section in self.DEFAULTS.keys():
+            self[section].update(**self.DEFAULTS[section])
 
     def get_ansi_color(self, name):
         """Returns an ANSI color code for the named color.

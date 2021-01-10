@@ -54,7 +54,7 @@ class SearchCommand(Command):
         labels = ListCommand().execute(largs.filter, out=open(os.devnull, 'w'))
         LOGGER.debug('Available entries to search: %s', labels)
 
-        ignore_case = config.database.search_ignore_case or largs.ignore_case
+        ignore_case = config.commands.search.ignore_case or largs.ignore_case
         re_flags = re.IGNORECASE if ignore_case else 0
         LOGGER.debug('The search will be performed case %ssensitive', 'in' if ignore_case else '')
 

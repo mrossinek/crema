@@ -470,7 +470,7 @@ def test_search(setup, args, expected, config_overwrite):
         expected: expected result.
         config_overwrite: with what to overwrite the DATABASE/ignore_search_case config option.
     """
-    config.database.search_ignore_case = config_overwrite
+    config.commands.search.ignore_case = config_overwrite
     file = StringIO()
     commands.SearchCommand().execute(args, out=file)
     for line, exp in zip_longest(file.getvalue().split('\n'), expected):

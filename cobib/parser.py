@@ -240,7 +240,7 @@ class Entry:
                         break
 
         if self.file and os.path.exists(self.file):
-            grep_prog = config.database.grep
+            grep_prog = config.commands.search.grep
             LOGGER.debug('Searching associated file %s with %s', self.file, grep_prog)
             grep = subprocess.Popen([grep_prog, f'-C{context}', query, self.file],
                                     stdout=subprocess.PIPE)
