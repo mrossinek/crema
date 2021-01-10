@@ -60,11 +60,6 @@ def main():
         LOGGER.info('Logging level set to DEBUG.')
 
     config.load(args.config)
-    try:
-        config.validate()
-    except RuntimeError as exc:
-        LOGGER.error(exc)
-        sys.exit(1)
 
     if args.command == 'init':
         # the database file may not exist yet, thus we ensure to execute the command before trying

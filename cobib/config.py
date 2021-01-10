@@ -191,6 +191,13 @@ class Config(dict):
             cfg = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(cfg)
 
+        try:
+            # validate config
+            config.validate()
+        except RuntimeError as exc:
+            LOGGER.error(exc)
+            sys.exit(1)
+
     @staticmethod
     def load_legacy_config(configpath):
         # pylint: disable=too-many-branches,too-many-nested-blocks
