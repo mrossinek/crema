@@ -181,6 +181,22 @@ class Config(dict):
             configpath = os.path.expanduser(LEGACY_XDG_CONFIG_FILE)
         else:
             return
+
+        if os.path.exists(os.path.expanduser(LEGACY_XDG_CONFIG_FILE)):
+            msg = (
+                   "The configuration mechanism of CoBib underwent a major re-design for version "
+                   "3.0! This means, that the old `INI`-style configuration is deprecated and will "
+                   "be fully removed on 1.1.2022. Instead, the configuration is now done through a "
+                   "Python file. For guidance on how to convert your existing configuration please "
+                   "consult the man-page or my blog post: <TODO insert link>."
+                   "\nIf you have successfully migrated your configuration you should delete the "
+                   "old file in order to remove this warning message."
+                  )
+            print('\x1b[1;37;41m#############\x1b[0m')
+            print('\x1b[1;37;41m## WARNING ##\x1b[0m')
+            print('\x1b[1;37;41m#############\x1b[0m')
+            print(msg)
+
         spec = importlib.util.spec_from_file_location("config", configpath)
         if spec is None:
             LOGGER.warning('The config at %s could not be interpreted as a Python module.',
