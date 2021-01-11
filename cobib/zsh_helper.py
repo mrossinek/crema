@@ -1,6 +1,7 @@
 """CoBib ZSH Helper."""
 
 import inspect
+import os
 
 from cobib import commands
 from cobib.config import config
@@ -26,3 +27,10 @@ def list_filters():
     for entry in config.bib_data.values():
         filters.update(entry.data.keys())
     return filters
+
+
+def example_config():
+    """Shows the (well-commented) example configuration."""
+    root = os.path.abspath(os.path.dirname(__file__))
+    with open(root + '/docs/example.py', 'r') as file:
+        return [line.strip() for line in file.readlines()]
