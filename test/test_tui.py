@@ -22,7 +22,7 @@ from cobib.tui import TextBuffer, TUI
 def setup():
     """Setup."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_scrolling_entry.bib'])
@@ -317,7 +317,7 @@ def assert_config_color(screen, colors):
 def test_tui_config_color():
     """Test TUI color configuration."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     # overwrite color configuration
     config.tui.colors.top_statusbar_bg = 'red'
     config.tui.colors.top_statusbar_fg = 'blue'
@@ -344,7 +344,7 @@ def test_tui_config_color():
 def test_tui_config_keys(command, key):
     """Test TUI key binding configuration."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     # overwrite key binding configuration
     config.tui.key_bindings[command] = key
     # NOTE: normally you would never trigger an Add command before reading the database but in this
@@ -380,7 +380,7 @@ def assert_quit(screen, prompt):
 def test_tui_quit_prompt(setting, keys):
     """Test the prompt_before_quit setting of the TUI."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     # set prompt_before_quit setting
     config.tui.prompt_before_quit = setting
     read_database()
@@ -408,7 +408,7 @@ def assert_open(screen):
 def test_tui_open_menu():
     """Test the open prompt menu for multiple associated files."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine
     AddCommand().execute(['-b', './test/dummy_multi_file_entry.bib'])
@@ -500,7 +500,7 @@ def test_tui_resize(setup, keys, assertion, assertion_kwargs):
 def test_tui_scrolling(keys, assertion, assertion_kwargs):
     """Test TUI scrolling behavior."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     # overwrite database file
     config.database.file = './test/scrolling_database.yaml'
     read_database()

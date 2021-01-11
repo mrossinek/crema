@@ -121,7 +121,7 @@ def test_parser_from_bibtex_as_str(month_type):
         month_type (str): type to use for storing the 'month' field.
     """
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
@@ -141,7 +141,7 @@ def test_parser_from_bibtex_as_file(month_type):
         month_type (str): type to use for storing the 'month' field.
     """
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
@@ -160,7 +160,7 @@ def test_parser_from_yaml_as_file(month_type):
         month_type (str): type to use for storing the 'month' field.
     """
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
@@ -179,7 +179,7 @@ def test_parser_from_doi(month_type):
         month_type (str): type to use for storing the 'month' field.
     """
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
@@ -198,7 +198,7 @@ def test_parser_from_doi(month_type):
 def test_parser_from_doi_invalid():
     """Test parsing an invalid DOI."""
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     entries = parser.Entry.from_doi('1812.09976')
     assert not entries
     assert entries == {}
@@ -207,7 +207,7 @@ def test_parser_from_doi_invalid():
 def test_parser_from_isbn():
     """Test parsing from ISBN."""
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     entries = parser.Entry.from_isbn('978-1-449-35573-9')
     entry = list(entries.values())[0]
     assert entry.label == 'Lutz2013'
@@ -221,7 +221,7 @@ def test_parser_from_isbn():
 def test_parser_from_isbn_empty():
     """Test parsing an empty ISBN."""
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     entries = parser.Entry.from_isbn('3860704443')
     assert not entries
     assert entries == {}
@@ -230,7 +230,7 @@ def test_parser_from_isbn_empty():
 def test_parser_from_arxiv():
     """Test parsing from arxiv."""
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     reference = EXAMPLE_ENTRY_DICT.copy()
     entries = parser.Entry.from_arxiv('1812.09976')
     entry = list(entries.values())[0]
@@ -246,7 +246,7 @@ def test_parser_from_arxiv():
 def test_parser_from_arxiv_invalid():
     """Test parsing an invalid arXiv ID."""
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     entries = parser.Entry.from_arxiv('10.1021/acs.chemrev.8b00803')
     assert not entries
     assert entries == {}
@@ -260,7 +260,7 @@ def test_escape_special_chars(month_type):
         month_type (str): type to use for storing the 'month' field.
     """
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
@@ -274,7 +274,7 @@ def test_escape_special_chars(month_type):
 def test_unchanged_umlaut_in_label():
     """Test unchanged Umlaut in labels."""
     root = path.abspath(path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     reference = {
         'ENTRYTYPE': 'book',
         'ID': 'LaTeX_Einführung',

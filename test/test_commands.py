@@ -39,7 +39,7 @@ def assert_git_commit_message(command, args):
 def setup():
     """Setup."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.validate()
     read_database()
     yield setup
@@ -182,7 +182,7 @@ def test_show(setup):
 def open_setup():
     """Setup for OpenCommand testing."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     config.validate()
     # NOTE: normally you would never trigger an Add command before reading the database but in this
     # controlled testing scenario we can be certain that this is fine

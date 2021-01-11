@@ -11,7 +11,7 @@ from cobib.config import config
 def test_load_config():
     """Test loading another config file."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     assert config.database.file == './test/example_literature.yaml'
 
 
@@ -44,7 +44,7 @@ def test_load_legacy_config():
 def setup():
     """Setup."""
     root = os.path.abspath(os.path.dirname(__file__))
-    config.load(Path(root + '/../cobib/docs/debug.py'))
+    config.load(Path(root + '/debug.py'))
     yield setup
     config.defaults()
 
