@@ -204,10 +204,10 @@ class Config(dict):
                    "\nIf you have successfully migrated your configuration you should delete the "
                    "old file in order to remove this warning message."
                   )
-            print('\x1b[1;37;41m#############\x1b[0m')
-            print('\x1b[1;37;41m## WARNING ##\x1b[0m')
-            print('\x1b[1;37;41m#############\x1b[0m')
-            print(msg)
+            print('\x1b[1;37;41m#############\x1b[0m', file=sys.stderr)
+            print('\x1b[1;37;41m## WARNING ##\x1b[0m', file=sys.stderr)
+            print('\x1b[1;37;41m#############\x1b[0m', file=sys.stderr)
+            print(msg, file=sys.stderr)
 
         spec = importlib.util.spec_from_file_location("config", configpath)
         if spec is None:
