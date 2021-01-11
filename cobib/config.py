@@ -41,6 +41,9 @@ class Config(dict):
 
     DEFAULTS = {
         'commands': {
+            'edit': {
+                'default_entry_type': 'article',
+            },
             'open': {
                 'command': 'xdg-open' if sys.platform.lower() == 'linux' else 'open',
             },
@@ -51,12 +54,15 @@ class Config(dict):
         },
         'database': {
             'file': os.path.expanduser('~/.local/share/cobib/literature.yaml'),
+            'format': {
+                'month': int,
+            },
             'git': False,
         },
-        'format': {
-            'month': int,
-            'ignore_non_standard_types': False,
-            'default_entry_type': 'article',
+        'parsers': {
+            'bibtex': {
+                'ignore_non_standard_types': False,
+            },
         },
         'tui': {
             'default_list_args': '-l',
@@ -259,20 +265,20 @@ class Config(dict):
                         LOGGER.warning('Ignoring unknown setting %s', f'{section}/{field}')
             elif section == 'FORMAT':
                 for field, value in dict(ini_conf[section]).items():
-                    if field in ['default_entry_type']:
-                        config.format[field] = value
-                    elif field in ['ignore_non_standard_types']:
+                    if field == 'default_entry_type':
+                        config.commands.edit.default_entry_type = value
+                    elif field == 'ignore_non_standard_types':
                         try:
-                            config.format[field] = ini_conf[section].getboolean(field)
+                            config.parsers.bibtex[field] = ini_conf[section].getboolean(field)
                         except ValueError as exc:
                             LOGGER.error(exc)
                             LOGGER.warning('Ignoring unknown option for %s/%s = %s',
                                            section, field, value)
                     elif field == 'month':
                         if value == 'int':
-                            config.format.month = int
+                            config.database.format.month = int
                         elif value == 'str':
-                            config.format.month = str
+                            config.database.format.month = str
                         else:
                             LOGGER.warning('Ignoring unknown option for %s/%s = %s',
                                            section, field, value)
@@ -313,6 +319,10 @@ class Config(dict):
 
         # COMMANDS section
         LOGGER.debug('Validating the COMMANDS configuration section.')
+        # COMMANDS.EDIT section
+        LOGGER.debug('Validating the COMMANDS.EDIT configuration section.')
+        self._assert(isinstance(self.commands.edit.default_entry_type, str),
+                     "config.commands.edit.default_entry_type should be a string.")
         # COMMANDS.OPEN section
         LOGGER.debug('Validating the COMMANDS.OPEN configuration section.')
         self._assert(isinstance(self.commands.open.command, str),
@@ -325,26 +335,19 @@ class Config(dict):
                      "config.commands.search.ignore_case should be a boolean.")
 
         # DATABASE section
-        LOGGER.debug('Validating the DATABASE configuration section.')
-        self._assert(self.database, "Missing config.database section!")
         self._assert(isinstance(self.database.file, str),
                      "config.database.file should be a string.")
         self._assert(isinstance(self.database.git, bool),
                      "config.database.git should be a boolean.")
+        # DATABASE.FORMAT section
+        self._assert(self.database.format.month in (int, str),
+                     "config.database.format.month should be either the `int` or `str` type.")
 
-        # FORMAT section
-        LOGGER.debug('Validating the FORMAT configuration section.')
-        self._assert(self.format, "Missing config.format section!")
-        self._assert(self.format.month in (int, str),
-                     "config.format.month should be either the `int` or `str` Python type.")
-        self._assert(isinstance(self.format.ignore_non_standard_types, bool),
-                     "config.format.ignore_non_standard_types should be a boolean.")
-        self._assert(isinstance(self.format.default_entry_type, str),
-                     "config.format.default_entry_type should be a string.")
+        # PARSER section
+        self._assert(isinstance(self.parsers.bibtex.ignore_non_standard_types, bool),
+                     "config.parsers.bibtex.ignore_non_standard_types should be a boolean.")
 
         # TUI section
-        LOGGER.debug('Validating the TUI configuration section.')
-        self._assert(self.tui, "Missing config.tui section!")
         self._assert(isinstance(self.tui.default_list_args, str),
                      "config.tui.default_list_args should be a string.")
         self._assert(isinstance(self.tui.prompt_before_quit, bool),
@@ -356,7 +359,6 @@ class Config(dict):
 
         # TUI.COLORS section
         LOGGER.debug('Validating the TUI.COLORS configuration section.')
-        self._assert(self.tui.colors, "Missing config.tui.colors section!")
         for name in self.DEFAULTS['tui']['colors'].keys():
             self._assert(name in self.tui.colors.keys(),
                          f"Missing config.tui.colors.{name} specification!")
@@ -371,7 +373,6 @@ class Config(dict):
 
         # TUI.KEY_BINDINGS section
         LOGGER.debug('Validating the TUI.KEY_BINDINGS configuration section.')
-        self._assert(self.tui.key_bindings, "Missing config.tui.key_bindings section!")
         for command in self.DEFAULTS['tui']['key_bindings'].keys():
             self._assert(command in self.tui.key_bindings.keys(),
                          f"Missing config.tui.key_bindings.{command} key binding!")

@@ -122,7 +122,7 @@ def test_parser_from_bibtex_as_str(month_type):
     """
     root = path.abspath(path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
-    config.format.month = month_type
+    config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
         reference['month'] = 'aug'
@@ -142,7 +142,7 @@ def test_parser_from_bibtex_as_file(month_type):
     """
     root = path.abspath(path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
-    config.format.month = month_type
+    config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
         reference['month'] = 'aug'
@@ -161,7 +161,7 @@ def test_parser_from_yaml_as_file(month_type):
     """
     root = path.abspath(path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
-    config.format.month = month_type
+    config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
         reference['month'] = 'aug'
@@ -180,7 +180,7 @@ def test_parser_from_doi(month_type):
     """
     root = path.abspath(path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
-    config.format.month = month_type
+    config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
         reference['month'] = 'aug'
@@ -261,7 +261,7 @@ def test_escape_special_chars(month_type):
     """
     root = path.abspath(path.dirname(__file__))
     config.load(Path(root + '/../cobib/docs/debug.py'))
-    config.format.month = month_type
+    config.database.format.month = month_type
     reference = EXAMPLE_ENTRY_DICT.copy()
     if month_type == str:
         reference['month'] = 'aug'

@@ -24,14 +24,14 @@ def test_load_legacy_config():
     # first, it must pass the validation test
     config.validate()
     # then we also check that all settings have been changed somehow
+    assert config.commands.edit.default_entry_type == 'string'
     assert config.commands.open.command == 'string'
     assert config.commands.search.grep == 'string'
     assert config.commands.search.ignore_case is True
     assert config.database.file == 'string'
     assert config.database.git is True
-    assert config.format.month == str
-    assert config.format.ignore_non_standard_types is True
-    assert config.format.default_entry_type == 'string'
+    assert config.database.format.month == str
+    assert config.parsers.bibtex.ignore_non_standard_types is True
     assert config.tui.default_list_args == 'string'
     assert config.tui.prompt_before_quit is False
     assert config.tui.reverse_order is False
@@ -54,33 +54,15 @@ def test_base_config(setup):
     config.validate()
 
 
-@pytest.mark.parametrize(['sections'], [
-        [['database']],
-        [['format']],
-        [['tui']],
-        [['tui', 'key_bindings']],
-        [['tui', 'colors']],
-    ])
-def test_missing_section(setup, sections):
-    """Test raised RuntimeError for missing configuration section."""
-    with pytest.raises(RuntimeError) as exc_info:
-        section = config
-        for sec in sections[:-1]:
-            section = config[sec]
-        del section[sections[-1]]
-        config.validate()
-    assert f"Missing config.{'.'.join(sections)} section" in str(exc_info.value)
-
-
 @pytest.mark.parametrize(['sections', 'field'], [
+        [['commands', 'edit'], 'default_entry_type'],
         [['commands', 'open'], 'command'],
         [['commands', 'search'], 'grep'],
         [['commands', 'search'], 'ignore_case'],
         [['database'], 'file'],
         [['database'], 'git'],
-        [['format'], 'month'],
-        [['format'], 'ignore_non_standard_types'],
-        [['format'], 'default_entry_type'],
+        [['database', 'format'], 'month'],
+        [['parsers', 'bibtex'], 'ignore_non_standard_types'],
         [['tui'], 'default_list_args'],
         [['tui'], 'prompt_before_quit'],
         [['tui'], 'reverse_order'],

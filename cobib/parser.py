@@ -74,7 +74,7 @@ class Entry:
         self._label = label
         self.data = data.copy()
         self.escape_special_chars(suppress_warnings)
-        month_type = config.format.month
+        month_type = config.database.format.month
         if month_type:
             self.convert_month(month_type)
         if self.data['ID'] != self._label:
@@ -279,7 +279,7 @@ class Entry:
             An OrderedDict containing the bibliography as per the provided BibLaTex data.
         """
         bparser = bibtexparser.bparser.BibTexParser()
-        bparser.ignore_nonstandard_types = config.database.ignore_non_standard_types
+        bparser.ignore_nonstandard_types = config.parsers.bibtex.ignore_non_standard_types
         if string:
             LOGGER.debug('Loading BibTex string: %s.', file)
             database = bibtexparser.loads(file, parser=bparser)
