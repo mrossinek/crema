@@ -32,7 +32,7 @@ def test_load_legacy_config():
     assert config.database.git is True
     assert config.database.format.month == str
     assert config.parsers.bibtex.ignore_non_standard_types is True
-    assert config.tui.default_list_args == 'string'
+    assert config.tui.default_list_args == ['string']
     assert config.tui.prompt_before_quit is False
     assert config.tui.reverse_order is False
     assert config.tui.scroll_offset == 5

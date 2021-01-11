@@ -41,7 +41,7 @@ class State:
 
     def initialize(self):
         """Initialize configuration-dependent settings."""
-        self.list_args = config.tui.default_list_args.split(' ')
+        self.list_args = config.tui.default_list_args
         if config.tui.reverse_order:
             self.list_args += ['-r']
 

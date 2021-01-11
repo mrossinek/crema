@@ -65,7 +65,7 @@ class Config(dict):
             },
         },
         'tui': {
-            'default_list_args': '-l',
+            'default_list_args': ['-l'],
             'prompt_before_quit': True,
             'reverse_order': True,
             'scroll_offset': 3,
@@ -286,8 +286,8 @@ class Config(dict):
                         LOGGER.warning('Ignoring unknown setting %s', f'{section}/{field}')
             elif section == 'TUI':
                 for field, value in dict(ini_conf[section]).items():
-                    if field in ['default_list_args']:
-                        config.tui[field] = value
+                    if field == 'default_list_args':
+                        config.tui[field] = value.split(' ')
                     elif field in ['prompt_before_quit', 'reverse_order']:
                         try:
                             config.tui[field] = ini_conf[section].getboolean(field)
@@ -348,8 +348,8 @@ class Config(dict):
                      "config.parsers.bibtex.ignore_non_standard_types should be a boolean.")
 
         # TUI section
-        self._assert(isinstance(self.tui.default_list_args, str),
-                     "config.tui.default_list_args should be a string.")
+        self._assert(isinstance(self.tui.default_list_args, list),
+                     "config.tui.default_list_args should be a list.")
         self._assert(isinstance(self.tui.prompt_before_quit, bool),
                      "config.tui.prompt_before_quit should be a boolean.")
         self._assert(isinstance(self.tui.reverse_order, bool),
