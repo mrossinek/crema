@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 from cobib import zsh_helper
+from cobib.config import config
 import cobib
 
 
@@ -17,13 +18,15 @@ def test_list_commands():
 def test_list_tags():
     """Test listing tags."""
     root = os.path.abspath(os.path.dirname(__file__))
-    tags = zsh_helper.list_tags({'config': Path(root + '/debug.py')})
+    config.load(Path(root + '/debug.py'))
+    tags = zsh_helper.list_tags()
     assert tags == ['einstein', 'latexcompanion', 'knuthwebsite']
 
 
 def test_list_filters():
     """Test listing filters."""
     root = os.path.abspath(os.path.dirname(__file__))
-    filters = zsh_helper.list_filters({'config': Path(root + '/debug.py')})
+    config.load(Path(root + '/debug.py'))
+    filters = zsh_helper.list_filters()
     assert filters == {'publisher', 'ENTRYTYPE', 'address', 'ID', 'journal', 'doi', 'year', 'title',
                        'author', 'pages', 'number', 'volume', 'url'}

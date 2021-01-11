@@ -86,16 +86,36 @@ def zsh_main():
 
     Main function used by the ZSH completion script.
     """
-    helper_avail = ['_'+m[0] for m in inspect.getmembers(zsh_helper) if inspect.isfunction(m[1])]
+    available_helpers = ['_'+m[0] for m in inspect.getmembers(zsh_helper)
+                         if inspect.isfunction(m[1])]
     parser = argparse.ArgumentParser(description="Process ZSH helper call")
-    parser.add_argument('helper', help="zsh helper to be called", choices=helper_avail)
+    parser.add_argument('helper', help="zsh helper to be called", choices=available_helpers)
     parser.add_argument('args', nargs=argparse.REMAINDER)
+    parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument("-l", "--logfile", type=argparse.FileType('w'),
+                        help="Alternative log file")
+    parser.add_argument("-c", "--config", type=argparse.FileType('r'),
+                        help="Alternative config file")
 
     args = parser.parse_args()
 
+    if args.logfile:
+        LOGGER.info('Switching to FileHandler logger in %s', args.logfile.name)
+        log_to_file('DEBUG' if args.verbose > 1 else 'INFO', logfile=args.logfile.name)
+
+    # set logging verbosity level
+    if args.verbose == 1:
+        logging.getLogger().setLevel(logging.INFO)
+        LOGGER.info('Logging level set to INFO.')
+    elif args.verbose > 1:
+        logging.getLogger().setLevel(logging.DEBUG)
+        LOGGER.info('Logging level set to DEBUG.')
+
+    config.load(args.config)
+
     helper = getattr(zsh_helper, args.helper.strip('_'))
     # any zsh helper function will return a list of the requested items
-    for item in helper(args=args.args):
+    for item in helper():
         print(item)
 
 
