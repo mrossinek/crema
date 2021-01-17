@@ -25,8 +25,6 @@ build:
     stage: build
     script:
         - uname -a
-        - apt-get update
-        - apt-get install -y python3-enchant vim
         - python -V  # Print out python version for debugging
         - pip install virtualenv
         - virtualenv venv
@@ -49,6 +47,8 @@ doc:
 spell:
     stage: test
     script:
+        - apt-get update
+        - apt-get install -y python3-enchant
         - source venv/bin/activate
         - python <<< 'import enchant; print(enchant.list_dicts())'
         - pylint -rn cobib test --disable=all --enable=spelling
@@ -57,7 +57,9 @@ spell:
 test:
     stage: test
     script:
-        - source venv/bin/activate
+        - apt-get update
+        - apt-get install -y vim
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
+        - source venv/bin/activate
         - python -m pytest --verbose test
