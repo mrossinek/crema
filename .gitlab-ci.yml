@@ -62,4 +62,10 @@ test:
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
         - source venv/bin/activate
-        - python -m pytest --verbose test
+        - python -m pytest --verbose --junitxml=report.xml test
+    artifacts:
+        when: always
+        paths:
+            - report.xml
+        reports:
+            junit: report.xml
