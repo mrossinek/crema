@@ -200,7 +200,8 @@ class Config(dict):
                    "3.0! This means, that the old `INI`-style configuration is deprecated and will "
                    "be fully removed on 1.1.2022. Instead, the configuration is now done through a "
                    "Python file. For guidance on how to convert your existing configuration please "
-                   "consult the man-page or my blog post: <TODO insert link>."
+                   "consult the man-page or my blog post: "
+                   "https://mrossinek.gitlab.io/programming/cobibs-new-configuration/"
                    "\nIf you have successfully migrated your configuration you should delete the "
                    "old file in order to remove this warning message."
                   )
