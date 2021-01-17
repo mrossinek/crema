@@ -129,6 +129,13 @@ class Config(dict):
         else:
             raise TypeError('expected dict')
 
+        # Prevents a RecursionError during the `pdoc` generation.
+        # This works because `pdoc` uses
+        # [inspect.unwrap](https://docs.python.org/3/library/inspect.html#inspect.unwrap) to get the
+        # object wrapped by another one. By setting this attribute to None, we prevent an infinite
+        # recursion from taking place.
+        self.__wrapped__ = None
+
     def __setitem__(self, key, value):
         """Sets a key, value pair in the object's dictionary.
 
