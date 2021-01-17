@@ -37,16 +37,19 @@ build:
 lint:
     stage: test
     script:
+        - source venv/bin/activate
         - pylint -rn cobib test --disable=fixme,duplicate-code
 
 doc:
     stage: test
     script:
+        - source venv/bin/activate
         - pydocstyle --convention=google --match=".*\.py" cobib test
 
 spell:
     stage: test
     script:
+        - source venv/bin/activate
         - python <<< 'import enchant; print(enchant.list_dicts())'
         - pylint -rn cobib test --disable=all --enable=spelling
           --spelling-dict='en_US' --spelling-private-dict-file=.pylintdict
@@ -54,6 +57,7 @@ spell:
 test:
     stage: test
     script:
+        - source venv/bin/activate
         - git config --global user.email "cobib@cobib.org"
         - git config --global user.name "CoBib"
         - python -m pytest --verbose test
