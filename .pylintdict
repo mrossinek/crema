@@ -10,6 +10,7 @@ argparse
 args
 arxiv
 attr
+aug
 automagically
 biblatex
 bibtex
@@ -23,6 +24,7 @@ configpath
 deepcopied
 defaultdict
 doi
+getter
 github
 https
 ini
