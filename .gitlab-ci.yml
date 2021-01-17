@@ -71,6 +71,22 @@ test:
         reports:
             junit: report.xml
 
+develop:
+    stage: deploy
+    environment:
+        name: dev
+        url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
+    script:
+        - source venv/bin/activate
+        - pip install pdoc3
+        - pdoc --html --force --output-dir public cobib
+        - echo '<meta http-equiv="refresh" content="0; url=./cobib/" />' > public/index.html
+    artifacts:
+        paths:
+          - public
+    variables:
+        PUBLIC_URL: "/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public"
+
 pages:
     stage: deploy
     script:
@@ -81,3 +97,6 @@ pages:
     artifacts:
         paths:
             - public
+    when: manual
+    only:
+        - master
