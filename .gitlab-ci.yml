@@ -77,6 +77,7 @@ pages:
         - source venv/bin/activate
         - pip install pdoc3
         - pdoc --html --force --output-dir public cobib
+        - echo '<meta http-equiv="refresh" content="0; url=./cobib/" />' > public/index.html
     artifacts:
         paths:
             - public
