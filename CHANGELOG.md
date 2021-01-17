@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - only bugs which fully break usability will be fixed with regards to this configuration style
     - legacy-support will be fully removed on 1.1.2022
 
+### Removed
+- the `read_database()` function no longer takes the `fresh` argument
+
 
 ## [2.6.0] - 2020-12-31
 
