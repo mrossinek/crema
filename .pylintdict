@@ -1,6 +1,7 @@
 CLI
 ESC
 OrderedDict
+RRGGBB
 SHA
 TUI
 TextBuffer
@@ -22,6 +23,8 @@ configpath
 deepcopied
 defaultdict
 doi
+github
+https
 ini
 init
 initializer
@@ -31,12 +34,14 @@ isbn
 logfile
 msg
 pdf
+phiresky
 pmincol
 pminrow
 py
 pylatexenc
 pytest
 readline
+ripgrep
 runtime
 scrolloff
 sha

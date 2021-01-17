@@ -38,6 +38,6 @@ def test_example_config():
     root = os.path.abspath(os.path.dirname(__file__))
     config.load(Path(root + '/debug.py'))
     example = zsh_helper.example_config()
-    with open(root + '/../cobib/docs/example.py', 'r') as expected:
+    with open(root + '/../cobib/config/example.py', 'r') as expected:
         for line, truth in zip_longest(example, expected):
             assert line == truth.strip()

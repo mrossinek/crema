@@ -35,7 +35,7 @@ config.commands.open.command = 'xdg-open' if sys.platform.lower() == 'linux' els
 # tools such as [ripgrep-all](https://github.com/phiresky/ripgrep-all) will.
 config.commands.search.grep = 'grep'
 
-# You can specify whether searches should be performed case-insenstive. By default, this is off.
+# You can specify whether searches should be performed case-insensitive. By default, this is off.
 config.commands.search.ignore_case = False
 
 
@@ -117,7 +117,7 @@ config.tui.colors.selection_bg = 'magenta'
 # You can attempt to get this to work by overwriting the named colors with a `#RRGGBB` value like
 # so:
 #     config.tui.colors.black = `#222222`
-# , which changes the black definition into a more mallow grey.
+# , which changes the black definition into a more mallow gray.
 
 # TUI.KEY_BINDINGS
 # You can also change the default key bindings of the TUI by overwriting any of the following

@@ -1,4 +1,4 @@
-"""CoBib configuration module."""
+"""CoBib's configuration."""
 
 import configparser
 import copy
