@@ -80,7 +80,7 @@ develop:
         - source venv/bin/activate
         - pip install pdoc3
         - pdoc --html --force --output-dir public cobib
-        - echo '<meta http-equiv="refresh" content="0; url=./cobib/" />' > public/index.html
+        - echo '<meta http-equiv="refresh" content="0; url=./cobib/index.html" />' > public/index.html
     artifacts:
         paths:
           - public
@@ -93,7 +93,7 @@ pages:
         - source venv/bin/activate
         - pip install pdoc3
         - pdoc --html --force --output-dir public cobib
-        - echo '<meta http-equiv="refresh" content="0; url=./cobib/" />' > public/index.html
+        - echo '<meta http-equiv="refresh" content="0; url=./cobib/index.html" />' > public/index.html
     artifacts:
         paths:
             - public
