@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - only bugs which fully break usability will be fixed with regards to this configuration style
     - legacy-support will be fully removed on 1.1.2022
 
+### Fixed
+- the ZSH helper utilities now respect the `-c`, `-l`, and `-v` command line options
+
 ### Removed
 - the `read_database()` function no longer takes the `fresh` argument
 
