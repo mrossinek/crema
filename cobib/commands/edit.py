@@ -43,7 +43,7 @@ class EditCommand(Command):
             return
 
         try:
-            entry = config.bib_data[largs.label]
+            entry = config.bibliography[largs.label]
             prv = entry.to_yaml()
             if largs.add:
                 LOGGER.warning("Entry '%s' already exists! Ignoring the `--add` argument.",

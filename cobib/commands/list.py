@@ -42,7 +42,7 @@ class ListCommand(Command):
                             help="reverses the listing order")
         unique_keys = set()
         LOGGER.debug('Gathering possible filter arguments.')
-        for entry in config.bib_data.values():
+        for entry in config.bibliography.values():
             unique_keys.update(entry.data.keys())
         for key in sorted(unique_keys):
             parser.add_argument('++'+key, type=str, action='append',
@@ -82,7 +82,7 @@ class ListCommand(Command):
         widths = [0]*len(columns)
         labels = []
         table = []
-        for key, entry in config.bib_data.items():
+        for key, entry in config.bibliography.items():
             if entry.matches(_filter, largs.OR):
                 LOGGER.debug('Entry "%s" matches the filter.', key)
                 labels.append(key)

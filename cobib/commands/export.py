@@ -71,7 +71,7 @@ class ExportCommand(Command):
         try:
             for label in labels:
                 LOGGER.debug('Exporting entry "%s".', label)
-                entry = config.bib_data[label]
+                entry = config.bibliography[label]
                 if largs.bibtex is not None:
                     entry_str = entry.to_bibtex()
                     largs.bibtex.write(entry_str)

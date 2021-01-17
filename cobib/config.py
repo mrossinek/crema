@@ -140,6 +140,27 @@ class Config(dict):
             value = Config(value)
         super().__setitem__(key, value)
 
+    def __setattr__(self, key, value):
+        """Sets an attribute of the object while respecting specifically defined properties.
+
+        If we would copy `__setitem__` to `__setattr__` like we do for the getter methods, we would
+        loose the ability to define some specific properties of this class. However, we can make the
+        `__setattr__` method smart by checking whether the `key` corresponds to a property of this
+        class and use that setter. Otherwise, we default to using the `__setitem__` method.
+
+        Source: https://stackoverflow.com/a/15751135
+
+        Args:
+            key (str): the attributes' name.
+            value (Any): the attributes' value.
+        """
+        property_object = getattr(self.__class__, key, None)
+        if isinstance(property_object, property):
+            LOGGER.debug("Setting attribute %s using property's fset.", key)
+            property_object.fset(self, value)
+        else:
+            super().__setitem__(key, value)
+
     # A helper object for detecting the nested recursion-threshold.
     MARKER = object()
 
@@ -158,8 +179,8 @@ class Config(dict):
             super().__setitem__(key, found)
         return found
 
-    # Enable attribute-like access of the dictionary items
-    __setattr__, __getattr__ = __setitem__, __getitem__
+    __getattr__ = __getitem__
+    """We enable attribute-like access to all dictionary items, for convenience."""
 
     def update(self, **kwargs):
         """Updates the configuration with a dictionary of settings.
@@ -410,6 +431,24 @@ class Config(dict):
         bg_color = 40 + ANSI_COLORS.index(self.tui.colors.get(name + '_bg'))
 
         return f'\x1b[{fg_color};{bg_color}m'
+
+    def get_bibliography(self):
+        """Returns the bibliographic runtime data."""
+        LOGGER.debug('Getting bibliographic runtime data.')
+        return self._bibliography
+
+    def set_bibliography(self, bib):
+        """Sets the bibliographic runtime data."""
+        LOGGER.debug('Setting bibliographic runtime data.')
+        # pylint: disable=attribute-defined-outside-init
+        self._bibliography = copy.deepcopy(bib)
+
+    def del_bibliography(self):
+        """Deletes the bibliographic runtime data."""
+        LOGGER.debug('Clearing bibliographic runtime data.')
+        self._bibliography.clear()
+
+    bibliography = property(get_bibliography, set_bibliography, del_bibliography)
 
 
 config = Config()

@@ -21,10 +21,10 @@ def read_database():
     file = os.path.expanduser(config.database.file)
     try:
         LOGGER.info('Loading database file: %s', file)
-        config.bib_data = Entry.from_yaml(Path(file))
+        config.bibliography = Entry.from_yaml(Path(file))
     except AttributeError:
         LOGGER.debug('Initializing an empty database.')
-        config.bib_data = OrderedDict()
+        config.bibliography = OrderedDict()
     except FileNotFoundError:
         LOGGER.critical("The database file %s does not exist! Please run `cobib init`!", file)
         sys.exit(1)
@@ -42,14 +42,10 @@ def write_database(entries):
     Returns:
         A list of the actually written entries.
     """
-    if not hasattr(config, 'bib_data'):
-        # if no data in memory, read the database file (the case when using the CLI)
-        LOGGER.info('Reading database file, before trying to write to it.')
-        read_database()
     new_lines = []
     new_entries = []
     for label, entry in entries.items():
-        if label in config.bib_data.keys():
+        if label in config.bibliography.keys():
             LOGGER.warning("Label %s already exists! Ignoring the new version.", label)
             continue
         string = entry.to_yaml()

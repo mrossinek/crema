@@ -38,7 +38,7 @@ class ShowCommand(Command):
             return
 
         try:
-            entry = config.bib_data[largs.label]
+            entry = config.bibliography[largs.label]
             entry_str = entry.to_bibtex()
             print(entry_str, file=out)
         except KeyError:

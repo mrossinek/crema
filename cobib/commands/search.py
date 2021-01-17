@@ -61,7 +61,7 @@ class SearchCommand(Command):
         hits = 0
         output = []
         for label in labels.copy():
-            entry = config.bib_data[label]
+            entry = config.bibliography[label]
             matches = entry.search(largs.query, largs.context, ignore_case)
             if not matches:
                 labels.remove(label)

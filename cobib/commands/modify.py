@@ -83,7 +83,7 @@ class ModifyCommand(Command):
 
         for label in labels:
             try:
-                entry = config.bib_data[label]
+                entry = config.bibliography[label]
                 entry.data[field] = value
 
                 file = os.path.expanduser(config.database.file)

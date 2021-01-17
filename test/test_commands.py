@@ -46,7 +46,7 @@ def setup():
     # clean up config
     config.defaults()
     try:
-        del config['bib_data']
+        del config.bibliography
     except KeyError:
         pass
 
@@ -75,7 +75,7 @@ def init_setup(request):
     # clean up config
     config.defaults()
     try:
-        del config['bib_data']
+        del config.bibliography
     except KeyError:
         pass
 
@@ -194,7 +194,7 @@ def open_setup():
     # clean up config
     config.defaults()
     try:
-        del config['bib_data']
+        del config.bibliography
     except KeyError:
         pass
 
@@ -248,7 +248,6 @@ def test_add(database_setup):
     """Test add command."""
     git = database_setup
     # add some data
-    print(config.bib_data)
     commands.AddCommand().execute(['-b', './test/example_literature.bib'])
     # compare with reference file
     with open('/tmp/cobib_test/database.yaml', 'r') as file:
@@ -331,7 +330,7 @@ def test_modify(database_setup, modification, filters, selection, append=False):
     if append:
         args = ['-a'] + args
     commands.ModifyCommand().execute(args)
-    assert config.bib_data['einstein'].data['tags'] == 'test'
+    assert config.bibliography['einstein'].data['tags'] == 'test'
     if git:
         # assert the git commit message
         assert_git_commit_message('modify', {'append': append,

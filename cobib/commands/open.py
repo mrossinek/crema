@@ -47,7 +47,7 @@ class OpenCommand(Command):
             count = 0
             # first: find all possible things to open
             try:
-                entry = config.bib_data[label]
+                entry = config.bibliography[label]
                 for field in ('file', 'url'):
                     if field in entry.data.keys() and entry.data[field]:
                         for val in entry.data[field].split(','):

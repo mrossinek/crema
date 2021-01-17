@@ -16,7 +16,7 @@ def list_commands():
 def list_tags():
     """List all available tags in the database."""
     read_database()
-    tags = list(config.bib_data.keys())
+    tags = list(config.bibliography.keys())
     return tags
 
 
@@ -24,7 +24,7 @@ def list_filters():
     """Lists all field names available for filtering."""
     read_database()
     filters = set()
-    for entry in config.bib_data.values():
+    for entry in config.bibliography.values():
         filters.update(entry.data.keys())
     return filters
 

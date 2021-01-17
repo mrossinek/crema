@@ -32,7 +32,7 @@ def setup():
     # clean up config
     config.defaults()
     try:
-        del config['bib_data']
+        del config.bibliography
     except KeyError:
         pass
 
@@ -332,7 +332,7 @@ def test_tui_config_color():
         # clean up config
         config.defaults()
         try:
-            del config['bib_data']
+            del config.bibliography
         except KeyError:
             pass
 
@@ -358,7 +358,7 @@ def test_tui_config_keys(command, key):
         # clean up config
         config.defaults()
         try:
-            del config['bib_data']
+            del config.bibliography
         except KeyError:
             pass
 
@@ -391,7 +391,7 @@ def test_tui_quit_prompt(setting, keys):
         # clean up config
         config.defaults()
         try:
-            del config['bib_data']
+            del config.bibliography
         except KeyError:
             pass
 
@@ -420,7 +420,7 @@ def test_tui_open_menu():
         # clean up config
         config.defaults()
         try:
-            del config['bib_data']
+            del config.bibliography
         except KeyError:
             pass
 
@@ -510,6 +510,6 @@ def test_tui_scrolling(keys, assertion, assertion_kwargs):
         # clean up config
         config.defaults()
         try:
-            del config['bib_data']
+            del config.bibliography
         except KeyError:
             pass
