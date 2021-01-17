@@ -20,6 +20,7 @@ cache:
 stages:
     - build
     - test
+    - deploy
 
 build:
     stage: build
@@ -69,3 +70,13 @@ test:
             - report.xml
         reports:
             junit: report.xml
+
+pages:
+    stage: deploy
+    script:
+        - source venv/bin/activate
+        - pip install pdoc3
+        - pdoc --html --force --output-dir public cobib
+    artifacts:
+        paths:
+            - public
