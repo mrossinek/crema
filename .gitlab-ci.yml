@@ -65,6 +65,7 @@ test:
         - source venv/bin/activate
         - python -m pytest --verbose --junitxml=report.xml --cov=cobib test
         - coverage xml
+    coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
     artifacts:
         when: always
         paths:
