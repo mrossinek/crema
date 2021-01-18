@@ -24,6 +24,12 @@ make spell
 make doc
 ```
 
+## Coverage
+You can check the coverage with the `pytest-cov` plugin:
+```
+make coverage
+```
+
 ## Documentation
 When working on CoBib you may find the online documentation at https://mrossinek.gitlab.io/cobib/ or a locally generated version, useful.
 For the latter, please refer to the README.

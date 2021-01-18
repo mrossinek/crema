@@ -28,6 +28,10 @@ spell: cobib/ test/
 test:
 	python3 -m pytest test/
 
+.PHONY: coverage
+coverage:
+	python3 -m pytest --cov=cobib test/
+
 .PHONY: html
 html:
 	pdoc --html --force --output-dir html cobib
