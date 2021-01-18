@@ -12,7 +12,7 @@ install: install_extras
 
 .PHONY: dev
 dev:
-	pip3 install pylint pydocstyle pyenchant pyte
+	pip3 install -r requirements-dev.txt
 
 lint: cobib/ test/
 	pylint -rn cobib test --disable=fixme,duplicate-code
