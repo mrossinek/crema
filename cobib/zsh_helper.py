@@ -34,3 +34,7 @@ def example_config():
     root = os.path.abspath(os.path.dirname(__file__))
     with open(root + '/config/example.py', 'r') as file:
         return [line.strip() for line in file.readlines()]
+
+
+def untested_function_coverage_test():
+    """This function will shortly be removed again and merely aids in testing the coverage tools."""
